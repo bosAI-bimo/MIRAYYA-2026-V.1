@@ -5,6 +5,7 @@ import { Search, UserPlus, Filter, ShieldCheck, Mail, MapPin } from "lucide-reac
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const mockEmployees = [
   { id: "EMP-001", name: "Siti Rahma", role: "HR Manager", branch: "Head Office", email: "siti.hr@mirayya.com", status: "Aktif" },
@@ -29,28 +30,32 @@ export default function OwnerKaryawanPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Data Karyawan</h1>
-          <p className="text-slate-500 mt-1">Akses penuh database karyawan Mirayya Cosmetics seluruh cabang.</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Data Karyawan</h1>
+          <p className="text-muted-foreground mt-1">Akses penuh database karyawan Mirayya Cosmetics seluruh cabang.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="text-slate-600 border-slate-200">
-            <Filter className="w-4 h-4 mr-2" />
-            Filter
-          </Button>
-          <Button className="bg-[#B76E79] hover:bg-[#9A5A66] text-white">
+        <div className="flex flex-wrap items-center gap-2">
+          <select className="px-3 py-2 border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-background cursor-pointer w-full sm:w-auto min-w-[140px] text-muted-foreground">
+            <option value="all">Semua Cabang</option>
+            <option value="sudirman">Mirayya Sudirman</option>
+            <option value="kemang">Mirayya Kemang</option>
+            <option value="pik">Mirayya PIK</option>
+            <option value="kelapa_gading">Mirayya Kelapa Gading</option>
+            <option value="bintaro">Mirayya Bintaro</option>
+          </select>
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
             <UserPlus className="w-4 h-4 mr-2" />
             Tambah Karyawan
           </Button>
         </div>
       </div>
 
-      <Card className="border-slate-200 shadow-sm">
-        <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+      <Card className="border-border shadow-sm">
+        <div className="p-4 border-b border-border bg-muted/50">
           <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input 
               placeholder="Cari berdasarkan nama, posisi, atau cabang..." 
-              className="pl-9 w-full bg-white border-slate-200"
+              className="pl-9 w-full bg-background border-border"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -59,7 +64,7 @@ export default function OwnerKaryawanPage() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+              <thead className="bg-muted text-muted-foreground font-medium border-b border-border">
                 <tr>
                   <th className="px-6 py-4">Nama & ID</th>
                   <th className="px-6 py-4">Role</th>
@@ -69,49 +74,45 @@ export default function OwnerKaryawanPage() {
                   <th className="px-6 py-4 text-center">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-border">
                 {filteredEmployees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
+                  <tr key={emp.id} className="hover:bg-muted/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
-                        <div className="w-9 h-9 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold mr-3 border border-slate-300">
+                        <div className="w-9 h-9 rounded-full bg-muted text-muted-foreground flex items-center justify-center font-bold mr-3 border border-border">
                           {emp.name.charAt(0)}
                         </div>
                         <div>
-                          <div className="font-semibold text-slate-800">{emp.name}</div>
-                          <div className="text-xs text-slate-500">{emp.id}</div>
+                          <div className="font-semibold text-foreground">{emp.name}</div>
+                          <div className="text-xs text-muted-foreground">{emp.id}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center text-slate-700">
-                        <ShieldCheck className="w-4 h-4 mr-1.5 text-slate-400" />
+                      <div className="flex items-center text-foreground">
+                        <ShieldCheck className="w-4 h-4 mr-1.5 text-muted-foreground" />
                         {emp.role}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center text-slate-700">
-                        <MapPin className="w-4 h-4 mr-1.5 text-slate-400" />
+                      <div className="flex items-center text-foreground">
+                        <MapPin className="w-4 h-4 mr-1.5 text-muted-foreground" />
                         {emp.branch}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center text-slate-600">
-                        <Mail className="w-4 h-4 mr-1.5 text-slate-400" />
+                      <div className="flex items-center text-foreground">
+                        <Mail className="w-4 h-4 mr-1.5 text-muted-foreground" />
                         {emp.email}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        emp.status === 'Aktif' ? 'bg-emerald-100 text-emerald-800' : 
-                        emp.status === 'Cuti' ? 'bg-amber-100 text-amber-800' : 
-                        'bg-slate-100 text-slate-800'
-                      }`}>
+                      <Badge variant={emp.status === 'Aktif' ? 'success' : emp.status === 'Cuti' ? 'warning' : 'outline'}>
                         {emp.status}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <Button variant="outline" size="sm" className="h-8 text-[#B76E79] border-[#B76E79] hover:bg-[#F3D3D3] hover:text-[#9A5A66]">
+                      <Button variant="outline" size="sm" className="h-8 text-primary border-primary hover:bg-primary/10 hover:text-primary">
                         Lihat Detail
                       </Button>
                     </td>
@@ -120,7 +121,7 @@ export default function OwnerKaryawanPage() {
                 
                 {filteredEmployees.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                    <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                       Tidak ada karyawan yang cocok dengan pencarian &quot;{searchTerm}&quot;
                     </td>
                   </tr>

@@ -28,21 +28,38 @@ export default function HRDashboard() {
       initial="hidden"
       animate="show"
     >
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-800">Dashboard HR</h1>
-        <p className="text-slate-600 mt-1">Ringkasan karyawan, absensi hari ini, dan status payroll.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-800">Dashboard HR</h1>
+          <p className="text-slate-600 mt-1">Ringkasan karyawan, absensi hari ini, dan status payroll.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-0">
+          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[140px]">
+            <option value="all">Semua Cabang</option>
+            <option value="sudirman">Mirayya Sudirman</option>
+            <option value="kemang">Mirayya Kemang</option>
+            <option value="pik">Mirayya PIK</option>
+            <option value="kelapa_gading">Mirayya Kelapa Gading</option>
+            <option value="bintaro">Mirayya Bintaro</option>
+          </select>
+          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+            <option value="this_month">Bulan Ini</option>
+            <option value="last_month">Bulan Lalu</option>
+            <option value="this_year">Tahun Ini</option>
+          </select>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {/* Total Karyawan */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="shadow-sm hover:shadow-md transition-shadow border-slate-200 h-full flex flex-col">
+          <Card className="shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-slate-200 h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Total Karyawan</CardTitle>
             <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-800">58</div>
+            <div className="text-xl lg:text-2xl font-bold text-slate-800">58</div>
             <p className="text-xs text-slate-500 mt-1 flex items-center">
               Tersebar di 6 cabang
             </p>
@@ -52,13 +69,13 @@ export default function HRDashboard() {
 
         {/* Hadir Hari Ini */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="shadow-sm hover:shadow-md transition-shadow border-slate-200 h-full flex flex-col">
+          <Card className="shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-slate-200 h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Hadir Hari Ini</CardTitle>
             <UserCheck className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-800">54</div>
+            <div className="text-xl lg:text-2xl font-bold text-slate-800">54</div>
             <p className="text-xs text-emerald-600 font-medium mt-1">
               93% tingkat kehadiran
             </p>
@@ -68,13 +85,13 @@ export default function HRDashboard() {
 
         {/* Absen/Terlambat */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="shadow-sm hover:shadow-md transition-shadow border-rose-100 bg-rose-50/50 h-full flex flex-col">
+          <Card className="shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-rose-100 bg-rose-50/50 h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Absen / Cuti</CardTitle>
             <AlertCircle className="h-4 w-4 text-rose-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-rose-600">4 <span className="text-sm font-normal text-slate-500">orang</span></div>
+            <div className="text-xl lg:text-2xl font-bold text-rose-600">4 <span className="text-sm font-normal text-slate-500">orang</span></div>
             <p className="text-xs text-slate-500 mt-1">Perlu pengecekan</p>
           </CardContent>
         </Card>
@@ -82,13 +99,13 @@ export default function HRDashboard() {
 
         {/* Payroll Bulan Ini */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="shadow-sm hover:shadow-md transition-shadow border-amber-100 bg-amber-50/50 h-full flex flex-col">
+          <Card className="shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-amber-100 bg-amber-50/50 h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Status Payroll (Juni)</CardTitle>
             <FileText className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">Pending</div>
+            <div className="text-xl lg:text-2xl font-bold text-amber-600">Pending</div>
             <p className="text-xs text-slate-500 mt-1">Menunggu proses (Tgl 25)</p>
           </CardContent>
         </Card>
@@ -98,7 +115,7 @@ export default function HRDashboard() {
       <div className="grid gap-6 md:grid-cols-2">
         {/* Absensi Masuk Terbaru */}
         <motion.div variants={itemVariants}>
-          <Card className="shadow-sm border-slate-200 h-full">
+          <Card className="shadow-sm border-slate-200 h-full hover:shadow-lg transition-shadow duration-300">
           <CardHeader className="pb-3 border-b border-slate-100">
             <CardTitle className="text-lg font-semibold text-slate-800 flex items-center justify-between">
               Check-in Terbaru
@@ -115,7 +132,7 @@ export default function HRDashboard() {
                 { name: "Sari Indah", role: "BA", branch: "Mirayya PIK", time: "09:15 WIB", status: "Terlambat" },
                 { name: "Dina Mariana", role: "BA", branch: "Mirayya Kelapa Gading", time: "08:55 WIB", status: "Tepat Waktu" },
               ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
+                <div key={i} className="flex items-center justify-between p-4 hover:bg-slate-100 transition-colors cursor-default">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold overflow-hidden">
                       {/* Placeholder for Photo */}
@@ -141,7 +158,7 @@ export default function HRDashboard() {
 
         {/* Akses Cepat */}
         <motion.div variants={itemVariants}>
-          <Card className="shadow-sm border-slate-200 h-full">
+          <Card className="shadow-sm border-slate-200 h-full hover:shadow-lg transition-shadow duration-300">
           <CardHeader className="pb-3 border-b border-slate-100">
             <CardTitle className="text-lg font-semibold text-slate-800">Akses Cepat</CardTitle>
           </CardHeader>

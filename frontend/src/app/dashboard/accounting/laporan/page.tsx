@@ -12,10 +12,25 @@ export default function LaporanKeuanganPage() {
           <h1 className="text-3xl font-bold tracking-tight text-slate-800">Laporan Keuangan</h1>
           <p className="text-slate-600 mt-1">Laba-rugi, arus kas, dan penyesuaian jurnal keuangan per cabang.</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90 text-white">
-          <Download className="w-4 h-4 mr-2" />
-          Ekspor Laporan Konsolidasi
-        </Button>
+        <div className="flex flex-wrap items-center gap-2 mt-4 md:mt-0">
+          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer min-w-[140px]">
+            <option value="all">Semua Cabang</option>
+            <option value="sudirman">Mirayya Sudirman</option>
+            <option value="kemang">Mirayya Kemang</option>
+            <option value="pik">Mirayya PIK</option>
+            <option value="kelapa_gading">Mirayya Kelapa Gading</option>
+            <option value="bintaro">Mirayya Bintaro</option>
+          </select>
+          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer min-w-[130px]">
+            <option value="this_month">Bulan Ini</option>
+            <option value="last_month">Bulan Lalu</option>
+            <option value="this_year">Tahun Ini</option>
+          </select>
+          <Button className="bg-primary hover:bg-primary/90 text-white">
+            <Download className="w-4 h-4 mr-2" />
+            Ekspor Konsolidasi
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

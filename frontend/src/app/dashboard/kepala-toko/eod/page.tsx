@@ -8,9 +8,18 @@ import { UploadCloud, CheckCircle2, FileCheck } from "lucide-react";
 export default function EODPage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-800">Laporan End of Day (EOD)</h1>
-        <p className="text-slate-600 mt-1">Isi formulir tutup kas harian dan unggah bukti setoran/struk.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-800">Laporan End of Day (EOD)</h1>
+          <p className="text-slate-600 mt-1">Isi formulir tutup kas harian dan unggah bukti setoran/struk.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-0">
+          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+            <option value="today">Hari Ini</option>
+            <option value="yesterday">Kemarin</option>
+            <option value="7days">7 Hari Terakhir</option>
+          </select>
+        </div>
       </div>
 
       <form className="space-y-6">

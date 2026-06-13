@@ -23,7 +23,7 @@ export default function InventoryPage() {
         <CardHeader className="pb-4">
           <div className="flex flex-col md:flex-row justify-between gap-4">
             <CardTitle className="text-lg font-semibold text-slate-800 self-center">Daftar Produk</CardTitle>
-            <div className="flex flex-col md:flex-row gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
                 <Input
@@ -32,10 +32,12 @@ export default function InventoryPage() {
                   className="pl-9 w-full md:w-[250px] bg-slate-50 border-slate-200 focus-visible:ring-primary"
                 />
               </div>
-              <Button variant="outline" className="border-slate-200 bg-slate-50">
-                <Filter className="w-4 h-4 mr-2" />
-                Filter Kategori
-              </Button>
+              <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+                <option value="all">Semua Kategori</option>
+                <option value="skincare">Skincare</option>
+                <option value="makeup">Makeup</option>
+                <option value="bodycare">Bodycare</option>
+              </select>
             </div>
           </div>
           <CardDescription>

@@ -51,13 +51,28 @@ export default function RekonsiliasiBankPage() {
             <CardTitle className="text-lg font-semibold text-slate-800">Riwayat Rekonsiliasi</CardTitle>
             <CardDescription>Catatan pencocokan saldo per hari/minggu.</CardDescription>
           </div>
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Cari tanggal atau rekening..." 
-              className="pl-9 pr-4 py-2 border border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
-            />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+              <input 
+                type="text" 
+                placeholder="Cari rekening..." 
+                className="pl-9 pr-4 py-2 border border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
+            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]">
+              <option value="all">Semua Cabang</option>
+              <option value="sudirman">Mirayya Sudirman</option>
+              <option value="kemang">Mirayya Kemang</option>
+              <option value="pik">Mirayya PIK</option>
+              <option value="kelapa_gading">Mirayya Kelapa Gading</option>
+              <option value="bintaro">Mirayya Bintaro</option>
+            </select>
+            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[130px]">
+              <option value="this_month">Bulan Ini</option>
+              <option value="last_month">Bulan Lalu</option>
+              <option value="this_year">Tahun Ini</option>
+            </select>
           </div>
         </CardHeader>
         <CardContent className="p-0">

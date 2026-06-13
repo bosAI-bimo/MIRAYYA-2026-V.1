@@ -118,18 +118,20 @@ export default function AbsensiKaryawan() {
             <CardTitle>Riwayat Absensi</CardTitle>
             <CardDescription>Data kehadiran Anda bulan ini</CardDescription>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="relative">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
               <input 
                 type="text" 
                 placeholder="Cari tanggal..." 
-                className="flex h-9 w-[150px] sm:w-[200px] rounded-[calc(var(--radius)-2px)] border border-border bg-background pl-9 pr-3 py-2 text-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                className="flex h-9 w-full rounded-[calc(var(--radius)-2px)] border border-border bg-background pl-9 pr-3 py-2 text-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
               />
             </div>
-            <Button variant="outline" size="icon" className="h-9 w-9 border-border">
-              <Filter className="h-4 w-4" />
-            </Button>
+            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+              <option value="this_month">Bulan Ini</option>
+              <option value="last_month">Bulan Lalu</option>
+              <option value="this_year">Tahun Ini</option>
+            </select>
           </div>
         </CardHeader>
         <CardContent>

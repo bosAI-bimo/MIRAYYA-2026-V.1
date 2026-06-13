@@ -16,9 +16,24 @@ export default function OwnerAiInsightsPage() {
           </h1>
           <p className="text-slate-500 mt-1">Rekomendasi otomatis berbasis data operasional Mirayya untuk mendukung keputusan strategis.</p>
         </div>
-        <Button className="bg-[#B76E79] hover:bg-[#9A5A66] text-white">
-          Generate Laporan Baru
-        </Button>
+        <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-0">
+          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[140px]">
+            <option value="all">Semua Cabang</option>
+            <option value="sudirman">Mirayya Sudirman</option>
+            <option value="kemang">Mirayya Kemang</option>
+            <option value="pik">Mirayya PIK</option>
+            <option value="kelapa_gading">Mirayya Kelapa Gading</option>
+            <option value="bintaro">Mirayya Bintaro</option>
+          </select>
+          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+            <option value="this_month">Bulan Ini</option>
+            <option value="last_month">Bulan Lalu</option>
+            <option value="this_year">Tahun Ini</option>
+          </select>
+          <Button className="bg-[#B76E79] hover:bg-[#9A5A66] text-white">
+            Generate Laporan Baru
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

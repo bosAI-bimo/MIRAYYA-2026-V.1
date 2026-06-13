@@ -16,7 +16,7 @@ export default function EODApprovalPage() {
       <Card className="shadow-sm border-slate-200">
         <CardHeader className="pb-4 border-b border-slate-100 flex flex-col md:flex-row justify-between md:items-center gap-4">
           <CardTitle className="text-lg font-semibold text-slate-800">Daftar Laporan EOD</CardTitle>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
               <input 
@@ -25,10 +25,19 @@ export default function EODApprovalPage() {
                 className="pl-9 pr-4 py-2 border border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
-            <Button variant="outline" size="sm" className="flex items-center">
-              <Filter className="w-4 h-4 mr-2" />
-              Filter
-            </Button>
+            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]">
+              <option value="all">Semua Cabang</option>
+              <option value="sudirman">Mirayya Sudirman</option>
+              <option value="kemang">Mirayya Kemang</option>
+              <option value="pik">Mirayya PIK</option>
+              <option value="kelapa_gading">Mirayya Kelapa Gading</option>
+              <option value="bintaro">Mirayya Bintaro</option>
+            </select>
+            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[130px]">
+              <option value="this_month">Bulan Ini</option>
+              <option value="last_month">Bulan Lalu</option>
+              <option value="this_year">Tahun Ini</option>
+            </select>
           </div>
         </CardHeader>
         <CardContent className="p-0">

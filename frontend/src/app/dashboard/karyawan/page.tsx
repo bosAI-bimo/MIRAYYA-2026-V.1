@@ -28,21 +28,30 @@ export default function KaryawanDashboard() {
       initial="hidden"
       animate="show"
     >
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-800">Dashboard Karyawan</h1>
-        <p className="text-slate-600 mt-1">Selamat datang kembali, Jane. Berikut adalah ringkasan aktivitas Anda.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-800">Dashboard Karyawan</h1>
+          <p className="text-slate-600 mt-1">Selamat datang kembali, Jane. Berikut adalah ringkasan aktivitas Anda.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-0">
+          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+            <option value="this_month">Bulan Ini</option>
+            <option value="last_month">Bulan Lalu</option>
+            <option value="this_year">Tahun Ini</option>
+          </select>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Status Kehadiran Hari Ini */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="shadow-sm hover:shadow-md transition-shadow border-slate-200 h-full flex flex-col">
+          <Card className="shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-slate-200 h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Status Hari Ini</CardTitle>
             <Clock className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-800">Belum Check-In</div>
+            <div className="text-xl lg:text-2xl font-bold text-slate-800">Belum Check-In</div>
             <p className="text-xs text-slate-500 mt-1">Sif Pagi: 08:00 - 16:00</p>
             <Link href="/dashboard/karyawan/absensi" className="block mt-4">
               <Button className="w-full bg-primary hover:bg-primary/90 text-white">
@@ -55,13 +64,13 @@ export default function KaryawanDashboard() {
 
         {/* Ringkasan Bulan Ini */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="shadow-sm hover:shadow-md transition-shadow border-slate-200 h-full flex flex-col">
+          <Card className="shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-slate-200 h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Kehadiran Bulan Ini</CardTitle>
             <CalendarCheck className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-800">18 Hari</div>
+            <div className="text-xl lg:text-2xl font-bold text-slate-800">18 Hari</div>
             <div className="flex space-x-4 mt-2">
               <div className="flex flex-col">
                 <span className="text-xs text-slate-500">Tepat Waktu</span>
@@ -82,13 +91,13 @@ export default function KaryawanDashboard() {
 
         {/* Gaji Terakhir */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="shadow-sm hover:shadow-md transition-shadow border-slate-200 h-full flex flex-col">
+          <Card className="shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-slate-200 h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Slip Gaji Terakhir</CardTitle>
             <ReceiptText className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-800">Mei 2026</div>
+            <div className="text-xl lg:text-2xl font-bold text-slate-800">Mei 2026</div>
             <p className="text-xs text-slate-500 mt-1">Tersedia untuk diunduh</p>
             <Link href="/dashboard/karyawan/slip-gaji" className="block mt-4">
               <Button variant="outline" className="w-full border-primary text-primary hover:bg-secondary">
@@ -102,7 +111,7 @@ export default function KaryawanDashboard() {
 
       {/* Riwayat Terakhir */}
       <motion.div variants={itemVariants}>
-        <Card className="shadow-sm border-slate-200">
+        <Card className="shadow-sm border-slate-200 hover:shadow-lg transition-shadow duration-300">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-slate-800">Riwayat Absensi Terakhir</CardTitle>
           <CardDescription>5 aktivitas check-in/out terakhir Anda</CardDescription>
@@ -114,7 +123,7 @@ export default function KaryawanDashboard() {
               { date: "10 Jun 2026", in: "07:50", out: "16:00", status: "Tepat Waktu", location: "Mirayya Pusat" },
               { date: "09 Jun 2026", in: "08:15", out: "16:10", status: "Terlambat", location: "Mirayya Pusat" },
             ].map((item, i) => (
-              <div key={i} className="flex items-center justify-between p-3 border rounded-lg bg-slate-50">
+              <div key={i} className="flex items-center justify-between p-3 border rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
                 <div className="flex items-center space-x-4">
                   <div className={`w-2 h-10 rounded-full ${item.status === 'Tepat Waktu' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
                   <div>

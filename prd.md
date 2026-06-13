@@ -263,50 +263,59 @@ erDiagram
     BANK_RECONCILIATIONS ||--o{ BRANCHES : "done for"
     BRANCHES ||--o{ REVENUE_TARGETS : "has target for"
 ```
+7# Dokumentasi Skema Warna - Mirraya ERP
 
-## 7. Design & Technical Constraints
-### Tech Stack
-- **Frontend (PWA)**: Next.js 14 (App Router), Tailwind CSS, shadcn/ui (komponen), Recharts (grafik)
-- **PWA**: `next-pwa` (service worker, manifest); orientasi portrait, tema rose gold, ikon Mirraya
-- **Backend**: Next.js API Routes (TypeScript)
-- **Database**: PostgreSQL, Drizzle ORM (migrasi & query)
-- **Auth**: Better Auth (RBAC, multi-role, sesi)
-- **File Storage**: Vercel Blob / Cloudinary (selfie, bukti foto)
-- **POS Integration**: REST API Olsera (server-side)
-- **PDF**: PDFKit / jsPDF (slip gaji)
-- **AI**: API OpenAI (rekomendasi stok/promosi)
-- **Cron**: Vercel Cron / GitHub Actions (target omzet bulanan)
+Berdasarkan analisis visual dari screenshot desain landing page **Mirraya ERP**, skema warna yang digunakan mengusung tema **Modern, Clean, dan Profesional** dengan pendekatan *light mode* (latar belakang dominan putih/terang).
 
-### Identitas Visual
-- **Palet Warna**  
-  - Primary (Rose Gold): `#B76E79` (tombol, aksen)  
-  - Primary Hover: `#9A5A66`  
-  - Secondary (Blush Pink): `#F3D3D3` (latar halus)  
-  - Background: `#FFFFFF`, Surface: `#F8FAFC`  
-  - Teks: Slate-800 (`#1E293B`), Slate-600 (`#475569`)  
-  - Danger: `#F43F5E` (error, cabang di bawah target)  
-  - Success: `#10B981` (disetujui, tren naik)  
+Berikut adalah rincian palet warna yang digunakan beserta peranannya dalam desain:
 
-- **Tipografi**  
-  - Font: *Plus Jakarta Sans* (geometris, bersih)  
-  - Heading: `text-3xl font-bold` (28px), `text-2xl font-semibold` (24px)  
-  - Body: `text-sm` (14px) dengan `leading-relaxed`
+---
 
-- **Komponen & Gaya**  
-  - Border-radius: `rounded-md` (8px), modal `rounded-xl`  
-  - Bayangan kartu: `shadow-sm`; hover: `shadow-md` dengan warna rose transparan  
-  - Tombol: primary (rose gold), secondary (blush pink), danger (rose-500)  
-  - Tabel: header latar slate-100, baris zebra (putih & slate-50)  
-  - Sidebar: latar slate-800, item aktif berlatar rose gold  
-  - Grafik: gradasi rose gold ke blush, gridline slate-200  
-  - Ikon: Lucide Icons (20px sidebar, 16px inline)
+## 1. Warna Utama & Identitas Merek (Primary Colors)
+Warna-warna ini mendominasi elemen penting (*Call to Action* / CTA) dan menjadi identitas visual dari Mirraya.
 
-- **Layout**  
-  - Sidebar tetap 240px; konten utama padding `p-6`, lebar maks. 1280px  
-  - Responsif: di mobile sidebar disembunyikan, tabel scroll horizontal  
-  - PWA full screen tanpa browser chrome
+### Deep Magenta / Vibrant Pink (Warna Hero)
+* **Peran:** Digunakan untuk teks sorotan penting (seperti tulisan "Mirraya Cosmetics" pada H1), tombol utama (*Login to Dashboard*), logo, serta aksen teks link aktif.
+* **Kesan:** Energik, modern, dan sangat erat kaitannya dengan industri *beauty/cosmetics*.
 
-- **Aksesibilitas**  
-  - Focus ring `ring-2 ring-rose-400 ring-offset-2`  
-  - Label input selalu terasosiasi, pesan error dengan warna danger  
-  - Kontras teks memenuhi WCAG AA (minimal 4.5:1)
+### Dark Navy Blue / Hampir Hitam
+* **Peran:** Digunakan untuk teks utama seperti judul (H1 & H2) dan teks menu navigasi.
+* **Kesan:** Memberikan kontras yang kuat agar teks sangat mudah dibaca, namun lebih lembut di mata dibandingkan warna hitam pekat (`#000000`).
+
+---
+
+## 2. Warna Latar Belakang & Netral (Background & Neutral Colors)
+Warna yang menjaga desain tetap terlihat bersih, rapi, dan memberikan ruang bernapas (*whitespace*).
+
+### Putih Bersih (`#FFFFFF`)
+* **Peran:** Latar belakang utama halaman, warna latar kartu fitur (*feature cards*), dan warna teks di dalam tombol utama.
+
+### Soft Gray / Off-White (Abu-abu Sangat Muda)
+* **Peran:** Digunakan sebagai warna latar belakang komponen pada mockup dasbor dan beberapa elemen dekoratif halus untuk memisahkan area konten.
+
+---
+
+## 3. Warna Aksen & Indikator (Accent & Soft Colors)
+Warna-warna ini digunakan secara minimalis pada ikon di bagian grid fitur untuk membedakan fungsi tiap kategori sekaligus memberikan variasi visual agar tidak membosankan. Setiap ikon menggunakan kombinasi **warna solid** dan **latar belakang transparan (soft)** dari warna yang sama:
+
+* **Biru Muda (Soft Blue):** Digunakan pada ikon *Multi-role & Multi-cabang* (memberikan kesan korporat/struktur).
+* **Hijau (Soft Green):** Digunakan pada ikon *Integrasi POS Olsera* (identik dengan operasional dan finansial/penjualan).
+* **Merah Muda (Soft Pink):** Digunakan pada ikon *Absensi Selfie & GPS* serta latar belakang tag "Terintegrasi dengan Olsera POS".
+* **Oranye/Kuning (Soft Orange):** Digunakan pada ikon *Insight AI untuk Owner* (identik dengan kreativitas dan teknologi cerdas).
+* **Ungu (Soft Purple):** Digunakan pada ikon *Accounting & Payroll Terpusat* (memberikan kesan mewah dan sistematis).
+* **Sian/Toska (Soft Cyan):** Digunakan pada ikon *Target Revenue Tracking* (memberikan kesan target, fokus, dan pertumbuhan).
+
+---
+
+## 4. Warna Teks Sekunder (Typography Colors)
+### Charcoal Gray (Abu-abu Tua)
+* **Peran:** Digunakan untuk seluruh teks deskripsi/paragraf di bawah judul dan teks hak cipta pada footer.
+* **Kesan:** Mengurangi ketegangan mata saat membaca deskripsi panjang dibandingkan jika menggunakan warna hitam pekat.
+
+---
+
+## Ringkasan Strategi Pewarnaan
+Desain ini menerapkan aturan **60-30-10**:
+* **60%** didominasi warna netral terang (Putih & Abu-abu muda) untuk kebersihan tata letak.
+* **30%** diisi oleh warna teks gelap (Navy/Charcoal) untuk keterbacaan struktur informasi.
+* **10%** adalah warna *Vibrant Pink/Magenta* dan warna-warna aksen ikon yang berfungsi menarik perhatian mata pengguna (*focal point*) langsung ke tombol navigasi dan fitur penting.

@@ -11,7 +11,7 @@ export default function PettyCashPage() {
           <h1 className="text-3xl font-bold tracking-tight text-slate-800">Petty Cash</h1>
           <p className="text-slate-600 mt-1">Pemantauan transaksi kas kecil dari seluruh cabang.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-4 md:mt-0">
           <Button variant="outline" className="border-primary text-primary hover:bg-secondary">
             <Download className="w-4 h-4 mr-2" />
             Ekspor PDF
@@ -29,19 +29,28 @@ export default function PettyCashPage() {
             <CardTitle className="text-lg font-semibold text-slate-800">Riwayat Transaksi Petty Cash</CardTitle>
             <CardDescription>Menampilkan semua transaksi pengeluaran cabang.</CardDescription>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
               <input 
                 type="text" 
-                placeholder="Cari deskripsi atau cabang..." 
+                placeholder="Cari deskripsi..." 
                 className="pl-9 pr-4 py-2 border border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
-            <Button variant="outline" size="sm" className="flex items-center">
-              <Filter className="w-4 h-4 mr-2" />
-              Bulan Ini
-            </Button>
+            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]">
+              <option value="all">Semua Cabang</option>
+              <option value="sudirman">Mirayya Sudirman</option>
+              <option value="kemang">Mirayya Kemang</option>
+              <option value="pik">Mirayya PIK</option>
+              <option value="kelapa_gading">Mirayya Kelapa Gading</option>
+              <option value="bintaro">Mirayya Bintaro</option>
+            </select>
+            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[130px]">
+              <option value="this_month">Bulan Ini</option>
+              <option value="last_month">Bulan Lalu</option>
+              <option value="this_year">Tahun Ini</option>
+            </select>
           </div>
         </CardHeader>
         <CardContent className="p-0">

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { 
   TrendingUp, 
   Store, 
@@ -59,7 +59,7 @@ export default function OwnerDashboardPage() {
   const totalTarget = omzetData.reduce((acc, curr) => acc + curr.target, 0);
   const targetAchievement = ((totalOmzet / totalTarget) * 100).toFixed(1);
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -67,7 +67,7 @@ export default function OwnerDashboardPage() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
   };
@@ -79,9 +79,26 @@ export default function OwnerDashboardPage() {
       initial="hidden"
       animate="show"
     >
-      <div>
-        <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Owner Dashboard</h1>
-        <p className="text-slate-500 mt-1">Ringkasan performa bisnis dan analitik AI Mirayya Cosmetics.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Owner Dashboard</h1>
+          <p className="text-slate-500 mt-1">Ringkasan performa bisnis dan analitik AI Mirayya Cosmetics.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-0">
+          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[140px]">
+            <option value="all">Semua Cabang</option>
+            <option value="sudirman">Mirayya Sudirman</option>
+            <option value="kemang">Mirayya Kemang</option>
+            <option value="pik">Mirayya PIK</option>
+            <option value="kelapa_gading">Mirayya Kelapa Gading</option>
+            <option value="bintaro">Mirayya Bintaro</option>
+          </select>
+          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+            <option value="this_month">Bulan Ini</option>
+            <option value="last_month">Bulan Lalu</option>
+            <option value="this_year">Tahun Ini</option>
+          </select>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -181,7 +198,7 @@ export default function OwnerDashboardPage() {
                   />
                   <Tooltip 
                     cursor={{ fill: '#f1f5f9' }}
-                    formatter={(value: number) => [formatRupiah(value), ""]}
+                    formatter={(value: any) => [formatRupiah(Number(value)), ""]}
                   />
                   <Legend />
                   <Bar dataKey="omzet" name="Realisasi" fill="#B76E79" radius={[4, 4, 0, 0]} />

@@ -8,9 +8,13 @@ import { Sparkles, Plus, Trash2, Send } from "lucide-react";
 export default function OrderPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-800">Pengajuan PO Baru</h1>
-        <p className="text-slate-600 mt-1">Buat Purchase Order berdasarkan rekomendasi sistem atau manual.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-800">Pengajuan PO Baru</h1>
+          <p className="text-slate-600 mt-1">Buat Purchase Order berdasarkan rekomendasi sistem atau manual.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-0">
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

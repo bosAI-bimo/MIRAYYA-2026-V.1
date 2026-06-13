@@ -5,9 +5,18 @@ import { Wallet, TrendingDown, Clock } from "lucide-react";
 export default function BudgetingPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-800">Anggaran Cabang</h1>
-        <p className="text-slate-600 mt-1">Pantau penggunaan anggaran operasional cabang bulan ini.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-800">Anggaran Cabang</h1>
+          <p className="text-slate-600 mt-1">Pantau penggunaan anggaran operasional cabang bulan ini.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-0">
+          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+            <option value="this_month">Bulan Ini</option>
+            <option value="last_month">Bulan Lalu</option>
+            <option value="this_year">Tahun Ini</option>
+          </select>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

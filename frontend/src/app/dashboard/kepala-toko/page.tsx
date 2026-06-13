@@ -28,15 +28,24 @@ export default function KepalaTokoDashboard() {
       initial="hidden"
       animate="show"
     >
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-800">Dashboard Kepala Toko</h1>
-        <p className="text-slate-600 mt-1">Selamat datang kembali, Ahmad. Berikut adalah ringkasan cabang Anda hari ini.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-800">Dashboard Kepala Toko</h1>
+          <p className="text-slate-600 mt-1">Selamat datang kembali, Ahmad. Berikut adalah ringkasan cabang Anda hari ini.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-0">
+          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+            <option value="today">Hari Ini</option>
+            <option value="this_month">Bulan Ini</option>
+            <option value="last_month">Bulan Lalu</option>
+          </select>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Status EOD Hari Ini */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="shadow-sm hover:shadow-md transition-shadow border-slate-200 h-full flex flex-col">
+          <Card className="shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-slate-200 h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Status Laporan EOD</CardTitle>
             <FileCheck className="h-4 w-4 text-primary" />
@@ -44,7 +53,7 @@ export default function KepalaTokoDashboard() {
           <CardContent>
             <div className="flex items-center space-x-2 mt-1">
               <AlertCircle className="w-5 h-5 text-rose-500" />
-              <div className="text-xl font-bold text-slate-800">Belum Dikirim</div>
+              <div className="text-lg lg:text-xl font-bold text-slate-800">Belum Dikirim</div>
             </div>
             <p className="text-xs text-slate-500 mt-2">Segera kirim laporan End of Day setelah toko tutup.</p>
             <Link href="/dashboard/kepala-toko/eod" className="block mt-4">
@@ -58,13 +67,13 @@ export default function KepalaTokoDashboard() {
 
         {/* Ringkasan Anggaran */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="shadow-sm hover:shadow-md transition-shadow border-slate-200 h-full flex flex-col">
+          <Card className="shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-slate-200 h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Sisa Anggaran Cabang</CardTitle>
             <Wallet className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-800">Rp 1.250.000</div>
+            <div className="text-xl lg:text-2xl font-bold text-slate-800">Rp 1.250.000</div>
             <div className="flex items-center space-x-2 mt-2">
               <div className="w-full bg-slate-100 rounded-full h-2">
                 <div className="bg-primary h-2 rounded-full" style={{ width: '75%' }}></div>
@@ -82,13 +91,13 @@ export default function KepalaTokoDashboard() {
 
         {/* Peringatan Stok */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="shadow-sm hover:shadow-md transition-shadow border-slate-200 h-full flex flex-col">
+          <Card className="shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-slate-200 h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Peringatan Stok Menipis</CardTitle>
             <AlertCircle className="h-4 w-4 text-rose-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-rose-600">3 Produk</div>
+            <div className="text-xl lg:text-2xl font-bold text-rose-600">3 Produk</div>
             <p className="text-xs text-slate-500 mt-1">Lipstick Matte, Serum, Toner</p>
             <Link href="/dashboard/kepala-toko/order" className="block mt-4">
               <Button variant="outline" className="w-full border-primary text-primary hover:bg-secondary">
@@ -102,7 +111,7 @@ export default function KepalaTokoDashboard() {
 
       {/* Riwayat Order Terakhir */}
       <motion.div variants={itemVariants}>
-        <Card className="shadow-sm border-slate-200">
+        <Card className="shadow-sm border-slate-200 hover:shadow-lg transition-shadow duration-300">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-slate-800">Pengajuan PO Terakhir</CardTitle>
           <CardDescription>Status pengajuan Purchase Order bulan ini</CardDescription>
@@ -114,7 +123,7 @@ export default function KepalaTokoDashboard() {
               { id: "PO-202606-002", date: "05 Jun 2026", items: 12, total: "Rp 8.200.000", status: "Disetujui" },
               { id: "PO-202605-015", date: "28 Mei 2026", items: 8, total: "Rp 5.100.000", status: "Disetujui" },
             ].map((item, i) => (
-              <div key={i} className="flex items-center justify-between p-3 border rounded-lg bg-slate-50">
+              <div key={i} className="flex items-center justify-between p-3 border rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
                 <div className="flex items-center space-x-4">
                   <div className={`p-2 rounded-full ${item.status === 'Disetujui' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
                     <ShoppingCart className="w-5 h-5" />

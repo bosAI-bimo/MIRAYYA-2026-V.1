@@ -42,19 +42,19 @@ export default function AbsensiPage() {
                 className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-primary h-9 text-sm"
               />
             </div>
-            <div className="flex w-full sm:w-auto gap-2">
-              <Button variant="outline" size="sm" className="border-slate-200 text-slate-600 flex-1 sm:flex-none">
-                <Calendar className="w-4 h-4 mr-2 text-slate-400" />
-                Hari Ini
-              </Button>
-              <Button variant="outline" size="sm" className="border-slate-200 text-slate-600 flex-1 sm:flex-none">
-                <MapPin className="w-4 h-4 mr-2 text-slate-400" />
-                Semua Cabang
-              </Button>
-              <Button variant="outline" size="icon" className="border-slate-200 text-slate-600 shrink-0 h-9 w-9">
-                <Filter className="w-4 h-4" />
-              </Button>
-            </div>
+            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[140px]">
+              <option value="all">Semua Cabang</option>
+              <option value="sudirman">Mirayya Sudirman</option>
+              <option value="kemang">Mirayya Kemang</option>
+              <option value="pik">Mirayya PIK</option>
+              <option value="kelapa_gading">Mirayya Kelapa Gading</option>
+              <option value="bintaro">Mirayya Bintaro</option>
+            </select>
+            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+              <option value="this_month">Bulan Ini</option>
+              <option value="last_month">Bulan Lalu</option>
+              <option value="this_year">Tahun Ini</option>
+            </select>
           </div>
         </CardHeader>
         <CardContent className="p-0">

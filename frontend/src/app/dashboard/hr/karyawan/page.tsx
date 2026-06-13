@@ -33,18 +33,28 @@ export default function KaryawanPage() {
             <CardTitle className="text-lg font-semibold text-slate-800">Daftar Karyawan</CardTitle>
             <CardDescription>Semua karyawan aktif dan nonaktif di seluruh cabang.</CardDescription>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
               <Input
                 type="text"
                 placeholder="Cari nama atau ID..."
-                className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-primary"
+                className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-primary h-9"
               />
             </div>
-            <Button variant="outline" size="icon" className="border-slate-200 text-slate-600 shrink-0">
-              <Filter className="w-4 h-4" />
-            </Button>
+            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[140px]">
+              <option value="all">Semua Cabang</option>
+              <option value="sudirman">Mirayya Sudirman</option>
+              <option value="kemang">Mirayya Kemang</option>
+              <option value="pik">Mirayya PIK</option>
+              <option value="kelapa_gading">Mirayya Kelapa Gading</option>
+              <option value="bintaro">Mirayya Bintaro</option>
+            </select>
+            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+              <option value="this_month">Bulan Ini</option>
+              <option value="last_month">Bulan Lalu</option>
+              <option value="this_year">Tahun Ini</option>
+            </select>
           </div>
         </CardHeader>
         <CardContent className="p-0">

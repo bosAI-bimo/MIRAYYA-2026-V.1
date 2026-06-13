@@ -11,16 +11,22 @@ export function Navbar() {
               <span className="text-white font-bold text-lg leading-none">M</span>
             </div>
             <span className="font-bold text-xl text-slate-800 tracking-tight">
-              Mirraya <span className="text-primary">ERP</span>
+              Mirayya <span className="text-primary">Cosmetics</span>
             </span>
           </Link>
           
           <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
-            <Link href="#features" className="hover:text-primary transition-colors">
-              Features
+            <Link href="#tentang-kami" className="hover:text-primary transition-colors">
+              Tentang Kami
             </Link>
-            <Link href="#solutions" className="hover:text-primary transition-colors">
-              Solutions
+            <Link href="#produk" className="hover:text-primary transition-colors">
+              Produk
+            </Link>
+            <Link href="#lokasi" className="hover:text-primary transition-colors">
+              Lokasi
+            </Link>
+            <Link href="#kontak" className="hover:text-primary transition-colors">
+              Kontak
             </Link>
           </div>
         </div>

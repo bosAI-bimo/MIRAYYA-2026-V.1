@@ -53,18 +53,20 @@ export default function SlipGajiKaryawan() {
             <CardTitle>Riwayat Slip Gaji</CardTitle>
             <CardDescription>Semua slip gaji yang diterbitkan untuk Anda</CardDescription>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="relative">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative w-full sm:w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
               <input 
                 type="text" 
                 placeholder="Cari bulan/tahun..." 
-                className="h-9 w-[150px] sm:w-[200px] rounded-md border border-slate-200 pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="h-9 w-full rounded-md border border-slate-200 pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
-            <Button variant="outline" size="icon" className="h-9 w-9">
-              <Filter className="h-4 w-4" />
-            </Button>
+            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+              <option value="this_month">Bulan Ini</option>
+              <option value="last_month">Bulan Lalu</option>
+              <option value="this_year">Tahun Ini</option>
+            </select>
           </div>
         </CardHeader>
         <CardContent className="p-0">

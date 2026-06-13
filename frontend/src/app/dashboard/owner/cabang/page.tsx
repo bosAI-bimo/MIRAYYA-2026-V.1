@@ -32,14 +32,22 @@ export default function OwnerCabangPage() {
           <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Data Cabang</h1>
           <p className="text-slate-500 mt-1">Pantau performa dan detail informasi setiap cabang Mirayya.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input 
               placeholder="Cari cabang..." 
-              className="pl-9 w-full md:w-[250px] bg-white border-slate-200"
+              className="pl-9 w-full bg-white border-slate-200"
             />
           </div>
+          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[140px]">
+            <option value="all">Semua Cabang</option>
+            <option value="sudirman">Mirayya Sudirman</option>
+            <option value="kemang">Mirayya Kemang</option>
+            <option value="pik">Mirayya PIK</option>
+            <option value="kelapa_gading">Mirayya Kelapa Gading</option>
+            <option value="bintaro">Mirayya Bintaro</option>
+          </select>
           <Button className="bg-[#B76E79] hover:bg-[#9A5A66] text-white">
             <Store className="w-4 h-4 mr-2" />
             Tambah Cabang
