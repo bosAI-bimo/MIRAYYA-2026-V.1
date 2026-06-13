@@ -27,7 +27,7 @@ export default function LaporanKeuanganPage() {
           <h1 className="text-3xl font-bold tracking-tight text-slate-800">Laporan Keuangan</h1>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto mt-4 md:mt-0">
-          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer min-w-[140px] w-full sm:w-auto">
+          <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer min-w-[140px] w-full sm:w-auto">
             <option value="all">Semua Cabang</option>
             <option value="sudirman">Mirayya Sudirman</option>
             <option value="kemang">Mirayya Kemang</option>
@@ -35,7 +35,7 @@ export default function LaporanKeuanganPage() {
             <option value="kelapa_gading">Mirayya Kelapa Gading</option>
             <option value="bintaro">Mirayya Bintaro</option>
           </select>
-          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer min-w-[130px]">
+          <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer min-w-[130px]">
             <option value="this_month">Bulan Ini</option>
             <option value="last_month">Bulan Lalu</option>
             <option value="this_year">Tahun Ini</option>
@@ -48,7 +48,7 @@ export default function LaporanKeuanganPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="shadow-sm border-slate-200 hover:border-primary/50 transition-colors cursor-pointer">
+        <Card className="border-2 shadow-sm border-slate-200 hover:border-primary/50 transition-colors cursor-pointer">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-semibold text-slate-800 flex items-center">
               <BarChart3 className="w-5 h-5 mr-2 text-primary" />
@@ -63,7 +63,7 @@ export default function LaporanKeuanganPage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-slate-200 hover:border-primary/50 transition-colors cursor-pointer">
+        <Card className="border-2 shadow-sm border-slate-200 hover:border-primary/50 transition-colors cursor-pointer">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-semibold text-slate-800 flex items-center">
               <PieChart className="w-5 h-5 mr-2 text-primary" />
@@ -78,7 +78,7 @@ export default function LaporanKeuanganPage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-slate-200 hover:border-primary/50 transition-colors cursor-pointer">
+        <Card className="border-2 shadow-sm border-slate-200 hover:border-primary/50 transition-colors cursor-pointer">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-semibold text-slate-800 flex items-center">
               <FileText className="w-5 h-5 mr-2 text-primary" />
@@ -94,7 +94,7 @@ export default function LaporanKeuanganPage() {
         </Card>
       </div>
 
-      <Card className="shadow-sm border-slate-200 mt-6">
+      <Card className="border-2 shadow-sm border-slate-200 mt-6">
         <CardHeader className="pb-4 border-b border-slate-100 flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
             <CardTitle className="text-lg font-semibold text-slate-800">Ringkasan Laba Rugi (Juni 2026)</CardTitle>

@@ -47,7 +47,7 @@ export default function KaryawanDashboard() {
           <h1 className="text-3xl font-bold tracking-tight text-slate-800">Dashboard Karyawan</h1>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-          <select className="px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
+          <select className="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
             <option value="this_month">Bulan Ini</option>
             <option value="last_month">Bulan Lalu</option>
             <option value="this_year">Tahun Ini</option>
@@ -58,7 +58,7 @@ export default function KaryawanDashboard() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Status Kehadiran Hari Ini */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-slate-200 h-full flex flex-col">
+          <Card className="border-2 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-slate-200 h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Status Hari Ini</CardTitle>
             <Clock className="h-4 w-4 text-primary" />
@@ -77,7 +77,7 @@ export default function KaryawanDashboard() {
 
         {/* Ringkasan Bulan Ini */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-slate-200 h-full flex flex-col">
+          <Card className="border-2 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-slate-200 h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Kehadiran Bulan Ini</CardTitle>
             <CalendarCheck className="h-4 w-4 text-primary" />
@@ -104,7 +104,7 @@ export default function KaryawanDashboard() {
 
         {/* Gaji Terakhir */}
         <motion.div variants={itemVariants} className="h-full">
-          <Card className="shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-slate-200 h-full flex flex-col">
+          <Card className="border-2 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-slate-200 h-full flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Slip Gaji Terakhir</CardTitle>
             <ReceiptText className="h-4 w-4 text-primary" />
@@ -124,7 +124,7 @@ export default function KaryawanDashboard() {
 
       {/* Riwayat Terakhir */}
       <motion.div variants={itemVariants}>
-        <Card className="shadow-sm border-slate-200 hover:shadow-lg transition-shadow duration-300">
+        <Card className="border-2 shadow-sm border-slate-200 hover:shadow-lg transition-shadow duration-300">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-slate-800">Riwayat Absensi Terakhir</CardTitle>
           <CardDescription>5 aktivitas check-in/out terakhir Anda</CardDescription>

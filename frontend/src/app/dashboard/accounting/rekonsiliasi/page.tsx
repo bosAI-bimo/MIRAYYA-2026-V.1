@@ -1,10 +1,36 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, CheckCircle, AlertTriangle, Building, CreditCard, ChevronRight } from "lucide-react";
+import { Plus, Search, CheckCircle, AlertTriangle, Building, CreditCard, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight } from "lucide-react";
 import Link from "next/link";
 
+const rekonsiliasiData = [
+  { date: "10 Jun 2026", account: "BCA - 123456789", bank: "Rp 125.500.000", system: "Rp 125.500.000", diff: "Rp 0", status: "match" },
+  { date: "10 Jun 2026", account: "Mandiri - 987654321", bank: "Rp 85.200.000", system: "Rp 85.200.000", diff: "Rp 0", status: "match" },
+  { date: "09 Jun 2026", account: "BCA - 123456789", bank: "Rp 110.000.000", system: "Rp 110.050.000", diff: "- Rp 50.000", status: "mismatch" },
+  { date: "08 Jun 2026", account: "BNI - 456123789", bank: "Rp 45.100.000", system: "Rp 45.100.000", diff: "Rp 0", status: "match" },
+  { date: "07 Jun 2026", account: "BCA - 123456789", bank: "Rp 98.400.000", system: "Rp 98.400.000", diff: "Rp 0", status: "match" },
+  { date: "06 Jun 2026", account: "Mandiri - 987654321", bank: "Rp 70.000.000", system: "Rp 70.000.000", diff: "Rp 0", status: "match" },
+  { date: "05 Jun 2026", account: "BCA - 123456789", bank: "Rp 85.000.000", system: "Rp 84.500.000", diff: "+ Rp 500.000", status: "mismatch" },
+  { date: "04 Jun 2026", account: "BNI - 456123789", bank: "Rp 30.500.000", system: "Rp 30.500.000", diff: "Rp 0", status: "match" },
+  { date: "03 Jun 2026", account: "BCA - 123456789", bank: "Rp 75.200.000", system: "Rp 75.200.000", diff: "Rp 0", status: "match" },
+  { date: "02 Jun 2026", account: "Mandiri - 987654321", bank: "Rp 60.100.000", system: "Rp 60.100.000", diff: "Rp 0", status: "match" },
+  { date: "01 Jun 2026", account: "BCA - 123456789", bank: "Rp 50.000.000", system: "Rp 50.000.000", diff: "Rp 0", status: "match" },
+  { date: "31 May 2026", account: "BNI - 456123789", bank: "Rp 25.000.000", system: "Rp 25.100.000", diff: "- Rp 100.000", status: "mismatch" },
+  { date: "30 May 2026", account: "BCA - 123456789", bank: "Rp 45.000.000", system: "Rp 45.000.000", diff: "Rp 0", status: "match" },
+  { date: "29 May 2026", account: "Mandiri - 987654321", bank: "Rp 35.500.000", system: "Rp 35.500.000", diff: "Rp 0", status: "match" },
+  { date: "28 May 2026", account: "BCA - 123456789", bank: "Rp 40.200.000", system: "Rp 40.200.000", diff: "Rp 0", status: "match" },
+];
+
 export default function RekonsiliasiBankPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil(rekonsiliasiData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = rekonsiliasiData.slice(startIndex, startIndex + itemsPerPage);
   return (
     <div className="space-y-6">
       {/* Header / Navbar Separator */}
@@ -34,7 +60,7 @@ export default function RekonsiliasiBankPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="shadow-sm border-slate-200 bg-emerald-50/30">
+        <Card className="border-2 shadow-sm border-slate-200 bg-emerald-50/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Total Saldo Bank (BCA, Mandiri, BNI)</CardTitle>
           </CardHeader>
@@ -47,7 +73,7 @@ export default function RekonsiliasiBankPage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-slate-200 bg-blue-50/30">
+        <Card className="border-2 shadow-sm border-slate-200 bg-blue-50/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Total Pencatatan Sistem (EDC & Transfer)</CardTitle>
           </CardHeader>
@@ -61,7 +87,7 @@ export default function RekonsiliasiBankPage() {
         </Card>
       </div>
 
-      <Card className="shadow-sm border-slate-200">
+      <Card className="border-2 shadow-sm border-slate-200">
         <CardHeader className="pb-4 border-b border-slate-100 flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
             <CardTitle className="text-lg font-semibold text-slate-800">Riwayat Rekonsiliasi</CardTitle>
@@ -73,10 +99,10 @@ export default function RekonsiliasiBankPage() {
               <input 
                 type="text" 
                 placeholder="Cari rekening..." 
-                className="pl-9 pr-4 py-2 border border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="pl-9 pr-4 py-2 border-2 border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
-            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]">
+            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]">
               <option value="all">Semua Cabang</option>
               <option value="sudirman">Mirayya Sudirman</option>
               <option value="kemang">Mirayya Kemang</option>
@@ -84,7 +110,7 @@ export default function RekonsiliasiBankPage() {
               <option value="kelapa_gading">Mirayya Kelapa Gading</option>
               <option value="bintaro">Mirayya Bintaro</option>
             </select>
-            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[130px]">
+            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[130px]">
               <option value="this_month">Bulan Ini</option>
               <option value="last_month">Bulan Lalu</option>
               <option value="this_year">Tahun Ini</option>
@@ -105,13 +131,7 @@ export default function RekonsiliasiBankPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {[
-                  { date: "10 Jun 2026", account: "BCA - 123456789", bank: "Rp 125.500.000", system: "Rp 125.500.000", diff: "Rp 0", status: "match" },
-                  { date: "10 Jun 2026", account: "Mandiri - 987654321", bank: "Rp 85.200.000", system: "Rp 85.200.000", diff: "Rp 0", status: "match" },
-                  { date: "09 Jun 2026", account: "BCA - 123456789", bank: "Rp 110.000.000", system: "Rp 110.050.000", diff: "- Rp 50.000", status: "mismatch" },
-                  { date: "08 Jun 2026", account: "BNI - 456123789", bank: "Rp 45.100.000", system: "Rp 45.100.000", diff: "Rp 0", status: "match" },
-                  { date: "07 Jun 2026", account: "BCA - 123456789", bank: "Rp 98.400.000", system: "Rp 98.400.000", diff: "Rp 0", status: "match" },
-                ].map((item, i) => (
+                {paginatedData.map((item, i) => (
                   <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 text-slate-600">{item.date}</td>
                     <td className="px-6 py-4 font-medium text-slate-800">{item.account}</td>
@@ -135,6 +155,56 @@ export default function RekonsiliasiBankPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+          
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
+            <div className="text-sm text-slate-500">
+              Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, rekonsiliasiData.length)}</span> dari <span className="font-medium text-slate-700">{rekonsiliasiData.length}</span> data
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(1)} 
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="flex items-center justify-center text-sm font-medium px-3 text-slate-600">
+                Halaman {currentPage} dari {totalPages}
+              </div>
+
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(totalPages)} 
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -32,7 +32,7 @@ export default function OrderPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Kolom Kiri: Form PO */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="shadow-sm border-slate-200">
+          <Card className="border-2 shadow-sm border-slate-200">
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-slate-800">Daftar Item Pesanan</CardTitle>
               <CardDescription>Tambahkan produk yang ingin dipesan untuk stok cabang.</CardDescription>
@@ -50,7 +50,7 @@ export default function OrderPage() {
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-slate-50 p-3 md:p-2 md:bg-transparent rounded-lg border border-slate-100 md:border-none">
                     <div className="col-span-1 md:col-span-6">
-                      <select className="w-full h-10 px-3 py-2 text-sm rounded-md border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary">
+                      <select className="w-full h-10 px-3 py-2 text-sm rounded-md border-2 border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary">
                         <option>Mirayya Glow Serum (SKN-001)</option>
                         <option>Mirayya Hydrating Toner (SKN-002)</option>
                       </select>
@@ -68,7 +68,7 @@ export default function OrderPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-slate-50 p-3 md:p-2 md:bg-transparent rounded-lg border border-slate-100 md:border-none">
                     <div className="col-span-1 md:col-span-6">
-                      <select className="w-full h-10 px-3 py-2 text-sm rounded-md border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary">
+                      <select className="w-full h-10 px-3 py-2 text-sm rounded-md border-2 border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary">
                         <option>Matte Lip Cream - Rose (MKP-001)</option>
                         <option>Mirayya Hydrating Toner (SKN-002)</option>
                       </select>
@@ -93,7 +93,7 @@ export default function OrderPage() {
                 <div className="mt-6 pt-4 border-t border-slate-100">
                   <label className="block text-sm font-medium text-slate-700 mb-2">Catatan Tambahan (Opsional)</label>
                   <textarea 
-                    className="w-full p-3 text-sm rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary min-h-[100px]"
+                    className="w-full p-3 text-sm rounded-md border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary min-h-[100px]"
                     placeholder="Tuliskan catatan untuk Accounting jika ada..."
                   ></textarea>
                 </div>
@@ -111,7 +111,7 @@ export default function OrderPage() {
 
         {/* Kolom Kanan: Rekomendasi AI */}
         <div className="space-y-6">
-          <Card className="shadow-sm border-primary/20 bg-primary/5">
+          <Card className="border-2 border-slate-200 shadow-sm border-primary/20 bg-primary/5">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold text-primary flex items-center">
                 <Sparkles className="w-4 h-4 mr-2 fill-primary/20" />

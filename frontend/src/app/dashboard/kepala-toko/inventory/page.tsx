@@ -1,12 +1,38 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, Download, ChevronRight } from "lucide-react";
+import { Search, Filter, Download, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight } from "lucide-react";
 import Link from "next/link";
 
+const inventoryData = [
+  { code: "SKN-001", name: "Mirayya Glow Serum", category: "Skincare", hpp: "Rp 65.000", sell: "Rp 120.000", stock: 45, status: "ok" },
+  { code: "SKN-002", name: "Mirayya Hydrating Toner", category: "Skincare", hpp: "Rp 45.000", sell: "Rp 85.000", stock: 12, status: "warning" },
+  { code: "MKP-001", name: "Matte Lip Cream - Rose", category: "Makeup", hpp: "Rp 35.000", sell: "Rp 75.000", stock: 5, status: "danger" },
+  { code: "MKP-002", name: "Flawless Cushion 01", category: "Makeup", hpp: "Rp 80.000", sell: "Rp 150.000", stock: 28, status: "ok" },
+  { code: "MKP-003", name: "Flawless Cushion 02", category: "Makeup", hpp: "Rp 80.000", sell: "Rp 150.000", stock: 32, status: "ok" },
+  { code: "BDY-001", name: "Brightening Body Lotion", category: "Bodycare", hpp: "Rp 50.000", sell: "Rp 95.000", stock: 8, status: "warning" },
+  { code: "SKN-003", name: "Mirayya Acne Spot Treatment", category: "Skincare", hpp: "Rp 55.000", sell: "Rp 105.000", stock: 60, status: "ok" },
+  { code: "MKP-004", name: "Lip Tint - Peach", category: "Makeup", hpp: "Rp 30.000", sell: "Rp 65.000", stock: 15, status: "warning" },
+  { code: "MKP-005", name: "Lip Tint - Berry", category: "Makeup", hpp: "Rp 30.000", sell: "Rp 65.000", stock: 3, status: "danger" },
+  { code: "BDY-002", name: "Exfoliating Body Scrub", category: "Bodycare", hpp: "Rp 60.000", sell: "Rp 110.000", stock: 40, status: "ok" },
+  { code: "SKN-004", name: "Sunscreen SPF 50", category: "Skincare", hpp: "Rp 40.000", sell: "Rp 80.000", stock: 55, status: "ok" },
+  { code: "SKN-005", name: "Gentle Facial Wash", category: "Skincare", hpp: "Rp 35.000", sell: "Rp 70.000", stock: 22, status: "ok" },
+  { code: "MKP-006", name: "Mascara Waterproof", category: "Makeup", hpp: "Rp 45.000", sell: "Rp 90.000", stock: 10, status: "warning" },
+  { code: "MKP-007", name: "Eyebrow Pencil - Brown", category: "Makeup", hpp: "Rp 25.000", sell: "Rp 50.000", stock: 75, status: "ok" },
+  { code: "BDY-003", name: "Moisturizing Shower Gel", category: "Bodycare", hpp: "Rp 45.000", sell: "Rp 85.000", stock: 18, status: "warning" },
+];
+
 export default function InventoryPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil(inventoryData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = inventoryData.slice(startIndex, startIndex + itemsPerPage);
   return (
     <div className="space-y-6">
       {/* Header / Navbar Separator */}
@@ -35,7 +61,7 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      <Card className="shadow-sm border-slate-200">
+      <Card className="border-2 shadow-sm border-slate-200">
         <CardHeader className="pb-4">
           <div className="flex flex-col md:flex-row justify-between gap-4">
             <CardTitle className="text-lg font-semibold text-slate-800 self-center">Daftar Produk</CardTitle>
@@ -48,7 +74,7 @@ export default function InventoryPage() {
                   className="pl-9 w-full md:w-[250px] bg-slate-50 border-slate-200 focus-visible:ring-primary"
                 />
               </div>
-              <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+              <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
                 <option value="all">Semua Kategori</option>
                 <option value="skincare">Skincare</option>
                 <option value="makeup">Makeup</option>
@@ -74,14 +100,7 @@ export default function InventoryPage() {
                 </tr>
               </thead>
               <tbody>
-                {[
-                  { code: "SKN-001", name: "Mirayya Glow Serum", category: "Skincare", hpp: "Rp 65.000", sell: "Rp 120.000", stock: 45, status: "ok" },
-                  { code: "SKN-002", name: "Mirayya Hydrating Toner", category: "Skincare", hpp: "Rp 45.000", sell: "Rp 85.000", stock: 12, status: "warning" },
-                  { code: "MKP-001", name: "Matte Lip Cream - Rose", category: "Makeup", hpp: "Rp 35.000", sell: "Rp 75.000", stock: 5, status: "danger" },
-                  { code: "MKP-002", name: "Flawless Cushion 01", category: "Makeup", hpp: "Rp 80.000", sell: "Rp 150.000", stock: 28, status: "ok" },
-                  { code: "MKP-003", name: "Flawless Cushion 02", category: "Makeup", hpp: "Rp 80.000", sell: "Rp 150.000", stock: 32, status: "ok" },
-                  { code: "BDY-001", name: "Brightening Body Lotion", category: "Bodycare", hpp: "Rp 50.000", sell: "Rp 95.000", stock: 8, status: "warning" },
-                ].map((item, i) => (
+                {paginatedData.map((item, i) => (
                   <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
                     <td className="px-4 py-3 font-medium text-slate-500">{item.code}</td>
                     <td className="px-4 py-3 font-medium text-slate-800">{item.name}</td>
@@ -103,14 +122,53 @@ export default function InventoryPage() {
             </table>
           </div>
           
-          <div className="flex items-center justify-between mt-6 text-sm text-slate-500">
-            <div>Menampilkan 6 dari 142 produk</div>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm" disabled>Sebelumnya</Button>
-              <Button variant="outline" size="sm" className="bg-primary text-white border-primary">1</Button>
-              <Button variant="outline" size="sm">2</Button>
-              <Button variant="outline" size="sm">3</Button>
-              <Button variant="outline" size="sm">Selanjutnya</Button>
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-between mt-6 px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
+            <div className="text-sm text-slate-500">
+              Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, inventoryData.length)}</span> dari <span className="font-medium text-slate-700">{inventoryData.length}</span> data
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(1)} 
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="flex items-center justify-center text-sm font-medium px-3 text-slate-600">
+                Halaman {currentPage} dari {totalPages}
+              </div>
+
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(totalPages)} 
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </CardContent>

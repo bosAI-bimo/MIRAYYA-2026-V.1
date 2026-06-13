@@ -71,7 +71,7 @@ export default function KaryawanLayout({
           
           {/* Collapse Toggle Button - Desktop Only */}
           <button
-            className="hidden xl:flex absolute -right-3 top-7 bg-white border border-slate-200 rounded-full p-1 text-slate-500 hover:text-pink-700 hover:bg-slate-50 z-50 shadow-sm"
+            className="hidden xl:flex absolute -right-3 top-7 bg-white border-2 border-slate-200 rounded-full p-1 text-slate-500 hover:text-pink-700 hover:bg-slate-50 z-50 shadow-sm"
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -130,7 +130,7 @@ export default function KaryawanLayout({
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-h-screen w-full transition-all duration-300 ease-in-out xl:pl-28">
         {/* Top Header for Mobile */}
-        <header className="xl:hidden flex items-center justify-between p-4 bg-white/90 backdrop-blur-md border border-slate-200/60 sticky top-4 mx-4 rounded-2xl z-30 shadow-sm mb-4">
+        <header className="xl:hidden flex items-center justify-between p-4 bg-white/90 backdrop-blur-md border-2 border-slate-200/60 sticky top-4 mx-4 rounded-2xl z-30 shadow-sm mb-4">
           <img src="/logo.png" alt="Mirayya" className="h-14 w-auto object-contain scale-[1.35] transform origin-left drop-shadow-sm" />
           <button 
             className="p-2 -mr-2 text-slate-600 hover:bg-slate-100 rounded-md transition-colors"

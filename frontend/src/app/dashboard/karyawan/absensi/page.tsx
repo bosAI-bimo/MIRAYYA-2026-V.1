@@ -3,12 +3,36 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Camera, MapPin, Clock, Filter, Search, ChevronRight } from "lucide-react";
+import { Camera, MapPin, Clock, Filter, Search, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight } from "lucide-react";
 import Link from "next/link";
+
+const historyData = [
+  { date: "11 Jun 2026", in: "07:55", out: "16:05", duration: "8j 10m", status: "Tepat Waktu" },
+  { date: "10 Jun 2026", in: "07:50", out: "16:00", duration: "8j 10m", status: "Tepat Waktu" },
+  { date: "09 Jun 2026", in: "08:15", out: "16:10", duration: "7j 55m", status: "Terlambat" },
+  { date: "08 Jun 2026", in: "07:58", out: "16:02", duration: "8j 4m", status: "Tepat Waktu" },
+  { date: "07 Jun 2026", in: "-", out: "-", duration: "-", status: "Libur" },
+  { date: "06 Jun 2026", in: "07:45", out: "16:00", duration: "8j 15m", status: "Tepat Waktu" },
+  { date: "05 Jun 2026", in: "08:05", out: "16:05", duration: "8j", status: "Terlambat" },
+  { date: "04 Jun 2026", in: "07:55", out: "16:10", duration: "8j 15m", status: "Tepat Waktu" },
+  { date: "03 Jun 2026", in: "07:50", out: "16:00", duration: "8j 10m", status: "Tepat Waktu" },
+  { date: "02 Jun 2026", in: "-", out: "-", duration: "-", status: "Cuti" },
+  { date: "01 Jun 2026", in: "07:59", out: "16:01", duration: "8j 2m", status: "Tepat Waktu" },
+  { date: "31 May 2026", in: "-", out: "-", duration: "-", status: "Libur" },
+  { date: "30 May 2026", in: "07:50", out: "16:00", duration: "8j 10m", status: "Tepat Waktu" },
+  { date: "29 May 2026", in: "08:20", out: "16:20", duration: "8j", status: "Terlambat" },
+  { date: "28 May 2026", in: "07:55", out: "16:05", duration: "8j 10m", status: "Tepat Waktu" },
+];
 
 export default function AbsensiKaryawan() {
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [checkInStatus, setCheckInStatus] = useState<"idle" | "capturing" | "success">("idle");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil(historyData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = historyData.slice(startIndex, startIndex + itemsPerPage);
 
   const handleCheckIn = () => {
     setIsCheckingIn(true);
@@ -48,7 +72,7 @@ export default function AbsensiKaryawan() {
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Form Check In / Check Out */}
-        <Card>
+        <Card className="border-2 border-slate-200">
           <CardHeader>
             <CardTitle>Mulai Sif Anda</CardTitle>
             <CardDescription>Pastikan wajah Anda terlihat jelas dan lokasi aktif</CardDescription>
@@ -109,7 +133,7 @@ export default function AbsensiKaryawan() {
         </Card>
 
         {/* Info Tambahan */}
-        <Card className="bg-gradient-to-br from-slate-50 to-white border-none shadow-soft">
+        <Card className="border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-white border-none shadow-soft">
           <CardHeader>
             <CardTitle className="text-lg">Informasi Sif</CardTitle>
           </CardHeader>
@@ -128,7 +152,7 @@ export default function AbsensiKaryawan() {
       </div>
 
       {/* Riwayat Absensi */}
-      <Card>
+      <Card className="border-2 border-slate-200">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <CardTitle>Riwayat Absensi</CardTitle>
@@ -143,7 +167,7 @@ export default function AbsensiKaryawan() {
                 className="flex h-9 w-full rounded-[calc(var(--radius)-2px)] border border-border bg-background pl-9 pr-3 py-2 text-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
               />
             </div>
-            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
               <option value="this_month">Bulan Ini</option>
               <option value="last_month">Bulan Lalu</option>
               <option value="this_year">Tahun Ini</option>
@@ -163,13 +187,7 @@ export default function AbsensiKaryawan() {
                 </tr>
               </thead>
               <tbody>
-                {[
-                  { date: "11 Jun 2026", in: "07:55", out: "16:05", duration: "8j 10m", status: "Tepat Waktu" },
-                  { date: "10 Jun 2026", in: "07:50", out: "16:00", duration: "8j 10m", status: "Tepat Waktu" },
-                  { date: "09 Jun 2026", in: "08:15", out: "16:10", duration: "7j 55m", status: "Terlambat" },
-                  { date: "08 Jun 2026", in: "07:58", out: "16:02", duration: "8j 4m", status: "Tepat Waktu" },
-                  { date: "07 Jun 2026", in: "-", out: "-", duration: "-", status: "Libur" },
-                ].map((row, index) => (
+                {paginatedData.map((row, index) => (
                   <tr key={index} className="border-b border-slate-100 hover:bg-slate-50 last:border-0">
                     <td className="px-4 py-3 font-medium text-slate-800">{row.date}</td>
                     <td className="px-4 py-3 text-slate-600">{row.in}</td>
@@ -188,6 +206,56 @@ export default function AbsensiKaryawan() {
                 ))}
               </tbody>
             </table>
+          </div>
+          
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-between px-4 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-md mt-4">
+            <div className="text-sm text-slate-500">
+              Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, historyData.length)}</span> dari <span className="font-medium text-slate-700">{historyData.length}</span> data
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(1)} 
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="flex items-center justify-center text-sm font-medium px-3 text-slate-600">
+                Halaman {currentPage} dari {totalPages}
+              </div>
+
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(totalPages)} 
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

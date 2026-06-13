@@ -31,7 +31,7 @@ export default function OwnerAiInsightsPage() {
           </h1>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-          <select className="px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
+          <select className="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
             <option value="all">Semua Cabang</option>
             <option value="sudirman">Mirayya Sudirman</option>
             <option value="kemang">Mirayya Kemang</option>
@@ -39,7 +39,7 @@ export default function OwnerAiInsightsPage() {
             <option value="kelapa_gading">Mirayya Kelapa Gading</option>
             <option value="bintaro">Mirayya Bintaro</option>
           </select>
-          <select className="px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
+          <select className="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
             <option value="this_month">Bulan Ini</option>
             <option value="last_month">Bulan Lalu</option>
             <option value="this_year">Tahun Ini</option>
@@ -51,7 +51,7 @@ export default function OwnerAiInsightsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="border-[#B76E79] border bg-[#F3D3D3]/20 shadow-sm">
+        <Card className="border-2 border-slate-200 border-[#B76E79] border bg-[#F3D3D3]/20 shadow-sm">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-slate-600">Total Rekomendasi</p>
@@ -63,7 +63,7 @@ export default function OwnerAiInsightsPage() {
           </CardContent>
         </Card>
         
-        <Card className="border-emerald-200 border bg-emerald-50/50 shadow-sm">
+        <Card className="border-2 border-slate-200 border-emerald-200 border bg-emerald-50/50 shadow-sm">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-slate-600">Potensi Penghematan</p>
@@ -75,7 +75,7 @@ export default function OwnerAiInsightsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-blue-200 border bg-blue-50/50 shadow-sm">
+        <Card className="border-2 border-slate-200 border-blue-200 border bg-blue-50/50 shadow-sm">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-slate-600">Tingkat Akurasi AI</p>
@@ -92,7 +92,7 @@ export default function OwnerAiInsightsPage() {
         <h2 className="text-xl font-bold text-slate-800 border-b border-slate-200 pb-2">Rekomendasi Utama</h2>
         
         {/* Insight 1 */}
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border-2 border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50">
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-2">
@@ -128,7 +128,7 @@ export default function OwnerAiInsightsPage() {
         </Card>
 
         {/* Insight 2 */}
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border-2 border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50">
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-2">
@@ -164,7 +164,7 @@ export default function OwnerAiInsightsPage() {
         </Card>
 
         {/* Insight 3 */}
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border-2 border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="pb-3 border-b border-slate-100 bg-slate-50">
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-2">

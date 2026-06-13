@@ -1,19 +1,38 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Download, Calculator, CheckCircle2, FileText, Filter, ChevronRight } from "lucide-react";
+import { Search, Download, Calculator, CheckCircle2, FileText, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight } from "lucide-react";
 import Link from "next/link";
 
+const payrollData = [
+  { id: "PR-001", name: "Siti Rahma", role: "HR Manager", branch: "Pusat", baseSalary: "Rp 8.000.000", allowance: "Rp 1.000.000", deduction: "Rp 150.000", net: "Rp 8.850.000", status: "Generated" },
+  { id: "PR-002", name: "Budi Santoso", role: "Accounting", branch: "Pusat", baseSalary: "Rp 7.500.000", allowance: "Rp 1.000.000", deduction: "Rp 0", net: "Rp 8.500.000", status: "Generated" },
+  { id: "PR-003", name: "Anita Wijaya", role: "BA", branch: "Mirayya Sudirman", baseSalary: "Rp 4.500.000", allowance: "Rp 800.000", deduction: "Rp 50.000", net: "Rp 5.250.000", status: "Pending" },
+  { id: "PR-004", name: "Rina Marlina", role: "Store Leader", branch: "Mirayya PIK", baseSalary: "Rp 5.500.000", allowance: "Rp 1.200.000", deduction: "Rp 0", net: "Rp 6.700.000", status: "Pending" },
+  { id: "PR-005", name: "Dina Mariana", role: "BA", branch: "Mirayya Kelapa Gading", baseSalary: "Rp 4.500.000", allowance: "Rp 500.000", deduction: "Rp 250.000", net: "Rp 4.750.000", status: "Pending" },
+  { id: "PR-006", name: "Agus Salim", role: "Store Leader", branch: "Mirayya Kemang", baseSalary: "Rp 5.500.000", allowance: "Rp 1.200.000", deduction: "Rp 100.000", net: "Rp 6.600.000", status: "Generated" },
+  { id: "PR-007", name: "Dewi Lestari", role: "BA", branch: "Mirayya PIK", baseSalary: "Rp 4.500.000", allowance: "Rp 700.000", deduction: "Rp 0", net: "Rp 5.200.000", status: "Generated" },
+  { id: "PR-008", name: "Fajar Siddiq", role: "Gudang", branch: "Pusat", baseSalary: "Rp 4.000.000", allowance: "Rp 500.000", deduction: "Rp 50.000", net: "Rp 4.450.000", status: "Pending" },
+  { id: "PR-009", name: "Gita Savitri", role: "BA", branch: "Mirayya Kelapa Gading", baseSalary: "Rp 4.500.000", allowance: "Rp 800.000", deduction: "Rp 0", net: "Rp 5.300.000", status: "Generated" },
+  { id: "PR-010", name: "Hadi Kusuma", role: "Kasir", branch: "Mirayya Bintaro", baseSalary: "Rp 4.200.000", allowance: "Rp 600.000", deduction: "Rp 100.000", net: "Rp 4.700.000", status: "Pending" },
+  { id: "PR-011", name: "Intan Nuraini", role: "BA", branch: "Mirayya Sudirman", baseSalary: "Rp 4.500.000", allowance: "Rp 500.000", deduction: "Rp 0", net: "Rp 5.000.000", status: "Generated" },
+  { id: "PR-012", name: "Joko Supriyanto", role: "Security", branch: "Mirayya PIK", baseSalary: "Rp 3.800.000", allowance: "Rp 400.000", deduction: "Rp 0", net: "Rp 4.200.000", status: "Generated" },
+  { id: "PR-013", name: "Kirana Larasati", role: "Store Leader", branch: "Mirayya Bintaro", baseSalary: "Rp 5.500.000", allowance: "Rp 1.000.000", deduction: "Rp 200.000", net: "Rp 6.300.000", status: "Pending" },
+  { id: "PR-014", name: "Sari Indah", role: "BA", branch: "Mirayya Kemang", baseSalary: "Rp 4.500.000", allowance: "Rp 0", deduction: "Rp 0", net: "Rp 4.500.000", status: "Pending" },
+  { id: "PR-015", name: "Tono Mulyono", role: "Security", branch: "Mirayya Sudirman", baseSalary: "Rp 3.800.000", allowance: "Rp 400.000", deduction: "Rp 50.000", net: "Rp 4.150.000", status: "Generated" },
+];
+
 export default function PayrollPage() {
-  const payrollData = [
-    { id: "PR-001", name: "Siti Rahma", role: "HR Manager", branch: "Pusat", baseSalary: "Rp 8.000.000", allowance: "Rp 1.000.000", deduction: "Rp 150.000", net: "Rp 8.850.000", status: "Generated" },
-    { id: "PR-002", name: "Budi Santoso", role: "Accounting", branch: "Pusat", baseSalary: "Rp 7.500.000", allowance: "Rp 1.000.000", deduction: "Rp 0", net: "Rp 8.500.000", status: "Generated" },
-    { id: "PR-003", name: "Anita Wijaya", role: "BA", branch: "Mirayya Sudirman", baseSalary: "Rp 4.500.000", allowance: "Rp 800.000", deduction: "Rp 50.000", net: "Rp 5.250.000", status: "Pending" },
-    { id: "PR-004", name: "Rina Marlina", role: "Store Leader", branch: "Mirayya PIK", baseSalary: "Rp 5.500.000", allowance: "Rp 1.200.000", deduction: "Rp 0", net: "Rp 6.700.000", status: "Pending" },
-    { id: "PR-005", name: "Dina Mariana", role: "BA", branch: "Mirayya Kelapa Gading", baseSalary: "Rp 4.500.000", allowance: "Rp 500.000", deduction: "Rp 250.000", net: "Rp 4.750.000", status: "Pending" },
-  ];
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil(payrollData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = payrollData.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -48,7 +67,7 @@ export default function PayrollPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="shadow-sm border-slate-200">
+        <Card className="border-2 shadow-sm border-slate-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Total Pengeluaran Gaji (Estimasi)</CardTitle>
           </CardHeader>
@@ -58,7 +77,7 @@ export default function PayrollPage() {
           </CardContent>
         </Card>
         
-        <Card className="shadow-sm border-slate-200">
+        <Card className="border-2 shadow-sm border-slate-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Slip Gaji Generated</CardTitle>
           </CardHeader>
@@ -68,7 +87,7 @@ export default function PayrollPage() {
           </CardContent>
         </Card>
         
-        <Card className="shadow-sm border-slate-200">
+        <Card className="border-2 shadow-sm border-slate-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">Jadwal Penggajian</CardTitle>
           </CardHeader>
@@ -86,7 +105,7 @@ export default function PayrollPage() {
         </TabsList>
         
         <TabsContent value="bulan-ini" className="mt-4">
-          <Card className="shadow-sm border-slate-200">
+          <Card className="border-2 shadow-sm border-slate-200">
             <CardHeader className="pb-4 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-lg font-semibold text-slate-800">Daftar Payroll Juni 2026</CardTitle>
@@ -101,7 +120,7 @@ export default function PayrollPage() {
                     className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-primary h-9 text-sm"
                   />
                 </div>
-                <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[140px]">
+                <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[140px]">
                   <option value="all">Semua Cabang</option>
                   <option value="sudirman">Mirayya Sudirman</option>
                   <option value="kemang">Mirayya Kemang</option>
@@ -109,7 +128,7 @@ export default function PayrollPage() {
                   <option value="kelapa_gading">Mirayya Kelapa Gading</option>
                   <option value="bintaro">Mirayya Bintaro</option>
                 </select>
-                <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+                <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
                   <option value="this_month">Bulan Ini</option>
                   <option value="last_month">Bulan Lalu</option>
                   <option value="this_year">Tahun Ini</option>
@@ -131,7 +150,7 @@ export default function PayrollPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {payrollData.map((pr) => (
+                    {paginatedData.map((pr) => (
                       <tr key={pr.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-4">
                           <div className="font-semibold text-slate-800 whitespace-nowrap">{pr.name}</div>
@@ -171,12 +190,62 @@ export default function PayrollPage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
+                <div className="text-sm text-slate-500">
+                  Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, payrollData.length)}</span> dari <span className="font-medium text-slate-700">{payrollData.length}</span> data
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setCurrentPage(1)} 
+                    disabled={currentPage === 1}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronsLeft className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                    disabled={currentPage === 1}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  
+                  <div className="flex items-center justify-center text-sm font-medium px-3 text-slate-600">
+                    Halaman {currentPage} dari {totalPages}
+                  </div>
+
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                    disabled={currentPage === totalPages}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setCurrentPage(totalPages)} 
+                    disabled={currentPage === totalPages}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronsRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
         
         <TabsContent value="riwayat" className="mt-4">
-          <Card className="shadow-sm border-slate-200">
+          <Card className="border-2 shadow-sm border-slate-200">
             <CardContent className="flex flex-col items-center justify-center p-12 text-center">
               <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-4">
                 <FileText className="w-8 h-8" />

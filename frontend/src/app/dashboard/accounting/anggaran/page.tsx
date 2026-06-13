@@ -1,10 +1,36 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, Edit2, Trash2, ChevronRight } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight } from "lucide-react";
 import Link from "next/link";
 
+const anggaranData = [
+  { branch: "Mirayya Sudirman", budget: "Rp 15.000.000", used: "Rp 12.500.000", sisa: "Rp 2.500.000", percentage: 83, status: "warning" },
+  { branch: "Mirayya Kemang", budget: "Rp 10.000.000", used: "Rp 4.200.000", sisa: "Rp 5.800.000", percentage: 42, status: "safe" },
+  { branch: "Mirayya PIK", budget: "Rp 12.000.000", used: "Rp 11.500.000", sisa: "Rp 500.000", percentage: 95, status: "danger" },
+  { branch: "Mirayya Kelapa Gading", budget: "Rp 10.000.000", used: "Rp 5.500.000", sisa: "Rp 4.500.000", percentage: 55, status: "safe" },
+  { branch: "Mirayya Bintaro", budget: "Rp 8.000.000", used: "Rp 7.800.000", sisa: "Rp 200.000", percentage: 97, status: "danger" },
+  { branch: "Pusat (Operasional)", budget: "Rp 50.000.000", used: "Rp 20.000.000", sisa: "Rp 30.000.000", percentage: 40, status: "safe" },
+  { branch: "Pusat (Marketing)", budget: "Rp 30.000.000", used: "Rp 25.000.000", sisa: "Rp 5.000.000", percentage: 83, status: "warning" },
+  { branch: "Mirayya Sudirman (Promosi)", budget: "Rp 5.000.000", used: "Rp 4.900.000", sisa: "Rp 100.000", percentage: 98, status: "danger" },
+  { branch: "Mirayya Kemang (Maintenance)", budget: "Rp 3.000.000", used: "Rp 1.000.000", sisa: "Rp 2.000.000", percentage: 33, status: "safe" },
+  { branch: "Mirayya PIK (Events)", budget: "Rp 8.000.000", used: "Rp 5.000.000", sisa: "Rp 3.000.000", percentage: 62, status: "safe" },
+  { branch: "Pusat (IT)", budget: "Rp 15.000.000", used: "Rp 10.000.000", sisa: "Rp 5.000.000", percentage: 66, status: "warning" },
+  { branch: "Mirayya Kelapa Gading (Staff)", budget: "Rp 2.000.000", used: "Rp 1.800.000", sisa: "Rp 200.000", percentage: 90, status: "danger" },
+  { branch: "Mirayya Bintaro (Repair)", budget: "Rp 4.000.000", used: "Rp 2.500.000", sisa: "Rp 1.500.000", percentage: 62, status: "safe" },
+  { branch: "Pusat (Logistik)", budget: "Rp 20.000.000", used: "Rp 18.000.000", sisa: "Rp 2.000.000", percentage: 90, status: "danger" },
+  { branch: "Pusat (HRD)", budget: "Rp 10.000.000", used: "Rp 7.500.000", sisa: "Rp 2.500.000", percentage: 75, status: "warning" },
+];
+
 export default function BudgetPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil(anggaranData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = anggaranData.slice(startIndex, startIndex + itemsPerPage);
   return (
     <div className="space-y-6">
       {/* Header / Navbar Separator */}
@@ -33,7 +59,7 @@ export default function BudgetPage() {
         </div>
       </div>
 
-      <Card className="shadow-sm border-slate-200">
+      <Card className="border-2 shadow-sm border-slate-200">
         <CardHeader className="pb-4 border-b border-slate-100 flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
             <CardTitle className="text-lg font-semibold text-slate-800">Anggaran Juni 2026</CardTitle>
@@ -45,10 +71,10 @@ export default function BudgetPage() {
               <input 
                 type="text" 
                 placeholder="Cari cabang..." 
-                className="pl-9 pr-4 py-2 border border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="pl-9 pr-4 py-2 border-2 border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
-            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]">
+            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]">
               <option value="all">Semua Cabang</option>
               <option value="sudirman">Mirayya Sudirman</option>
               <option value="kemang">Mirayya Kemang</option>
@@ -56,7 +82,7 @@ export default function BudgetPage() {
               <option value="kelapa_gading">Mirayya Kelapa Gading</option>
               <option value="bintaro">Mirayya Bintaro</option>
             </select>
-            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[130px]">
+            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[130px]">
               <option value="this_month">Bulan Ini</option>
               <option value="last_month">Bulan Lalu</option>
               <option value="this_year">Tahun Ini</option>
@@ -77,13 +103,7 @@ export default function BudgetPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {[
-                  { branch: "Mirayya Sudirman", budget: "Rp 15.000.000", used: "Rp 12.500.000", sisa: "Rp 2.500.000", percentage: 83, status: "warning" },
-                  { branch: "Mirayya Kemang", budget: "Rp 10.000.000", used: "Rp 4.200.000", sisa: "Rp 5.800.000", percentage: 42, status: "safe" },
-                  { branch: "Mirayya PIK", budget: "Rp 12.000.000", used: "Rp 11.500.000", sisa: "Rp 500.000", percentage: 95, status: "danger" },
-                  { branch: "Mirayya Kelapa Gading", budget: "Rp 10.000.000", used: "Rp 5.500.000", sisa: "Rp 4.500.000", percentage: 55, status: "safe" },
-                  { branch: "Mirayya Bintaro", budget: "Rp 8.000.000", used: "Rp 7.800.000", sisa: "Rp 200.000", percentage: 97, status: "danger" },
-                ].map((item, i) => (
+                {paginatedData.map((item, i) => (
                   <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-800">{item.branch}</td>
                     <td className="px-6 py-4 text-slate-600 font-medium">{item.budget}</td>
@@ -120,6 +140,56 @@ export default function BudgetPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+          
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
+            <div className="text-sm text-slate-500">
+              Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, anggaranData.length)}</span> dari <span className="font-medium text-slate-700">{anggaranData.length}</span> data
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(1)} 
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="flex items-center justify-center text-sm font-medium px-3 text-slate-600">
+                Halaman {currentPage} dari {totalPages}
+              </div>
+
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(totalPages)} 
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

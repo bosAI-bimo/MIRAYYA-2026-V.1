@@ -100,7 +100,7 @@ export default function OwnerDashboardPage() {
           <h1 className="text-3xl font-bold tracking-tight text-slate-800">Owner Dashboard</h1>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-          <select className="px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
+          <select className="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
             <option value="all">Semua Cabang</option>
             <option value="sudirman">Mirayya Sudirman</option>
             <option value="kemang">Mirayya Kemang</option>
@@ -108,7 +108,7 @@ export default function OwnerDashboardPage() {
             <option value="kelapa_gading">Mirayya Kelapa Gading</option>
             <option value="bintaro">Mirayya Bintaro</option>
           </select>
-          <select className="px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
+          <select className="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
             <option value="this_month">Bulan Ini</option>
             <option value="last_month">Bulan Lalu</option>
             <option value="this_year">Tahun Ini</option>
@@ -119,7 +119,7 @@ export default function OwnerDashboardPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <motion.div variants={itemVariants}>
-          <Card className="hover:shadow-md transition-shadow group h-full">
+          <Card className="border-2 border-slate-200 hover:shadow-md transition-shadow group h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-slate-600">Total Omzet (Bulan Ini)</CardTitle>
               <TrendingUp className="w-5 h-5 text-[#B76E79]" />
@@ -135,7 +135,7 @@ export default function OwnerDashboardPage() {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="hover:shadow-md transition-shadow group h-full">
+          <Card className="border-2 border-slate-200 hover:shadow-md transition-shadow group h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-slate-600">Pencapaian Target</CardTitle>
               <Target className="w-5 h-5 text-[#B76E79]" />
@@ -153,7 +153,7 @@ export default function OwnerDashboardPage() {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="hover:shadow-md transition-shadow group h-full">
+          <Card className="border-2 border-slate-200 hover:shadow-md transition-shadow group h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-slate-600">Total Transaksi</CardTitle>
               <Package className="w-5 h-5 text-[#B76E79]" />
@@ -169,7 +169,7 @@ export default function OwnerDashboardPage() {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <Card className="hover:shadow-md transition-shadow group h-full">
+          <Card className="border-2 border-slate-200 hover:shadow-md transition-shadow group h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-slate-600">Cabang Aktif</CardTitle>
               <Store className="w-5 h-5 text-[#B76E79]" />
@@ -186,7 +186,7 @@ export default function OwnerDashboardPage() {
 
       <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart Section */}
-        <Card className="lg:col-span-2">
+        <Card className="border-2 border-slate-200 lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-slate-800">Perbandingan Omzet Cabang</CardTitle>
             <CardDescription>Realisasi vs Target Bulan Ini</CardDescription>
@@ -225,7 +225,7 @@ export default function OwnerDashboardPage() {
         </Card>
 
         {/* Target Revenue Tracking List */}
-        <Card>
+        <Card className="border-2 border-slate-200">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-slate-800">Pantauan Target Omzet</CardTitle>
             <CardDescription>Cabang dengan performa di bawah target</CardDescription>
@@ -266,7 +266,7 @@ export default function OwnerDashboardPage() {
 
       <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Fast & Slow Moving Products */}
-        <Card className="border-slate-200 shadow-sm">
+        <Card className="border-2 border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-slate-800">Produk Fast & Slow Moving</CardTitle>
             <CardDescription>Berdasarkan data penjualan 30 hari terakhir</CardDescription>
@@ -319,7 +319,7 @@ export default function OwnerDashboardPage() {
         </Card>
 
         {/* AI Insights Summary */}
-        <Card className="border-none bg-gradient-to-br from-primary/10 via-background to-background shadow-soft relative overflow-hidden">
+        <Card className="border-2 border-slate-200 border-none bg-gradient-to-br from-primary/10 via-background to-background shadow-soft relative overflow-hidden">
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob" />
           <div className="absolute top-0 right-0 p-4 opacity-10">
             <BrainCircuit className="w-24 h-24 text-primary" />

@@ -1,19 +1,37 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, MoreHorizontal, Filter, ChevronRight } from "lucide-react";
+import { Search, Plus, MoreHorizontal, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight } from "lucide-react";
 import Link from "next/link";
 
+const employees = [
+  { id: "EMP-001", name: "Siti Rahma", email: "siti.hr@mirayya.com", role: "HR Manager", branch: "Pusat", status: "Aktif" },
+  { id: "EMP-002", name: "Budi Santoso", email: "budi.acc@mirayya.com", role: "Accounting", branch: "Pusat", status: "Aktif" },
+  { id: "EMP-003", name: "Anita Wijaya", email: "anita.ba@mirayya.com", role: "BA", branch: "Mirayya Sudirman", status: "Aktif" },
+  { id: "EMP-004", name: "Rina Marlina", email: "rina.sl@mirayya.com", role: "Store Leader", branch: "Mirayya PIK", status: "Aktif" },
+  { id: "EMP-005", name: "Dina Mariana", email: "dina.ba@mirayya.com", role: "BA", branch: "Mirayya Kelapa Gading", status: "Cuti" },
+  { id: "EMP-006", name: "Sari Indah", email: "sari.ba@mirayya.com", role: "BA", branch: "Mirayya Kemang", status: "Nonaktif" },
+  { id: "EMP-007", name: "Tono Mulyono", email: "tono@mirayya.com", role: "Security", branch: "Mirayya Sudirman", status: "Aktif" },
+  { id: "EMP-008", name: "Agus Salim", email: "agus@mirayya.com", role: "Store Leader", branch: "Mirayya Kemang", status: "Aktif" },
+  { id: "EMP-009", name: "Dewi Lestari", email: "dewi.l@mirayya.com", role: "BA", branch: "Mirayya PIK", status: "Aktif" },
+  { id: "EMP-010", name: "Fajar Siddiq", email: "fajar@mirayya.com", role: "Gudang", branch: "Pusat", status: "Aktif" },
+  { id: "EMP-011", name: "Gita Savitri", email: "gita@mirayya.com", role: "BA", branch: "Mirayya Kelapa Gading", status: "Aktif" },
+  { id: "EMP-012", name: "Hadi Kusuma", email: "hadi@mirayya.com", role: "Kasir", branch: "Mirayya Bintaro", status: "Aktif" },
+  { id: "EMP-013", name: "Intan Nuraini", email: "intan@mirayya.com", role: "BA", branch: "Mirayya Sudirman", status: "Cuti" },
+  { id: "EMP-014", name: "Joko Supriyanto", email: "joko@mirayya.com", role: "Security", branch: "Mirayya PIK", status: "Aktif" },
+  { id: "EMP-015", name: "Kirana Larasati", email: "kirana@mirayya.com", role: "Store Leader", branch: "Mirayya Bintaro", status: "Aktif" },
+];
+
 export default function KaryawanPage() {
-  const employees = [
-    { id: "EMP-001", name: "Siti Rahma", email: "siti.hr@mirayya.com", role: "HR Manager", branch: "Pusat", status: "Aktif" },
-    { id: "EMP-002", name: "Budi Santoso", email: "budi.acc@mirayya.com", role: "Accounting", branch: "Pusat", status: "Aktif" },
-    { id: "EMP-003", name: "Anita Wijaya", email: "anita.ba@mirayya.com", role: "BA", branch: "Mirayya Sudirman", status: "Aktif" },
-    { id: "EMP-004", name: "Rina Marlina", email: "rina.sl@mirayya.com", role: "Store Leader", branch: "Mirayya PIK", status: "Aktif" },
-    { id: "EMP-005", name: "Dina Mariana", email: "dina.ba@mirayya.com", role: "BA", branch: "Mirayya Kelapa Gading", status: "Cuti" },
-    { id: "EMP-006", name: "Sari Indah", email: "sari.ba@mirayya.com", role: "BA", branch: "Mirayya Kemang", status: "Nonaktif" },
-  ];
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil(employees.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = employees.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -43,7 +61,7 @@ export default function KaryawanPage() {
         </div>
       </div>
 
-      <Card className="shadow-sm border-slate-200">
+      <Card className="border-2 shadow-sm border-slate-200">
         <CardHeader className="pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <CardTitle className="text-lg font-semibold text-slate-800">Daftar Karyawan</CardTitle>
@@ -58,7 +76,7 @@ export default function KaryawanPage() {
                 className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-primary h-9"
               />
             </div>
-            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[140px]">
+            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[140px]">
               <option value="all">Semua Cabang</option>
               <option value="sudirman">Mirayya Sudirman</option>
               <option value="kemang">Mirayya Kemang</option>
@@ -66,7 +84,7 @@ export default function KaryawanPage() {
               <option value="kelapa_gading">Mirayya Kelapa Gading</option>
               <option value="bintaro">Mirayya Bintaro</option>
             </select>
-            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
               <option value="this_month">Bulan Ini</option>
               <option value="last_month">Bulan Lalu</option>
               <option value="this_year">Tahun Ini</option>
@@ -87,7 +105,7 @@ export default function KaryawanPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {employees.map((emp) => (
+                {paginatedData.map((emp) => (
                   <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 text-slate-600 font-medium">{emp.id}</td>
                     <td className="px-6 py-4">
@@ -120,14 +138,53 @@ export default function KaryawanPage() {
             </table>
           </div>
           
-          <div className="p-4 border-t border-slate-100 flex items-center justify-between text-sm text-slate-500">
-            <div>Menampilkan 1-6 dari 58 karyawan</div>
-            <div className="flex space-x-1">
-              <Button variant="outline" size="sm" disabled className="h-8">Sebelumnya</Button>
-              <Button variant="outline" size="sm" className="h-8 bg-slate-50">1</Button>
-              <Button variant="outline" size="sm" className="h-8">2</Button>
-              <Button variant="outline" size="sm" className="h-8">3</Button>
-              <Button variant="outline" size="sm" className="h-8">Selanjutnya</Button>
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
+            <div className="text-sm text-slate-500">
+              Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, employees.length)}</span> dari <span className="font-medium text-slate-700">{employees.length}</span> data
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(1)} 
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="flex items-center justify-center text-sm font-medium px-3 text-slate-600">
+                Halaman {currentPage} dari {totalPages}
+              </div>
+
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(totalPages)} 
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </CardContent>

@@ -28,7 +28,7 @@ export default function EODPage() {
           <h1 className="text-3xl font-bold tracking-tight text-slate-800">Laporan End of Day (EOD)</h1>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-          <select className="px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
+          <select className="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
             <option value="today">Hari Ini</option>
             <option value="yesterday">Kemarin</option>
             <option value="7days">7 Hari Terakhir</option>
@@ -37,7 +37,7 @@ export default function EODPage() {
       </div>
 
       <form className="space-y-6">
-        <Card className="shadow-sm border-slate-200">
+        <Card className="border-2 shadow-sm border-slate-200">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-slate-800">Ringkasan Omzet Hari Ini</CardTitle>
             <CardDescription>Masukkan total pendapatan berdasarkan metode pembayaran.</CardDescription>
@@ -82,7 +82,7 @@ export default function EODPage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-slate-200">
+        <Card className="border-2 shadow-sm border-slate-200">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-slate-800">Penggunaan Kas Kecil (Petty Cash)</CardTitle>
             <CardDescription>Kosongkan jika tidak ada penggunaan uang kas kecil hari ini.</CardDescription>
@@ -104,7 +104,7 @@ export default function EODPage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm border-slate-200">
+        <Card className="border-2 shadow-sm border-slate-200">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-slate-800">Bukti Foto</CardTitle>
             <CardDescription>Unggah foto struk settlement EDC, bukti transfer setor tunai, atau nota petty cash.</CardDescription>

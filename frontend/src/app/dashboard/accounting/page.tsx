@@ -1,14 +1,52 @@
 "use client";
 
-import React from "react";
-import { motion, Variants } from "framer-motion";
+import React, { useState } from "react";
+import { motion, Variants, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign, FileText, CheckCircle, TrendingUp, AlertCircle, CreditCard, ChevronRight, Activity, ArrowUpRight } from "lucide-react";
+import { DollarSign, FileText, CheckCircle, TrendingUp, AlertCircle, CreditCard, ChevronRight, Activity, ArrowUpRight, X as XIcon, Download, Printer, Check, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AccountingDashboard() {
+  const [selectedEOD, setSelectedEOD] = useState<any>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+
+  const openReviewModal = (item: any) => {
+    setSelectedEOD(item);
+    setIsReviewModalOpen(true);
+  };
+
+  const closeReviewModal = () => {
+    setIsReviewModalOpen(false);
+    setTimeout(() => setSelectedEOD(null), 300);
+  };
+
+  const [selectedPO, setSelectedPO] = useState<any>(null);
+  const [isPOModalOpen, setIsPOModalOpen] = useState(false);
+
+  const openPOModal = (item: any) => {
+    setSelectedPO(item);
+    setIsPOModalOpen(true);
+  };
+
+  const closePOModal = () => {
+    setIsPOModalOpen(false);
+    setTimeout(() => setSelectedPO(null), 300);
+  };
+
+  const [selectedPettyCash, setSelectedPettyCash] = useState<any>(null);
+  const [isPettyCashModalOpen, setIsPettyCashModalOpen] = useState(false);
+
+  const openPettyCashModal = (item: any) => {
+    setSelectedPettyCash(item);
+    setIsPettyCashModalOpen(true);
+  };
+
+  const closePettyCashModal = () => {
+    setIsPettyCashModalOpen(false);
+    setTimeout(() => setSelectedPettyCash(null), 300);
+  };
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
@@ -48,7 +86,7 @@ export default function AccountingDashboard() {
           <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">Accounting</h1>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-          <select className="px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[160px] shadow-sm transition-all">
+          <select className="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[160px] shadow-sm transition-all">
             <option value="all">Semua Cabang</option>
             <option value="sudirman">Mirayya Sudirman</option>
             <option value="kemang">Mirayya Kemang</option>
@@ -56,7 +94,7 @@ export default function AccountingDashboard() {
             <option value="kelapa_gading">Mirayya Kelapa Gading</option>
             <option value="bintaro">Mirayya Bintaro</option>
           </select>
-          <select className="px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
+          <select className="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
             <option value="this_month">Bulan Ini</option>
             <option value="last_month">Bulan Lalu</option>
             <option value="this_year">Tahun Ini</option>
@@ -68,7 +106,7 @@ export default function AccountingDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 mb-8">
         {/* Laba Bersih Bulan Ini */}
         <motion.div variants={itemVariants} className="h-full">
-          <div className="bg-white rounded-2xl shadow-sm p-6 h-full flex flex-col border border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer">
+          <div className="bg-white rounded-2xl shadow-sm p-6 h-full flex flex-col border-2 border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer">
             <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-emerald-50 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div className="flex items-center space-x-4 mb-5 relative z-10">
               <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600 group-hover:bg-emerald-100 transition-colors duration-300">
@@ -93,7 +131,7 @@ export default function AccountingDashboard() {
 
         {/* Total Omzet */}
         <motion.div variants={itemVariants} className="h-full">
-          <div className="bg-white rounded-2xl shadow-sm p-6 h-full flex flex-col border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer">
+          <div className="bg-white rounded-2xl shadow-sm p-6 h-full flex flex-col border-2 border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer">
             <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div className="flex items-center space-x-4 mb-5 relative z-10">
               <div className="p-3 bg-blue-50 rounded-xl text-blue-600 group-hover:bg-blue-100 transition-colors duration-300">
@@ -118,7 +156,7 @@ export default function AccountingDashboard() {
 
         {/* Persetujuan EOD Tertunda */}
         <motion.div variants={itemVariants} className="h-full">
-          <div className="bg-white rounded-2xl shadow-sm p-6 h-full flex flex-col border border-slate-200 hover:border-rose-300 hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer">
+          <div className="bg-white rounded-2xl shadow-sm p-6 h-full flex flex-col border-2 border-slate-200 hover:border-rose-300 hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer">
             <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-rose-50 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div className="flex items-center space-x-4 mb-5 relative z-10">
               <div className="p-3 bg-rose-50 rounded-xl text-rose-600 group-hover:bg-rose-100 transition-colors duration-300">
@@ -143,7 +181,7 @@ export default function AccountingDashboard() {
 
         {/* Persetujuan PO Tertunda */}
         <motion.div variants={itemVariants} className="h-full">
-          <div className="bg-white rounded-2xl shadow-sm p-6 h-full flex flex-col border border-slate-200 hover:border-amber-300 hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer">
+          <div className="bg-white rounded-2xl shadow-sm p-6 h-full flex flex-col border-2 border-slate-200 hover:border-amber-300 hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer">
             <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-amber-50 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div className="flex items-center space-x-4 mb-5 relative z-10">
               <div className="p-3 bg-amber-50 rounded-xl text-amber-600 group-hover:bg-amber-100 transition-colors duration-300">
@@ -170,7 +208,7 @@ export default function AccountingDashboard() {
       <motion.div variants={itemVariants}>
         <Tabs defaultValue="persetujuan" className="w-full">
           {/* Capsule Tabs */}
-          <div className="flex my-6 lg:my-10 bg-slate-100/80 p-1.5 rounded-2xl md:rounded-full w-full md:w-max overflow-x-auto no-scrollbar border border-slate-200/50 shadow-inner">
+          <div className="flex my-6 lg:my-10 bg-slate-100/80 p-1.5 rounded-2xl md:rounded-full w-full md:w-max overflow-x-auto no-scrollbar border-2 border-slate-200/50 shadow-inner">
             <TabsList className="bg-transparent p-0 flex gap-1 lg:gap-2 min-w-max h-auto">
               <TabsTrigger 
                 value="persetujuan" 
@@ -196,7 +234,7 @@ export default function AccountingDashboard() {
           <TabsContent value="persetujuan" className="mt-6 focus-visible:outline-none">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
               {/* EOD Approval List */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-200 flex flex-col h-full overflow-hidden">
                 <div className="flex justify-between items-center px-6 py-5 border-b border-slate-100 bg-slate-50/50">
                   <div>
                     <h3 className="text-lg font-bold text-slate-800">EOD Menunggu Persetujuan</h3>
@@ -210,9 +248,9 @@ export default function AccountingDashboard() {
                 </div>
                 <div className="divide-y divide-slate-100 flex-1">
                   {[
-                    { branch: "Mirayya Sudirman", date: "11 Jun 2026", omzet: "Rp 12.500.000", status: "Pending" },
-                    { branch: "Mirayya Kemang", date: "11 Jun 2026", omzet: "Rp 8.200.000", status: "Pending" },
-                    { branch: "Mirayya PIK", date: "10 Jun 2026", omzet: "Rp 15.100.000", status: "Pending" },
+                    { branch: "Mirayya Sudirman", date: "11 Jun 2026", omzet: "Rp 12.500.000", cash: "Rp 4.500.000", edc: "Rp 5.000.000", qris: "Rp 3.000.000", pettyCash: "Rp 150.000", setoranBersih: "Rp 4.350.000", status: "Pending" },
+                    { branch: "Mirayya Kemang", date: "11 Jun 2026", omzet: "Rp 8.200.000", cash: "Rp 2.200.000", edc: "Rp 3.000.000", qris: "Rp 3.000.000", pettyCash: "Rp 50.000", setoranBersih: "Rp 2.150.000", status: "Pending" },
+                    { branch: "Mirayya PIK", date: "10 Jun 2026", omzet: "Rp 15.100.000", cash: "Rp 5.100.000", edc: "Rp 6.000.000", qris: "Rp 4.000.000", pettyCash: "Rp 200.000", setoranBersih: "Rp 4.900.000", status: "Pending" },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-colors group gap-4 cursor-pointer">
                       <div className="flex items-center space-x-4 min-w-0 flex-1">
@@ -224,7 +262,9 @@ export default function AccountingDashboard() {
                           <p className="text-sm text-slate-500 mt-1 font-medium truncate">{item.date} • <span className="text-slate-700">{item.omzet}</span></p>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm" className="border-slate-200 text-slate-600 hover:bg-slate-800 hover:text-white rounded-full px-5 h-9 font-semibold transition-all shadow-sm group-hover:shadow group-hover:border-slate-800 shrink-0 cursor-pointer">
+                      <Button 
+                        onClick={() => openReviewModal(item)}
+                        variant="outline" size="sm" className="border-slate-200 text-slate-600 hover:bg-slate-800 hover:text-white rounded-full px-5 h-9 font-semibold transition-all shadow-sm group-hover:shadow group-hover:border-slate-800 shrink-0 cursor-pointer">
                         Review
                       </Button>
                     </div>
@@ -233,7 +273,7 @@ export default function AccountingDashboard() {
               </div>
 
               {/* PO Approval List */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-200 flex flex-col h-full overflow-hidden">
                 <div className="flex justify-between items-center px-6 py-5 border-b border-slate-100 bg-slate-50/50">
                   <div>
                     <h3 className="text-lg font-bold text-slate-800">PO Menunggu Persetujuan</h3>
@@ -247,8 +287,15 @@ export default function AccountingDashboard() {
                 </div>
                 <div className="divide-y divide-slate-100 flex-1">
                   {[
-                    { branch: "Mirayya Kelapa Gading", id: "PO-2606-042", total: "Rp 4.500.000", status: "Pending" },
-                    { branch: "Mirayya Sudirman", id: "PO-2606-043", total: "Rp 2.100.000", status: "Pending" },
+                    { branch: "Mirayya Kelapa Gading", id: "PO-2606-042", total: "Rp 4.500.000", status: "Pending", items: [
+                      { name: "Wardah Lightening Serum", qty: 20, price: "Rp 75.000", category: "Fast Moving" },
+                      { name: "Make Over Powerstay", qty: 10, price: "Rp 150.000", category: "Fast Moving" },
+                      { name: "Emina Sun Battle", qty: 30, price: "Rp 50.000", category: "Fast Moving" }
+                    ] },
+                    { branch: "Mirayya Sudirman", id: "PO-2606-043", total: "Rp 2.100.000", status: "Pending", items: [
+                      { name: "Somethinc Niacinamide", qty: 10, price: "Rp 120.000", category: "Fast Moving" },
+                      { name: "Avoskin PHTE", qty: 5, price: "Rp 180.000", category: "Slow Moving" }
+                    ] },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-colors group gap-4 cursor-pointer">
                       <div className="flex items-center space-x-4 min-w-0 flex-1">
@@ -260,7 +307,9 @@ export default function AccountingDashboard() {
                           <p className="text-sm text-slate-500 mt-1 font-medium truncate">{item.id} • <span className="text-slate-700">{item.total}</span></p>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm" className="border-slate-200 text-slate-600 hover:bg-slate-800 hover:text-white rounded-full px-5 h-9 font-semibold transition-all shadow-sm group-hover:shadow group-hover:border-slate-800 shrink-0 cursor-pointer">
+                      <Button 
+                        onClick={() => openPOModal(item)}
+                        variant="outline" size="sm" className="border-slate-200 text-slate-600 hover:bg-slate-800 hover:text-white rounded-full px-5 h-9 font-semibold transition-all shadow-sm group-hover:shadow group-hover:border-slate-800 shrink-0 cursor-pointer">
                         Review
                       </Button>
                     </div>
@@ -271,7 +320,7 @@ export default function AccountingDashboard() {
           </TabsContent>
 
           <TabsContent value="anggaran" className="mt-6 focus-visible:outline-none">
-            <Card className="shadow-sm border-slate-200 rounded-2xl overflow-hidden">
+            <Card className="border-2 shadow-sm border-slate-200 rounded-2xl overflow-hidden">
               <CardHeader className="px-6 py-6 border-b border-slate-100 bg-slate-50/50">
                 <CardTitle className="text-lg font-bold text-slate-800">Status Anggaran Cabang (Juni 2026)</CardTitle>
                 <CardDescription className="text-sm font-medium mt-1">Pemantauan realisasi anggaran operasional per cabang.</CardDescription>
@@ -311,7 +360,7 @@ export default function AccountingDashboard() {
           </TabsContent>
 
           <TabsContent value="pettycash" className="mt-6 focus-visible:outline-none">
-            <Card className="shadow-sm border-slate-200 rounded-2xl overflow-hidden">
+            <Card className="border-2 shadow-sm border-slate-200 rounded-2xl overflow-hidden">
               <CardHeader className="px-6 py-6 border-b border-slate-100 bg-slate-50/50">
                 <CardTitle className="text-lg font-bold text-slate-800">Monitoring Petty Cash</CardTitle>
                 <CardDescription className="text-sm font-medium mt-1">Transaksi pengeluaran kas kecil cabang terbaru.</CardDescription>
@@ -323,7 +372,7 @@ export default function AccountingDashboard() {
                     { branch: "Mirayya Kemang", desc: "Ongkir GoSend antar barang", amount: "Rp 45.000", date: "10 Jun 2026", by: "Budi (Store Leader)" },
                     { branch: "Mirayya PIK", desc: "Plastik sampah", amount: "Rp 35.000", date: "09 Jun 2026", by: "Rina (Store Leader)" },
                   ].map((item, i) => (
-                    <div key={i} className="flex justify-between items-center p-6 hover:bg-slate-50 transition-colors group gap-4 cursor-pointer">
+                    <div key={i} onClick={() => openPettyCashModal(item)} className="flex justify-between items-center p-6 hover:bg-slate-50 transition-colors group gap-4 cursor-pointer">
                       <div className="flex items-center space-x-4 min-w-0 flex-1">
                         <div className="w-12 h-12 bg-slate-100 rounded-2xl text-slate-500 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm border border-transparent group-hover:border-slate-200 transition-all duration-300 shrink-0">
                           <CreditCard className="w-6 h-6" />
@@ -339,10 +388,11 @@ export default function AccountingDashboard() {
                           </div>
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
+                      <div className="text-right flex items-center gap-3 shrink-0">
                         <span className="inline-flex px-3 py-1.5 bg-rose-50 text-rose-600 text-sm font-bold rounded-lg border border-rose-100/50">
                           - {item.amount}
                         </span>
+                        <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-pink-600 transition-colors" />
                       </div>
                     </div>
                   ))}
@@ -358,6 +408,272 @@ export default function AccountingDashboard() {
 
         </Tabs>
       </motion.div>
+      {/* Review Modal */}
+      <AnimatePresence>
+        {isReviewModalOpen && selectedEOD && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={closeReviewModal}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative z-50 overflow-hidden border border-slate-100 flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800">Review EOD</h3>
+                  <p className="text-sm font-medium text-slate-500 mt-1">{selectedEOD.branch} • {selectedEOD.date}</p>
+                </div>
+                <button 
+                  onClick={closeReviewModal}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 transition-colors"
+                >
+                  <XIcon className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-6 overflow-y-auto max-h-[60vh]">
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3">
+                  <div className="flex justify-between items-center pb-3 border-b border-slate-200 border-dashed">
+                    <span className="text-sm font-bold text-slate-700">Total Omzet</span>
+                    <span className="text-lg font-extrabold text-slate-900">{selectedEOD.omzet}</span>
+                  </div>
+                  
+                  <div className="space-y-2 pt-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-slate-500">Tunai (Cash)</span>
+                      <span className="text-sm font-bold text-slate-700">{selectedEOD.cash}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-slate-500">EDC</span>
+                      <span className="text-sm font-bold text-slate-700">{selectedEOD.edc}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-slate-500">QRIS</span>
+                      <span className="text-sm font-bold text-slate-700">{selectedEOD.qris}</span>
+                    </div>
+                  </div>
+
+                  <div className="w-full h-px bg-slate-200 my-2"></div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-slate-500">Pengeluaran Petty Cash</span>
+                    <span className="text-sm font-bold text-rose-600">- {selectedEOD.pettyCash}</span>
+                  </div>
+                  
+                  <div className="w-full h-px bg-slate-200 my-2"></div>
+
+                  <div className="flex justify-between items-center bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                    <span className="text-sm font-bold text-emerald-800">Setoran Bersih (Cash - Petty Cash)</span>
+                    <span className="text-lg font-extrabold text-emerald-600">{selectedEOD.setoranBersih}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button variant="outline" className="flex-1 border-slate-200 text-slate-600 hover:text-pink-600 hover:bg-pink-50 hover:border-pink-200 font-semibold h-11 rounded-xl transition-all cursor-pointer">
+                    <Printer className="w-4 h-4 mr-2" /> Cetak
+                  </Button>
+                  <Button variant="outline" className="flex-1 border-slate-200 text-slate-600 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 font-semibold h-11 rounded-xl transition-all cursor-pointer">
+                    <Download className="w-4 h-4 mr-2" /> Unduh PDF
+                  </Button>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row gap-3">
+                <Button className="flex-1 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold h-12 rounded-xl transition-all border-none cursor-pointer">
+                  <XIcon className="w-5 h-5 mr-2" /> Tolak
+                </Button>
+                <Button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                  <Check className="w-5 h-5 mr-2" /> Setujui EOD
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Review PO Modal */}
+      <AnimatePresence>
+        {isPOModalOpen && selectedPO && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={closePOModal}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative z-50 overflow-hidden border border-slate-100 flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800">Review Purchase Order</h3>
+                  <p className="text-sm font-medium text-slate-500 mt-1">{selectedPO.branch} • <span className="text-slate-700 font-bold">{selectedPO.id}</span></p>
+                </div>
+                <button 
+                  onClick={closePOModal}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 transition-colors"
+                >
+                  <XIcon className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-6 overflow-y-auto max-h-[60vh]">
+                <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div className="space-y-1">
+                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Pengajuan</span>
+                    <p className="text-2xl font-extrabold text-slate-900">{selectedPO.total}</p>
+                  </div>
+                  <div className="text-right space-y-1">
+                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Status</span>
+                    <div><span className="text-xs font-bold text-amber-700 bg-amber-100 px-3 py-1.5 rounded-lg border border-amber-200">Menunggu Acc</span></div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center">
+                    <FileText className="w-4 h-4 mr-2 text-slate-400" />
+                    Rincian Item ({selectedPO.items?.length || 0})
+                  </h4>
+                  <div className="border-2 border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-200">
+                        <tr>
+                          <th className="px-4 py-3">Produk</th>
+                          <th className="px-4 py-3 text-center">Qty</th>
+                          <th className="px-4 py-3 text-right">Harga</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {selectedPO.items?.map((product: any, idx: number) => (
+                          <tr key={idx} className="hover:bg-slate-50/50">
+                            <td className="px-4 py-3">
+                              <p className="font-semibold text-slate-800">{product.name}</p>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold mt-1 inline-block ${product.category === 'Fast Moving' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                {product.category}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center font-medium text-slate-600">{product.qty}</td>
+                            <td className="px-4 py-3 text-right font-medium text-slate-700">{product.price}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button variant="outline" className="flex-1 border-slate-200 text-slate-600 hover:text-pink-600 hover:bg-pink-50 hover:border-pink-200 font-semibold h-11 rounded-xl transition-all cursor-pointer">
+                    <Printer className="w-4 h-4 mr-2" /> Cetak PO
+                  </Button>
+                  <Button variant="outline" className="flex-1 border-slate-200 text-slate-600 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 font-semibold h-11 rounded-xl transition-all cursor-pointer">
+                    <Download className="w-4 h-4 mr-2" /> Unduh PDF
+                  </Button>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row gap-3">
+                <Button className="flex-1 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold h-12 rounded-xl transition-all border-none cursor-pointer">
+                  <XIcon className="w-5 h-5 mr-2" /> Tolak
+                </Button>
+                <Button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                  <Check className="w-5 h-5 mr-2" /> Setujui PO
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      {/* Petty Cash Detail Modal */}
+      <AnimatePresence>
+        {isPettyCashModalOpen && selectedPettyCash && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={closePettyCashModal}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-50 overflow-hidden border border-slate-100 flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800">Detail Petty Cash</h3>
+                  <p className="text-sm font-medium text-slate-500 mt-1">{selectedPettyCash.branch}</p>
+                </div>
+                <button 
+                  onClick={closePettyCashModal}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 transition-colors"
+                >
+                  <XIcon className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-6">
+                <div className="flex justify-between items-start pb-4 border-b border-slate-100">
+                  <div className="space-y-1 pr-4">
+                    <h4 className="font-bold text-slate-800">{selectedPettyCash.desc}</h4>
+                    <p className="text-xs text-slate-500">{selectedPettyCash.date} • Dilaporkan oleh {selectedPettyCash.by}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-lg font-extrabold text-rose-600 whitespace-nowrap">- {selectedPettyCash.amount}</span>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 rounded-2xl p-6 flex flex-col items-center justify-center border-2 border-slate-200 border-dashed gap-3">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-slate-400 shadow-sm">
+                    <ImageIcon className="w-8 h-8" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-slate-700">Bukti Struk/Kuitansi</p>
+                    <p className="text-xs text-slate-500 mt-1">1 foto terlampir</p>
+                  </div>
+                  <Button variant="outline" className="mt-2 border-slate-200 text-slate-700 hover:text-pink-600 hover:border-pink-200 hover:bg-pink-50 rounded-xl transition-all shadow-sm">
+                    Lihat Foto Penuh
+                  </Button>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="p-6 border-t border-slate-100 bg-slate-50/80">
+                <Button onClick={closePettyCashModal} className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold h-12 rounded-xl shadow-sm transition-all cursor-pointer">
+                  Tutup Detail
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </motion.div>
   );
 }

@@ -38,7 +38,7 @@ export default function SlipGajiKaryawan() {
       </div>
 
       {/* Slip Gaji Terbaru */}
-      <Card className="border-slate-200 bg-gradient-to-br from-white to-secondary/30">
+      <Card className="border-2 border-slate-200 bg-gradient-to-br from-white to-secondary/30">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-start space-x-4">
@@ -63,7 +63,7 @@ export default function SlipGajiKaryawan() {
       </Card>
 
       {/* Riwayat Slip Gaji */}
-      <Card className="border-slate-200">
+      <Card className="border-2 border-slate-200">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
             <CardTitle>Riwayat Slip Gaji</CardTitle>
@@ -75,10 +75,10 @@ export default function SlipGajiKaryawan() {
               <input 
                 type="text" 
                 placeholder="Cari bulan/tahun..." 
-                className="h-9 w-full rounded-md border border-slate-200 pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="h-9 w-full rounded-md border-2 border-slate-200 pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
-            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
               <option value="this_month">Bulan Ini</option>
               <option value="last_month">Bulan Lalu</option>
               <option value="this_year">Tahun Ini</option>

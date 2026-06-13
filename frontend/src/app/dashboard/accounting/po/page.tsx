@@ -1,10 +1,57 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle, Search, Eye, Filter, ChevronRight } from "lucide-react";
+import { CheckCircle, XCircle, Search, Eye, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, FileText, Download, Printer, Check, X as XIcon } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
+const poData = [
+  { id: "PO-2606-042", branch: "Mirayya Kelapa Gading", date: "11 Jun 2026", items: 45, total: "Rp 4.500.000", status: "Menunggu", details: [
+    { name: "Wardah Lightening Serum", qty: 20, price: "Rp 75.000", category: "Fast Moving" },
+    { name: "Make Over Powerstay", qty: 10, price: "Rp 150.000", category: "Fast Moving" },
+    { name: "Emina Sun Battle", qty: 15, price: "Rp 50.000", category: "Fast Moving" }
+  ]},
+  { id: "PO-2606-043", branch: "Mirayya Sudirman", date: "11 Jun 2026", items: 20, total: "Rp 2.100.000", status: "Menunggu", details: [
+    { name: "Somethinc Niacinamide", qty: 10, price: "Rp 120.000", category: "Fast Moving" },
+    { name: "Avoskin PHTE", qty: 10, price: "Rp 90.000", category: "Slow Moving" }
+  ]},
+  { id: "PO-2606-040", branch: "Mirayya PIK", date: "10 Jun 2026", items: 120, total: "Rp 15.500.000", status: "Disetujui" },
+  { id: "PO-2606-039", branch: "Mirayya Kemang", date: "09 Jun 2026", items: 15, total: "Rp 1.800.000", status: "Disetujui" },
+  { id: "PO-2606-038", branch: "Mirayya Bintaro", date: "08 Jun 2026", items: 5, total: "Rp 850.000", status: "Ditolak" },
+  { id: "PO-2606-037", branch: "Pusat", date: "07 Jun 2026", items: 250, total: "Rp 45.000.000", status: "Disetujui" },
+  { id: "PO-2606-036", branch: "Mirayya Kelapa Gading", date: "06 Jun 2026", items: 10, total: "Rp 1.200.000", status: "Disetujui" },
+  { id: "PO-2606-035", branch: "Mirayya Sudirman", date: "05 Jun 2026", items: 30, total: "Rp 3.500.000", status: "Menunggu" },
+  { id: "PO-2606-034", branch: "Mirayya PIK", date: "04 Jun 2026", items: 50, total: "Rp 5.200.000", status: "Ditolak" },
+  { id: "PO-2606-033", branch: "Mirayya Kemang", date: "03 Jun 2026", items: 25, total: "Rp 2.800.000", status: "Disetujui" },
+  { id: "PO-2606-032", branch: "Pusat", date: "02 Jun 2026", items: 500, total: "Rp 120.000.000", status: "Disetujui" },
+  { id: "PO-2606-031", branch: "Mirayya Bintaro", date: "01 Jun 2026", items: 8, total: "Rp 950.000", status: "Disetujui" },
+  { id: "PO-2605-030", branch: "Mirayya Kelapa Gading", date: "31 May 2026", items: 40, total: "Rp 4.000.000", status: "Disetujui" },
+  { id: "PO-2605-029", branch: "Mirayya Sudirman", date: "30 May 2026", items: 15, total: "Rp 1.500.000", status: "Disetujui" },
+  { id: "PO-2605-028", branch: "Mirayya PIK", date: "29 May 2026", items: 60, total: "Rp 6.800.000", status: "Ditolak" },
+];
+
 export default function POApprovalPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const [selectedPO, setSelectedPO] = useState<any>(null);
+  const [isPOModalOpen, setIsPOModalOpen] = useState(false);
+
+  const openPOModal = (item: any) => {
+    setSelectedPO(item);
+    setIsPOModalOpen(true);
+  };
+
+  const closePOModal = () => {
+    setIsPOModalOpen(false);
+    setTimeout(() => setSelectedPO(null), 300);
+  };
+
+  const totalPages = Math.ceil(poData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = poData.slice(startIndex, startIndex + itemsPerPage);
   return (
     <div className="space-y-6">
       {/* Header / Navbar Separator */}
@@ -27,7 +74,7 @@ export default function POApprovalPage() {
         </div>
       </div>
 
-      <Card className="shadow-sm border-slate-200">
+      <Card className="border-2 shadow-sm border-slate-200">
         <CardHeader className="pb-4 border-b border-slate-100 flex flex-col md:flex-row justify-between md:items-center gap-4">
           <CardTitle className="text-lg font-semibold text-slate-800">Daftar Purchase Order</CardTitle>
           <div className="flex flex-wrap items-center gap-2">
@@ -36,10 +83,10 @@ export default function POApprovalPage() {
               <input 
                 type="text" 
                 placeholder="Cari ID PO..." 
-                className="pl-9 pr-4 py-2 border border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="pl-9 pr-4 py-2 border-2 border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
-            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]">
+            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]">
               <option value="all">Semua Cabang</option>
               <option value="sudirman">Mirayya Sudirman</option>
               <option value="kemang">Mirayya Kemang</option>
@@ -47,7 +94,7 @@ export default function POApprovalPage() {
               <option value="kelapa_gading">Mirayya Kelapa Gading</option>
               <option value="bintaro">Mirayya Bintaro</option>
             </select>
-            <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[130px]">
+            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[130px]">
               <option value="this_month">Bulan Ini</option>
               <option value="last_month">Bulan Lalu</option>
               <option value="this_year">Tahun Ini</option>
@@ -69,13 +116,7 @@ export default function POApprovalPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {[
-                  { id: "PO-2606-042", branch: "Mirayya Kelapa Gading", date: "11 Jun 2026", items: 45, total: "Rp 4.500.000", status: "Menunggu" },
-                  { id: "PO-2606-043", branch: "Mirayya Sudirman", date: "11 Jun 2026", items: 20, total: "Rp 2.100.000", status: "Menunggu" },
-                  { id: "PO-2606-040", branch: "Mirayya PIK", date: "10 Jun 2026", items: 120, total: "Rp 15.500.000", status: "Disetujui" },
-                  { id: "PO-2606-039", branch: "Mirayya Kemang", date: "09 Jun 2026", items: 15, total: "Rp 1.800.000", status: "Disetujui" },
-                  { id: "PO-2606-038", branch: "Mirayya Bintaro", date: "08 Jun 2026", items: 5, total: "Rp 850.000", status: "Ditolak" },
-                ].map((item, i) => (
+                {paginatedData.map((item, i) => (
                   <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-semibold text-primary">{item.id}</td>
                     <td className="px-6 py-4 font-medium text-slate-800">{item.branch}</td>
@@ -93,7 +134,7 @@ export default function POApprovalPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" className="h-8 w-8 p-0" title="Lihat Detail">
+                        <Button variant="outline" size="sm" onClick={() => openPOModal(item)} className="h-8 w-8 p-0" title="Lihat Detail">
                           <Eye className="w-4 h-4 text-slate-600" />
                         </Button>
                         {item.status === 'Menunggu' && (
@@ -113,8 +154,170 @@ export default function POApprovalPage() {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
+            <div className="text-sm text-slate-500">
+              Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, poData.length)}</span> dari <span className="font-medium text-slate-700">{poData.length}</span> data
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(1)} 
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                disabled={currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="flex items-center justify-center text-sm font-medium px-3 text-slate-600">
+                Halaman {currentPage} dari {totalPages}
+              </div>
+
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(totalPages)} 
+                disabled={currentPage === totalPages}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
+
+      {/* PO Review Modal */}
+      <AnimatePresence>
+        {isPOModalOpen && selectedPO && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={closePOModal}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl relative z-50 overflow-hidden border border-slate-100 flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800">Review Purchase Order</h3>
+                  <p className="text-sm font-medium text-slate-500 mt-1">{selectedPO.id} • {selectedPO.branch}</p>
+                </div>
+                <button 
+                  onClick={closePOModal}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 transition-colors"
+                >
+                  <XIcon className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-6 overflow-y-auto max-h-[60vh]">
+                <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div className="space-y-1">
+                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Pengajuan</span>
+                    <p className="text-2xl font-extrabold text-slate-900">{selectedPO.total}</p>
+                  </div>
+                  <div className="text-right space-y-1">
+                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Status</span>
+                    <div><span className={`text-xs font-bold px-3 py-1.5 rounded-lg border ${
+                      selectedPO.status === 'Disetujui' ? 'text-emerald-700 bg-emerald-100 border-emerald-200' :
+                      selectedPO.status === 'Ditolak' ? 'text-rose-700 bg-rose-100 border-rose-200' :
+                      'text-amber-700 bg-amber-100 border-amber-200'
+                    }`}>{selectedPO.status}</span></div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center">
+                    <FileText className="w-4 h-4 mr-2 text-slate-400" />
+                    Rincian Item ({selectedPO.details?.length || selectedPO.items || 0})
+                  </h4>
+                  <div className="border-2 border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-200">
+                        <tr>
+                          <th className="px-4 py-3">Produk</th>
+                          <th className="px-4 py-3 text-center">Qty</th>
+                          <th className="px-4 py-3 text-right">Harga</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {selectedPO.details?.map((product: any, idx: number) => (
+                          <tr key={idx} className="hover:bg-slate-50/50">
+                            <td className="px-4 py-3">
+                              <p className="font-semibold text-slate-800">{product.name}</p>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold mt-1 inline-block ${product.category === 'Fast Moving' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                {product.category}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-center font-medium text-slate-600">{product.qty}</td>
+                            <td className="px-4 py-3 text-right font-medium text-slate-700">{product.price}</td>
+                          </tr>
+                        )) || (
+                          <tr>
+                            <td colSpan={3} className="px-4 py-8 text-center text-slate-500">Rincian item tidak tersedia untuk data ini.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button variant="outline" className="flex-1 border-slate-200 text-slate-600 hover:text-pink-600 hover:bg-pink-50 hover:border-pink-200 font-semibold h-11 rounded-xl transition-all cursor-pointer">
+                    <Printer className="w-4 h-4 mr-2" /> Cetak PO
+                  </Button>
+                  <Button variant="outline" className="flex-1 border-slate-200 text-slate-600 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 font-semibold h-11 rounded-xl transition-all cursor-pointer">
+                    <Download className="w-4 h-4 mr-2" /> Unduh PDF
+                  </Button>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              {selectedPO.status === 'Menunggu' && (
+                <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row gap-3">
+                  <Button className="flex-1 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold h-12 rounded-xl transition-all border-none cursor-pointer">
+                    <XIcon className="w-5 h-5 mr-2" /> Tolak
+                  </Button>
+                  <Button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                    <Check className="w-5 h-5 mr-2" /> Setujui PO
+                  </Button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
