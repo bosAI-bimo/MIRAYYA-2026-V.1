@@ -3,18 +3,32 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { UploadCloud, CheckCircle2, FileCheck } from "lucide-react";
+import { UploadCloud, CheckCircle2, FileCheck, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 export default function EODPage() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
+      {/* Header / Navbar Separator */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-6 border-b border-slate-200 mb-6 lg:mb-8">
+        <div className="space-y-1">
+          <nav className="flex text-sm text-slate-500 font-medium mb-1" aria-label="Breadcrumb">
+            <ol className="inline-flex items-center space-x-1 md:space-x-2">
+              <li className="inline-flex items-center">
+                <Link href="/dashboard/kepala-toko" className="hover:text-pink-600 transition-colors">Dashboard Kepala Toko</Link>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <ChevronRight className="w-4 h-4 mx-1" />
+                  <span className="text-slate-900">Laporan EOD</span>
+                </div>
+              </li>
+            </ol>
+          </nav>
           <h1 className="text-3xl font-bold tracking-tight text-slate-800">Laporan End of Day (EOD)</h1>
-          <p className="text-slate-600 mt-1">Isi formulir tutup kas harian dan unggah bukti setoran/struk.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-0">
-          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <select className="px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
             <option value="today">Hari Ini</option>
             <option value="yesterday">Kemarin</option>
             <option value="7days">7 Hari Terakhir</option>

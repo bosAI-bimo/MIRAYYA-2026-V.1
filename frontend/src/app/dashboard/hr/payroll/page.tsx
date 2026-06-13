@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Download, Calculator, CheckCircle2, FileText, Filter } from "lucide-react";
+import { Search, Download, Calculator, CheckCircle2, FileText, Filter, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 export default function PayrollPage() {
   const payrollData = [
@@ -16,17 +17,30 @@ export default function PayrollPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+      {/* Header / Navbar Separator */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-6 border-b border-slate-200 mb-6 lg:mb-8">
+        <div className="space-y-1">
+          <nav className="flex text-sm text-slate-500 font-medium mb-1" aria-label="Breadcrumb">
+            <ol className="inline-flex items-center space-x-1 md:space-x-2">
+              <li className="inline-flex items-center">
+                <Link href="/dashboard/hr" className="hover:text-pink-600 transition-colors">Dashboard HR</Link>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <ChevronRight className="w-4 h-4 mx-1" />
+                  <span className="text-slate-900">Payroll & Gaji</span>
+                </div>
+              </li>
+            </ol>
+          </nav>
           <h1 className="text-3xl font-bold tracking-tight text-slate-800">Payroll & Gaji</h1>
-          <p className="text-slate-600 mt-1">Kelola perhitungan gaji, tunjangan, potongan, dan slip gaji.</p>
         </div>
-        <div className="flex w-full sm:w-auto gap-2">
-          <Button variant="outline" className="border-slate-200 text-slate-600 flex-1 sm:flex-none">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <Button variant="outline" className="border-slate-200 text-slate-600 w-full sm:w-auto">
             <Download className="w-4 h-4 mr-2" />
             Ekspor Rekap
           </Button>
-          <Button className="bg-primary hover:bg-primary/90 text-white flex-1 sm:flex-none">
+          <Button className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto">
             <Calculator className="w-4 h-4 mr-2" />
             Hitung Ulang
           </Button>

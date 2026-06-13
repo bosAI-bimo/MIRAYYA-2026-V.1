@@ -3,20 +3,36 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, Download } from "lucide-react";
+import { Search, Filter, Download, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 export default function InventoryPage() {
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
+      {/* Header / Navbar Separator */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-6 border-b border-slate-200 mb-6 lg:mb-8">
+        <div className="space-y-1">
+          <nav className="flex text-sm text-slate-500 font-medium mb-1" aria-label="Breadcrumb">
+            <ol className="inline-flex items-center space-x-1 md:space-x-2">
+              <li className="inline-flex items-center">
+                <Link href="/dashboard/kepala-toko" className="hover:text-pink-600 transition-colors">Dashboard Kepala Toko</Link>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <ChevronRight className="w-4 h-4 mx-1" />
+                  <span className="text-slate-900">Inventory Cabang</span>
+                </div>
+              </li>
+            </ol>
+          </nav>
           <h1 className="text-3xl font-bold tracking-tight text-slate-800">Inventory Cabang</h1>
-          <p className="text-slate-600 mt-1">Data stok produk (Terhubung langsung dari Olsera POS).</p>
         </div>
-        <Button variant="outline" className="border-slate-300 text-slate-700 bg-white hover:bg-slate-50">
-          <Download className="w-4 h-4 mr-2" />
-          Export Data
-        </Button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <Button variant="outline" className="text-slate-600 border-slate-200 w-full sm:w-auto">
+            <Download className="w-4 h-4 mr-2" />
+            Export Data
+          </Button>
+        </div>
       </div>
 
       <Card className="shadow-sm border-slate-200">

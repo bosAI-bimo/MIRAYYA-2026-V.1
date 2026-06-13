@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Camera, MapPin, Clock, Filter, Search } from "lucide-react";
+import { Camera, MapPin, Clock, Filter, Search, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 export default function AbsensiKaryawan() {
   const [isCheckingIn, setIsCheckingIn] = useState(false);
@@ -25,9 +26,24 @@ export default function AbsensiKaryawan() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-800">Absensi Harian</h1>
-        <p className="text-slate-600 mt-1">Lakukan check-in dan check-out dengan foto selfie dan lokasi.</p>
+      {/* Header / Navbar Separator */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-6 border-b border-slate-200 mb-6 lg:mb-8">
+        <div className="space-y-1">
+          <nav className="flex text-sm text-slate-500 font-medium mb-1" aria-label="Breadcrumb">
+            <ol className="inline-flex items-center space-x-1 md:space-x-2">
+              <li className="inline-flex items-center">
+                <Link href="/dashboard/karyawan" className="hover:text-pink-600 transition-colors">Dashboard Karyawan</Link>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <ChevronRight className="w-4 h-4 mx-1" />
+                  <span className="text-slate-900">Absensi Harian</span>
+                </div>
+              </li>
+            </ol>
+          </nav>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-800">Absensi Harian</h1>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

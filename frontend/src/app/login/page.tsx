@@ -5,23 +5,17 @@ import { Lock, Mail } from "lucide-react"
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-[100dvh] w-full items-center justify-center relative bg-background overflow-hidden px-4 sm:px-6 lg:px-8">
+    <div className="flex h-screen w-full items-center justify-center relative bg-background overflow-hidden px-4 sm:px-6 lg:px-8">
       {/* Background decoration */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background" />
       <div className="absolute top-1/4 -left-10 w-72 h-72 bg-secondary/40 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob" />
       <div className="absolute top-1/3 -right-10 w-72 h-72 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000" />
-      
+
       <Card className="w-full max-w-[380px] relative z-10 bg-card/90 backdrop-blur-xl border-border shadow-2xl hover:shadow-primary/5 transition-all duration-500">
         <CardHeader className="space-y-2 text-center pb-6 pt-8">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-primary to-primary/70 shadow-lg shadow-primary/20 mb-3 transform -rotate-6 hover:rotate-0 transition-transform duration-300">
-            <Lock className="h-5 w-5 text-primary-foreground" />
+          <div className="mx-auto flex h-40 items-center justify-center mb-2">
+            <img src="/logo.png" alt="Mirayya Logo" className="h-full w-auto object-contain drop-shadow-sm scale-150 hover:scale-[1.60] transition-transform duration-300" />
           </div>
-          <CardTitle className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
-            Welcome back
-          </CardTitle>
-          <CardDescription className="text-muted-foreground text-xs md:text-sm">
-            Enter your credentials to access Mirraya ERP
-          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5 pb-8">
           <div className="space-y-4">
@@ -65,7 +59,7 @@ export default function LoginPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="flex flex-col gap-4 mt-6">
             <Button className="w-full h-10 text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
               Sign In
@@ -82,3 +76,4 @@ export default function LoginPage() {
     </div>
   )
 }
+

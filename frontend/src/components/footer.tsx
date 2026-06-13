@@ -8,11 +8,9 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="md:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
-                <span className="text-white font-bold text-lg leading-none">M</span>
-              </div>
+              
               <span className="font-bold text-xl text-slate-800 tracking-tight">
-                Mirayya <span className="text-primary">Cosmetics</span>
+                <img src="/logo.png" alt="Mirayya Cosmetics" className="h-24 w-auto object-contain transform scale-110 origin-left drop-shadow-sm" />
               </span>
             </Link>
             <p className="text-slate-500 text-sm max-w-sm leading-relaxed mb-6">
@@ -81,3 +79,6 @@ export function Footer() {
     </footer>
   );
 }
+
+
+

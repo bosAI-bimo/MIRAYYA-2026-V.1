@@ -4,15 +4,10 @@ import { Button } from "@/components/ui/button";
 export function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
-              <span className="text-white font-bold text-lg leading-none">M</span>
-            </div>
-            <span className="font-bold text-xl text-slate-800 tracking-tight">
-              Mirayya <span className="text-primary">Cosmetics</span>
-            </span>
+          <Link href="/" className="flex items-center">
+            <img src="/logo.png" alt="Mirayya Cosmetics" className="h-20 w-auto object-contain scale-125 transform origin-left drop-shadow-sm" />
           </Link>
           
           <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
@@ -42,3 +37,5 @@ export function Navbar() {
     </nav>
   );
 }
+
+

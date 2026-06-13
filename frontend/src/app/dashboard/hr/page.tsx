@@ -16,7 +16,7 @@ export default function HRDashboard() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
   };
@@ -28,13 +28,26 @@ export default function HRDashboard() {
       initial="hidden"
       animate="show"
     >
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
+      {/* Header / Navbar Separator */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-6 border-b border-slate-200 mb-6 lg:mb-8">
+        <div className="space-y-1">
+          <nav className="flex text-sm text-slate-500 font-medium mb-1" aria-label="Breadcrumb">
+            <ol className="inline-flex items-center space-x-1 md:space-x-2">
+              <li className="inline-flex items-center">
+                <Link href="/dashboard" className="hover:text-pink-600 transition-colors">Dashboard</Link>
+              </li>
+              <li>
+                <div className="flex items-center">
+                  <ChevronRight className="w-4 h-4 mx-1" />
+                  <span className="text-slate-900">HR</span>
+                </div>
+              </li>
+            </ol>
+          </nav>
           <h1 className="text-3xl font-bold tracking-tight text-slate-800">Dashboard HR</h1>
-          <p className="text-slate-600 mt-1">Ringkasan karyawan, absensi hari ini, dan status payroll.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 mt-2 md:mt-0">
-          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[140px]">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <select className="px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[160px] shadow-sm transition-all">
             <option value="all">Semua Cabang</option>
             <option value="sudirman">Mirayya Sudirman</option>
             <option value="kemang">Mirayya Kemang</option>
@@ -42,7 +55,7 @@ export default function HRDashboard() {
             <option value="kelapa_gading">Mirayya Kelapa Gading</option>
             <option value="bintaro">Mirayya Bintaro</option>
           </select>
-          <select className="px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+          <select className="px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
             <option value="this_month">Bulan Ini</option>
             <option value="last_month">Bulan Lalu</option>
             <option value="this_year">Tahun Ini</option>
@@ -195,3 +208,4 @@ export default function HRDashboard() {
     </motion.div>
   );
 }
+

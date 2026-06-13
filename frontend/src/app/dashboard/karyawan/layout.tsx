@@ -57,11 +57,11 @@ export default function KaryawanLayout({
       >
         <div className={`flex items-center justify-between ${isCollapsed ? "xl:justify-center" : "xl:justify-between"} h-20 p-6 border-b border-slate-100 relative shrink-0`}>
           <div className={`flex items-center space-x-2 ${isCollapsed ? "xl:hidden" : ""}`}>
-            <span className="text-2xl font-bold text-pink-700 tracking-tight">Mirayya</span>
+            <img src="/logo.png" alt="Mirayya" className="h-16 w-auto object-contain scale-[1.35] transform origin-left drop-shadow-sm" />
           </div>
-          <div className={`hidden items-center justify-center font-bold text-pink-700 text-2xl ${isCollapsed ? "xl:flex" : ""}`}>
-            M
-          </div>
+          <div className={`hidden items-center justify-center ${isCollapsed ? "xl:flex" : ""}`}>
+              <img src="/logo.png" alt="M" className="w-16 h-auto object-contain scale-125 drop-shadow-sm" />
+            </div>
           <button 
             className="xl:hidden text-slate-500 hover:text-pink-700 absolute right-4"
             onClick={() => setIsSidebarOpen(false)}
@@ -131,7 +131,7 @@ export default function KaryawanLayout({
       <main className="flex-1 flex flex-col min-h-screen w-full transition-all duration-300 ease-in-out xl:pl-28">
         {/* Top Header for Mobile */}
         <header className="xl:hidden flex items-center justify-between p-4 bg-white/90 backdrop-blur-md border border-slate-200/60 sticky top-4 mx-4 rounded-2xl z-30 shadow-sm mb-4">
-          <span className="text-xl font-bold text-pink-700 tracking-tight">Mirayya</span>
+          <img src="/logo.png" alt="Mirayya" className="h-14 w-auto object-contain scale-[1.35] transform origin-left drop-shadow-sm" />
           <button 
             className="p-2 -mr-2 text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
             onClick={() => setIsSidebarOpen(true)}
@@ -147,3 +147,6 @@ export default function KaryawanLayout({
     </div>
   );
 }
+
+
+
