@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mirayya ERP — Sistem Manajemen Toko Kosmetik
 
-## Getting Started
+Aplikasi ERP terintegrasi untuk **Mirayya Cosmetics** yang menyatukan pengelolaan keuangan, SDM, operasional toko, dan analisis bisnis berbasis AI dalam satu platform.
 
-First, run the development server:
+## Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Frontend**: Next.js 16 (App Router) + React 19 + TypeScript
+- **Styling**: TailwindCSS 4 + shadcn/ui
+- **Animasi**: Framer Motion
+- **Grafik**: Recharts
+- **Auth** *(planned)*: Better Auth
+- **Database** *(planned)*: PostgreSQL + Drizzle ORM
+- **POS Integration** *(planned)*: Olsera REST API
+
+## Struktur Proyek
+
+```
+├── docs/
+│   ├── prd.md              # Product Requirements Document
+│   └── lp.md               # Company Profile / Landing Page Content
+├── frontend/
+│   └── src/
+│       ├── app/             # Next.js App Router pages
+│       │   ├── dashboard/   # Dashboard utama (Unified Layout + RBAC Sidebar)
+│       │   │   ├── accounting/   # Modul Akuntansi
+│       │   │   ├── hr/           # Modul HR & Karyawan
+│       │   │   ├── owner/        # Modul Owner (AI Insights)
+│       │   │   ├── kepala-toko/  # Modul Operasional Toko
+│       │   │   └── karyawan/     # Modul Portal Karyawan (Absensi)
+│       │   └── login/       # Halaman Login
+│       ├── components/      # Komponen UI reusable
+│       │   ├── layout/      # DashboardSidebar (navigasi terpusat)
+│       │   └── ui/          # shadcn/ui components
+│       ├── config/          # Konfigurasi navigasi & RBAC
+│       ├── types/           # Type definitions (auth, dll)
+│       └── lib/             # Utilities
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Quick Start
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Buka [http://localhost:3000](http://localhost:3000) di browser.
 
-## Learn More
+## Modul & Role
 
-To learn more about Next.js, take a look at the following resources:
+| Modul | Akses |
+|-------|-------|
+| Dashboard Owner + AI Insights | Owner |
+| Akuntansi (EOD, PO, Anggaran, Petty Cash, Laporan) | Owner, Accounting |
+| HR & Karyawan (Data, Absensi, Payroll) | Owner, HR |
+| Operasional Toko (Budget, Inventory, PO, EOD) | Owner, Kepala Toko |
+| Portal Karyawan (Absensi, Slip Gaji) | Owner, BA |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Dokumentasi
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Product Requirements Document](docs/prd.md)
+- [Company Profile](docs/lp.md)
