@@ -52,18 +52,7 @@ export const navigationConfig: NavItem[] = [
     allowedRoles: ['owner'],
     sectionLabel: 'OVERVIEW',
     children: [
-      {
-        title: 'Data Cabang',
-        href: '/dashboard/owner/cabang',
-        icon: Store,
-        allowedRoles: ['owner'],
-      },
-      {
-        title: 'Data Karyawan',
-        href: '/dashboard/owner/karyawan',
-        icon: Users,
-        allowedRoles: ['owner'],
-      },
+
       {
         title: 'AI Insights',
         href: '/dashboard/owner/ai-insights',
