@@ -448,7 +448,7 @@ export default function OwnerDashboardPage() {
                           ))}
                         </Pie>
                         <Tooltip 
-                          formatter={(value: number, name: string) => [`${value}% Pelanggan`, name]}
+                          formatter={(value: any, name: any) => [`${value}% Pelanggan`, name]}
                           contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                         />
                       </PieChart>
@@ -660,7 +660,7 @@ export default function OwnerDashboardPage() {
                           ))}
                         </Pie>
                         <Tooltip 
-                          formatter={(value: number, name: string) => [formatRupiah(value), name]}
+                          formatter={(value: any, name: any) => [formatRupiah(value as number), name]}
                           contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                         />
                       </PieChart>
@@ -701,7 +701,7 @@ export default function OwnerDashboardPage() {
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
                         <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(val) => `${val/1000000}M`} />
-                        <Tooltip formatter={(value: number, name: string) => [formatRupiah(value), name]} cursor={{ fill: '#f8fafc' }} />
+                        <Tooltip formatter={(value: any, name: any) => [formatRupiah(value as number), name]} cursor={{ fill: '#f8fafc' }} />
                         <Bar dataKey="omzet" name="Realisasi" fill="#B76E79" radius={[4, 4, 0, 0]} />
                         <Bar dataKey="target" name="Target" fill="#cbd5e1" radius={[4, 4, 0, 0]} />
                       </BarChart>
@@ -786,7 +786,7 @@ export default function OwnerDashboardPage() {
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                         <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
                         <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(val) => `${val/1000000}M`} />
-                        <Tooltip formatter={(value: number, name: string) => [formatRupiah(value), name === 'profit' ? 'Laba Bersih' : name]} />
+                        <Tooltip formatter={(value: any, name: any) => [formatRupiah(value as number), name === 'profit' ? 'Laba Bersih' : name]} />
                         <Line type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981' }} />
                       </LineChart>
                     </ResponsiveContainer>
@@ -1185,7 +1185,7 @@ export default function OwnerDashboardPage() {
                         <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
                         <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(val) => `${val/1000000}M`} />
                         <Tooltip 
-                          formatter={(value: number, name: string) => [formatRupiah(value), name === 'actual' ? 'Realisasi' : 'Prediksi AI']} 
+                          formatter={(value: any, name: any) => [formatRupiah(value as number), name === 'actual' ? 'Realisasi' : 'Prediksi AI']} 
                           contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                         />
                         <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />

@@ -186,7 +186,7 @@ export default function LabaRugiPage() {
                   <Tooltip 
                     cursor={{fill: '#f1f5f9'}}
                     contentStyle={{borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
-                    formatter={(value: number) => [`Rp ${value.toLocaleString('id-ID')}`, undefined]}
+                    formatter={(value: any) => [`Rp ${(value as number).toLocaleString('id-ID')}`, undefined]}
                   />
                   <Legend iconType="circle" />
                   <Bar dataKey="Pendapatan" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
