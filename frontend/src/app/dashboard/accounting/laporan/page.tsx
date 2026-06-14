@@ -58,7 +58,9 @@ export default function LaporanKeuanganPage() {
           <CardContent>
             <p className="text-sm text-slate-600">Laporan pendapatan, HPP, beban operasional, dan laba bersih.</p>
             <div className="mt-4 flex justify-end">
-              <Button variant="ghost" size="sm" className="text-primary h-8 p-0">Buka Laporan →</Button>
+              <Link href="/dashboard/accounting/laporan/laba-rugi">
+                <Button variant="ghost" size="sm" className="text-primary h-8 p-0">Buka Laporan →</Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -73,7 +75,9 @@ export default function LaporanKeuanganPage() {
           <CardContent>
             <p className="text-sm text-slate-600">Laporan arus kas masuk dan keluar operasional cabang.</p>
             <div className="mt-4 flex justify-end">
-              <Button variant="ghost" size="sm" className="text-primary h-8 p-0">Buka Laporan →</Button>
+              <Link href="/dashboard/accounting/laporan/arus-kas">
+                <Button variant="ghost" size="sm" className="text-primary h-8 p-0">Buka Laporan →</Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -88,7 +92,9 @@ export default function LaporanKeuanganPage() {
           <CardContent>
             <p className="text-sm text-slate-600">Entri jurnal manual untuk penyesuaian akhir bulan.</p>
             <div className="mt-4 flex justify-end">
-              <Button variant="ghost" size="sm" className="text-primary h-8 p-0">Kelola Jurnal →</Button>
+              <Link href="/dashboard/accounting/laporan/jurnal-penyesuaian">
+                <Button variant="ghost" size="sm" className="text-primary h-8 p-0">Kelola Jurnal →</Button>
+              </Link>
             </div>
           </CardContent>
         </Card>

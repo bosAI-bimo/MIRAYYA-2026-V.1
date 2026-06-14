@@ -27,6 +27,7 @@ const dummyData = [
 
 export default function EODApprovalPage() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [filterStatus, setFilterStatus] = useState("pending");
   const itemsPerPage = 5;
 
   const [selectedEOD, setSelectedEOD] = useState<any>(null);
@@ -42,9 +43,18 @@ export default function EODApprovalPage() {
     setTimeout(() => setSelectedEOD(null), 300);
   };
   
-  const totalPages = Math.ceil(dummyData.length / itemsPerPage);
+  const filteredData = dummyData.filter(item => 
+    filterStatus === "pending" ? item.status === "Menunggu" : item.status !== "Menunggu"
+  );
+  
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = dummyData.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+
+  const handleFilterChange = (status: string) => {
+    setFilterStatus(status);
+    setCurrentPage(1);
+  };
 
   return (
     <div className="space-y-6">
@@ -69,8 +79,24 @@ export default function EODApprovalPage() {
       </div>
 
       <Card className="border-2 shadow-sm border-slate-200">
-        <CardHeader className="pb-4 border-b border-slate-100 flex flex-col md:flex-row justify-between md:items-center gap-4">
-          <CardTitle className="text-lg font-semibold text-slate-800">Daftar Laporan EOD</CardTitle>
+        <CardHeader className="pb-4 border-b border-slate-100 flex flex-col xl:flex-row justify-between xl:items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <CardTitle className="text-lg font-semibold text-slate-800">Daftar Laporan EOD</CardTitle>
+            <div className="flex bg-slate-100 p-1 rounded-lg shrink-0">
+              <button 
+                onClick={() => handleFilterChange("pending")}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${filterStatus === 'pending' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Menunggu
+              </button>
+              <button 
+                onClick={() => handleFilterChange("completed")}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${filterStatus === 'completed' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Selesai
+              </button>
+            </div>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
@@ -150,7 +176,7 @@ export default function EODApprovalPage() {
           {/* Pagination Controls */}
           <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
             <div className="text-sm text-slate-500">
-              Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, dummyData.length)}</span> dari <span className="font-medium text-slate-700">{dummyData.length}</span> data
+              Menampilkan <span className="font-medium text-slate-700">{filteredData.length > 0 ? startIndex + 1 : 0}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, filteredData.length)}</span> dari <span className="font-medium text-slate-700">{filteredData.length}</span> data
             </div>
             <div className="flex items-center gap-1.5">
               <Button 

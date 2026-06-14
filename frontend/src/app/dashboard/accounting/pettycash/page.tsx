@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, Plus, FileText, Download, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Image as ImageIcon, X as XIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Search, Filter, Plus, FileText, Download, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Image as ImageIcon, X as XIcon, Wallet, TrendingDown, TrendingUp, Settings, Upload } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
@@ -32,6 +33,21 @@ export default function PettyCashPage() {
   const [selectedPettyCash, setSelectedPettyCash] = useState<any>(null);
   const [isPettyCashModalOpen, setIsPettyCashModalOpen] = useState(false);
 
+  // States for Budget Feature
+  const [selectedBranch, setSelectedBranch] = useState("all");
+  const [selectedMonth, setSelectedMonth] = useState("this_month");
+  const [budgetDate, setBudgetDate] = useState("2026-06-14");
+  
+  const [budgets, setBudgets] = useState<Record<string, number>>({
+    "sudirman_this_month": 5000000,
+    "kemang_this_month": 4000000,
+    "pik_this_month": 6000000,
+    "kelapa_gading_this_month": 4500000,
+    "bintaro_this_month": 3500000,
+    "pusat_this_month": 10000000,
+    "all_this_month": 33000000,
+  });
+
   const openPettyCashModal = (item: any) => {
     setSelectedPettyCash(item);
     setIsPettyCashModalOpen(true);
@@ -42,9 +58,42 @@ export default function PettyCashPage() {
     setTimeout(() => setSelectedPettyCash(null), 300);
   };
 
-  const totalPages = Math.ceil(pettyCashData.length / itemsPerPage);
+  const [isAddTransactionModalOpen, setIsAddTransactionModalOpen] = useState(false);
+
+  const openAddTransactionModal = () => setIsAddTransactionModalOpen(true);
+  const closeAddTransactionModal = () => setIsAddTransactionModalOpen(false);
+
+  const handleBudgetChange = (branch: string, value: string) => {
+    const numericValue = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
+    setBudgets(prev => ({
+      ...prev,
+      [`${branch}_${selectedMonth}`]: numericValue
+    }));
+  };
+
+  const handleSaveAllBudgets = () => {
+    alert("Anggaran petty cash untuk semua cabang berhasil disimpan!");
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(amount);
+  };
+
+  // We filter the paginated data based on branch
+  const filteredData = pettyCashData.filter(item => {
+    if (selectedBranch === "all") return true;
+    if (selectedBranch === "pusat" && item.branch === "Pusat") return true;
+    if (selectedBranch === "sudirman" && item.branch === "Mirayya Sudirman") return true;
+    if (selectedBranch === "kemang" && item.branch === "Mirayya Kemang") return true;
+    if (selectedBranch === "pik" && item.branch === "Mirayya PIK") return true;
+    if (selectedBranch === "kelapa_gading" && item.branch === "Mirayya Kelapa Gading") return true;
+    if (selectedBranch === "bintaro" && item.branch === "Mirayya Bintaro") return true;
+    return false;
+  });
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = pettyCashData.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
   return (
     <div className="space-y-6">
       {/* Header / Navbar Separator */}
@@ -70,12 +119,59 @@ export default function PettyCashPage() {
             <Download className="w-4 h-4 mr-2" />
             Ekspor PDF
           </Button>
-          <Button className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto">
+          <Button className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto" onClick={openAddTransactionModal}>
             <Plus className="w-4 h-4 mr-2" />
             Tambah Transaksi
           </Button>
         </div>
       </div>
+
+      {/* Form Anggaran Card */}
+      <Card className="border-2 shadow-sm border-slate-200 mb-8">
+        <CardHeader className="pb-4 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <CardTitle className="text-lg font-semibold text-slate-800">Form Anggaran Petty Cash</CardTitle>
+            <CardDescription>Tentukan batas anggaran untuk masing-masing cabang.</CardDescription>
+          </div>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <span className="text-sm font-bold text-slate-700 hidden md:inline">Tanggal Penetapan:</span>
+            <input 
+              type="date"
+              value={budgetDate}
+              onChange={(e) => setBudgetDate(e.target.value)}
+              className="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto"
+            />
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {['pusat', 'sudirman', 'kemang', 'pik', 'kelapa_gading', 'bintaro'].map((branch) => {
+              const formattedVal = new Intl.NumberFormat("id-ID").format(budgets[`${branch}_${selectedMonth}`] || 0);
+              return (
+                <div key={branch} className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 capitalize">
+                    {branch === 'pusat' ? 'Pusat' : `Mirayya ${branch.replace('_', ' ')}`}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 font-medium">Rp</span>
+                    <input 
+                      type="text" 
+                      value={formattedVal}
+                      onChange={(e) => handleBudgetChange(branch, e.target.value)}
+                      className="w-full pl-12 pr-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white font-medium"
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-8 flex justify-end">
+            <Button onClick={handleSaveAllBudgets} className="bg-primary hover:bg-primary/90 text-white font-bold px-8 py-2.5 h-auto rounded-xl shadow-sm">
+              Simpan Semua Anggaran
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="border-2 shadow-sm border-slate-200">
         <CardHeader className="pb-4 border-b border-slate-100 flex flex-col md:flex-row justify-between md:items-center gap-4">
@@ -92,15 +188,22 @@ export default function PettyCashPage() {
                 className="pl-9 pr-4 py-2 border-2 border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
-            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]">
+            <select 
+              value={selectedBranch}
+              onChange={(e) => { setSelectedBranch(e.target.value); setCurrentPage(1); }}
+              className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]">
               <option value="all">Semua Cabang</option>
+              <option value="pusat">Pusat</option>
               <option value="sudirman">Mirayya Sudirman</option>
               <option value="kemang">Mirayya Kemang</option>
               <option value="pik">Mirayya PIK</option>
               <option value="kelapa_gading">Mirayya Kelapa Gading</option>
               <option value="bintaro">Mirayya Bintaro</option>
             </select>
-            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[130px]">
+            <select 
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[130px]">
               <option value="this_month">Bulan Ini</option>
               <option value="last_month">Bulan Lalu</option>
               <option value="this_year">Tahun Ini</option>
@@ -142,7 +245,7 @@ export default function PettyCashPage() {
           {/* Pagination Controls */}
           <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
             <div className="text-sm text-slate-500">
-              Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, pettyCashData.length)}</span> dari <span className="font-medium text-slate-700">{pettyCashData.length}</span> data
+              Menampilkan <span className="font-medium text-slate-700">{filteredData.length === 0 ? 0 : startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, filteredData.length)}</span> dari <span className="font-medium text-slate-700">{filteredData.length}</span> data
             </div>
             <div className="flex items-center gap-1.5">
               <Button 
@@ -254,6 +357,95 @@ export default function PettyCashPage() {
               <div className="p-6 border-t border-slate-100 bg-slate-50/80">
                 <Button onClick={closePettyCashModal} className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold h-12 rounded-xl shadow-sm transition-all cursor-pointer">
                   Tutup Detail
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Tambah Transaksi Modal */}
+      <AnimatePresence>
+        {isAddTransactionModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={closeAddTransactionModal}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-50 overflow-hidden border border-slate-100 flex flex-col"
+            >
+              <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800">Tambah Transaksi</h3>
+                  <p className="text-xs font-medium text-slate-500 mt-1">Catat pengeluaran kas kecil.</p>
+                </div>
+                <button 
+                  onClick={closeAddTransactionModal}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 transition-colors"
+                >
+                  <XIcon className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">Tanggal</label>
+                    <input type="date" className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">Cabang</label>
+                    <select className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer">
+                      <option value="">Pilih Cabang...</option>
+                      <option value="Pusat">Pusat</option>
+                      <option value="Mirayya Sudirman">Mirayya Sudirman</option>
+                      <option value="Mirayya Kemang">Mirayya Kemang</option>
+                      <option value="Mirayya PIK">Mirayya PIK</option>
+                      <option value="Mirayya Kelapa Gading">Mirayya Kelapa Gading</option>
+                      <option value="Mirayya Bintaro">Mirayya Bintaro</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">Deskripsi Pengeluaran</label>
+                  <input type="text" placeholder="Contoh: Beli galon air (4 buah)" className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">Nominal</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 font-medium text-sm">Rp</span>
+                    <input type="text" placeholder="0" className="w-full pl-9 pr-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white font-medium" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">Bukti Struk/Kuitansi</label>
+                  <div className="w-full border-2 border-dashed border-slate-300 rounded-lg p-4 flex flex-col items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer group">
+                    <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                      <Upload className="w-4 h-4" />
+                    </div>
+                    <p className="text-xs font-medium">Klik untuk unggah (Max 5MB)</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 border-t border-slate-100 bg-slate-50/80 flex gap-3">
+                <Button onClick={closeAddTransactionModal} variant="outline" className="flex-1 border-slate-200 text-slate-700 hover:bg-slate-100 font-bold h-10 rounded-lg transition-all text-sm">
+                  Batal
+                </Button>
+                <Button onClick={() => { alert('Transaksi berhasil ditambahkan!'); closeAddTransactionModal(); }} className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold h-10 rounded-lg shadow-sm transition-all text-sm">
+                  Simpan
                 </Button>
               </div>
             </motion.div>
