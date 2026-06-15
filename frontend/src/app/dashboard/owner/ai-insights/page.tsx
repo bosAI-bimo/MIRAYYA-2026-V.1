@@ -108,7 +108,7 @@ export default function OwnerAiInsightsPage() {
                   <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(val) => `${val/1000000}M`} />
                   <Tooltip 
-                    formatter={(value: number, name: string) => [formatRupiah(value), name === 'actual' ? 'Realisasi' : 'Prediksi AI']} 
+                    formatter={(value: any, name: any) => [formatRupiah(Number(value)), name === 'actual' ? 'Realisasi' : 'Prediksi AI']} 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
                   <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />

@@ -20,6 +20,10 @@ export default function CabangPage() {
 
   const [selectedCabang, setSelectedCabang] = React.useState<any>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = React.useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [isAlokasiModalOpen, setIsAlokasiModalOpen] = React.useState(false);
+  const [isNonaktifModalOpen, setIsNonaktifModalOpen] = React.useState(false);
 
   const openModal = (branch: any) => {
     setSelectedCabang(branch);
@@ -30,6 +34,18 @@ export default function CabangPage() {
     setIsModalOpen(false);
     setTimeout(() => setSelectedCabang(null), 300);
   };
+
+  const openAddModal = () => setIsAddModalOpen(true);
+  const closeAddModal = () => setIsAddModalOpen(false);
+
+  const openEditModal = () => { setIsModalOpen(false); setTimeout(() => setIsEditModalOpen(true), 300); };
+  const closeEditModal = () => { setIsEditModalOpen(false); setTimeout(() => setSelectedCabang(null), 300); };
+
+  const openAlokasiModal = () => { setIsModalOpen(false); setTimeout(() => setIsAlokasiModalOpen(true), 300); };
+  const closeAlokasiModal = () => { setIsAlokasiModalOpen(false); setTimeout(() => setSelectedCabang(null), 300); };
+
+  const openNonaktifModal = () => { setIsModalOpen(false); setTimeout(() => setIsNonaktifModalOpen(true), 300); };
+  const closeNonaktifModal = () => { setIsNonaktifModalOpen(false); setTimeout(() => setSelectedCabang(null), 300); };
 
   return (
     <div className="space-y-6">
@@ -52,7 +68,7 @@ export default function CabangPage() {
           <h1 className="text-3xl font-bold tracking-tight text-slate-800">Data Cabang</h1>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-          <Button className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto">
+          <Button onClick={openAddModal} className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             Tambah Cabang
           </Button>
@@ -178,7 +194,7 @@ export default function CabangPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative z-50 overflow-hidden border border-slate-100 flex flex-col"
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative z-50 overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
@@ -195,7 +211,7 @@ export default function CabangPage() {
               </div>
 
               {/* Body */}
-              <div className="p-6 space-y-6">
+              <div className="p-6 space-y-6 overflow-y-auto">
                 <div className="flex items-center space-x-4 pb-4 border-b border-slate-100">
                   <div className="w-16 h-16 rounded-2xl bg-[#F3D3D3] text-[#B76E79] flex items-center justify-center font-bold text-2xl shadow-sm">
                     {selectedCabang.name.charAt(8) || 'C'}
@@ -236,19 +252,315 @@ export default function CabangPage() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
-                  <Button variant="outline" className="flex-col h-auto py-3 gap-2 border-slate-200 hover:bg-pink-50 hover:text-pink-600 hover:border-pink-200">
+                  <Button onClick={openEditModal} variant="outline" className="flex-col h-auto py-3 gap-2 border-slate-200 hover:bg-pink-50 hover:text-pink-600 hover:border-pink-200">
                     <Edit className="w-4 h-4" />
                     <span className="text-xs">Edit Info</span>
                   </Button>
-                  <Button variant="outline" className="flex-col h-auto py-3 gap-2 border-slate-200 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200">
+                  <Button onClick={openAlokasiModal} variant="outline" className="flex-col h-auto py-3 gap-2 border-slate-200 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200">
                     <UserPlus className="w-4 h-4" />
                     <span className="text-xs">Alokasi HR</span>
                   </Button>
-                  <Button variant="outline" className="flex-col h-auto py-3 gap-2 border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200">
+                  <Button onClick={openNonaktifModal} variant="outline" className="flex-col h-auto py-3 gap-2 border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200">
                     <Power className="w-4 h-4" />
                     <span className="text-xs">Nonaktifkan</span>
                   </Button>
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Tambah Cabang */}
+      <AnimatePresence>
+        {isAddModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={closeAddModal}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative z-50 overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800">Tambah Cabang Baru</h3>
+                  <p className="text-sm font-medium text-slate-500 mt-1">Masukkan detail informasi cabang baru</p>
+                </div>
+                <button 
+                  onClick={closeAddModal}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 transition-colors"
+                >
+                  <XIcon className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-4 overflow-y-auto">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Nama Cabang</label>
+                  <Input placeholder="Contoh: Mirayya Blok M" className="border-slate-200 focus-visible:ring-primary" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Nomor Telepon</label>
+                  <Input placeholder="Contoh: 021-1234567" className="border-slate-200 focus-visible:ring-primary" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Alamat Lengkap</label>
+                  <textarea 
+                    className="w-full min-h-[100px] px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white"
+                    placeholder="Masukkan alamat lengkap cabang"
+                  ></textarea>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Status</label>
+                  <select className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white">
+                    <option value="Aktif">Aktif</option>
+                    <option value="Renovasi">Renovasi</option>
+                    <option value="Tutup">Tutup Sementara</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
+                <Button variant="outline" onClick={closeAddModal} className="border-slate-200 text-slate-600 hover:bg-slate-100">
+                  Batal
+                </Button>
+                <Button onClick={closeAddModal} className="bg-primary hover:bg-primary/90 text-white">
+                  Simpan Cabang
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Edit Cabang */}
+      <AnimatePresence>
+        {isEditModalOpen && selectedCabang && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={closeEditModal}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative z-50 overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800">Edit Info Cabang</h3>
+                  <p className="text-sm font-medium text-slate-500 mt-1">{selectedCabang.id}</p>
+                </div>
+                <button 
+                  onClick={closeEditModal}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 transition-colors"
+                >
+                  <XIcon className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-4 overflow-y-auto">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Nama Cabang</label>
+                  <Input defaultValue={selectedCabang.name} className="border-slate-200 focus-visible:ring-primary" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Nomor Telepon</label>
+                  <Input defaultValue={selectedCabang.phone} className="border-slate-200 focus-visible:ring-primary" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Alamat Lengkap</label>
+                  <textarea 
+                    className="w-full min-h-[100px] px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white"
+                    defaultValue={selectedCabang.address}
+                  ></textarea>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
+                <Button variant="outline" onClick={closeEditModal} className="border-slate-200 text-slate-600 hover:bg-slate-100">
+                  Batal
+                </Button>
+                <Button onClick={closeEditModal} className="bg-primary hover:bg-primary/90 text-white">
+                  Simpan Perubahan
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Alokasi HR */}
+      <AnimatePresence>
+        {isAlokasiModalOpen && selectedCabang && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={closeAlokasiModal}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg relative z-50 overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800">Alokasi HR Cabang</h3>
+                  <p className="text-sm font-medium text-slate-500 mt-1">{selectedCabang.name}</p>
+                </div>
+                <button 
+                  onClick={closeAlokasiModal}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 transition-colors"
+                >
+                  <XIcon className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-4 overflow-y-auto">
+                <div className="flex justify-between items-center bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                  <div className="flex items-center space-x-3">
+                    <Users className="w-5 h-5 text-emerald-600" />
+                    <div>
+                      <p className="text-xs text-emerald-600 font-medium">Total Karyawan Dialokasikan</p>
+                      <p className="font-bold text-emerald-800">{selectedCabang.employees} Orang</p>
+                    </div>
+                  </div>
+                  <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full">
+                    <Plus className="w-4 h-4 mr-1" /> Tambah
+                  </Button>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-slate-800">Daftar Karyawan</h4>
+                  <div className="border border-slate-200 rounded-xl divide-y divide-slate-100">
+                    {[1, 2, 3].map((_, idx) => (
+                      <div key={idx} className="flex justify-between items-center p-3 hover:bg-slate-50">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-medium text-xs">
+                            {idx === 0 ? 'SL' : 'ST'}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-800">{idx === 0 ? 'Andi Saputra' : idx === 1 ? 'Budi Santoso' : 'Citra Lestari'}</p>
+                            <p className="text-xs text-slate-500">{idx === 0 ? 'Store Leader' : 'Staff Toko'}</p>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-pink-600 h-8 text-xs">Mutasi</Button>
+                      </div>
+                    ))}
+                    <div className="p-3 text-center">
+                      <Button variant="link" size="sm" className="text-pink-600 text-xs">Lihat Semua ({selectedCabang.employees})</Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
+                <Button variant="outline" onClick={closeAlokasiModal} className="border-slate-200 text-slate-600 hover:bg-slate-100">
+                  Tutup
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Nonaktifkan */}
+      <AnimatePresence>
+        {isNonaktifModalOpen && selectedCabang && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={closeNonaktifModal}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-50 overflow-hidden border border-slate-100 flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-rose-50">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+                    <Power className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-rose-800">Ubah Status Cabang</h3>
+                    <p className="text-xs font-medium text-rose-600 mt-0.5">{selectedCabang.name}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={closeNonaktifModal}
+                  className="w-8 h-8 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center hover:bg-rose-200 transition-colors"
+                >
+                  <XIcon className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-4">
+                <p className="text-sm text-slate-600">
+                  Anda akan mengubah status operasional cabang <strong>{selectedCabang.name}</strong>. Silakan pilih status baru dan isi alasannya.
+                </p>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Status Baru</label>
+                  <select className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/50 bg-white">
+                    <option value="Renovasi">Renovasi (Tutup Sementara)</option>
+                    <option value="Tutup">Tutup Permanen</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Alasan / Keterangan</label>
+                  <textarea 
+                    className="w-full min-h-[80px] px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/50 bg-white"
+                    placeholder="Contoh: Sedang renovasi perbaikan atap"
+                  ></textarea>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
+                <Button variant="outline" onClick={closeNonaktifModal} className="border-slate-200 text-slate-600 hover:bg-slate-100">
+                  Batal
+                </Button>
+                <Button onClick={closeNonaktifModal} className="bg-rose-600 hover:bg-rose-700 text-white">
+                  Konfirmasi Status
+                </Button>
               </div>
             </motion.div>
           </div>

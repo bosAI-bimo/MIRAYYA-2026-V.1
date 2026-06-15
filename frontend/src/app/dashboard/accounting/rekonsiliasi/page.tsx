@@ -248,10 +248,10 @@ export default function RekonsiliasiBankPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-xl relative z-50 overflow-hidden border border-slate-100 flex flex-col"
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-xl relative z-50 overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]"
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50 shrink-0">
                 <div>
                   <h3 className="text-xl font-bold text-slate-800">Mulai Rekonsiliasi Bank</h3>
                   <p className="text-sm font-medium text-slate-500 mt-1">Bandingkan mutasi bank dengan sistem POS</p>
@@ -265,7 +265,7 @@ export default function RekonsiliasiBankPage() {
               </div>
 
               {/* Body */}
-              <div className="p-6 space-y-6">
+              <div className="p-6 space-y-6 overflow-y-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-bold text-slate-700 mb-2 block">Pilih Cabang</label>
@@ -296,7 +296,7 @@ export default function RekonsiliasiBankPage() {
               </div>
 
               {/* Footer Actions */}
-              <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row gap-3">
+              <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row gap-3 shrink-0">
                 <Button variant="outline" onClick={closeRekonsiliasiModal} className="flex-1 border-slate-200 text-slate-600 hover:bg-slate-100 font-bold h-12 rounded-xl transition-all cursor-pointer">
                   Batal
                 </Button>
@@ -326,9 +326,9 @@ export default function RekonsiliasiBankPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-50 overflow-hidden border border-slate-100 flex flex-col"
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-50 overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]"
             >
-              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50 shrink-0">
                 <div>
                   <h3 className="text-xl font-bold text-slate-800">Detail Rekonsiliasi</h3>
                   <p className="text-sm font-medium text-slate-500 mt-1">{selectedDetail.date}</p>
@@ -341,7 +341,7 @@ export default function RekonsiliasiBankPage() {
                 </button>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="p-6 space-y-6 overflow-y-auto">
                 <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
                   <div className="space-y-1">
                     <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Rekening</span>
@@ -389,7 +389,7 @@ export default function RekonsiliasiBankPage() {
                 )}
               </div>
 
-              <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row gap-3">
+              <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row gap-3 shrink-0">
                 <Button onClick={closeDetailModal} variant="outline" className="flex-1 border-slate-200 text-slate-600 hover:bg-slate-100 font-bold h-12 rounded-xl transition-all cursor-pointer">
                   Tutup
                 </Button>

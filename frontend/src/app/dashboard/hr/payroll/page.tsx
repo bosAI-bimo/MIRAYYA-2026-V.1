@@ -4,35 +4,117 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Download, Calculator, CheckCircle2, FileText, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Search, Download, Calculator, CheckCircle2, FileText, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Eye, Calendar, Clock, Edit, Save, AlertCircle, Users, Check, X } from "lucide-react";
 import Link from "next/link";
 
-const payrollData = [
-  { id: "PR-001", name: "Siti Rahma", role: "HR Manager", branch: "Pusat", baseSalary: "Rp 8.000.000", allowance: "Rp 1.000.000", deduction: "Rp 150.000", net: "Rp 8.850.000", status: "Generated" },
-  { id: "PR-002", name: "Budi Santoso", role: "Accounting", branch: "Pusat", baseSalary: "Rp 7.500.000", allowance: "Rp 1.000.000", deduction: "Rp 0", net: "Rp 8.500.000", status: "Generated" },
-  { id: "PR-003", name: "Anita Wijaya", role: "BA", branch: "Mirayya Sudirman", baseSalary: "Rp 4.500.000", allowance: "Rp 800.000", deduction: "Rp 50.000", net: "Rp 5.250.000", status: "Pending" },
-  { id: "PR-004", name: "Rina Marlina", role: "Store Leader", branch: "Mirayya PIK", baseSalary: "Rp 5.500.000", allowance: "Rp 1.200.000", deduction: "Rp 0", net: "Rp 6.700.000", status: "Pending" },
-  { id: "PR-005", name: "Dina Mariana", role: "BA", branch: "Mirayya Kelapa Gading", baseSalary: "Rp 4.500.000", allowance: "Rp 500.000", deduction: "Rp 250.000", net: "Rp 4.750.000", status: "Pending" },
-  { id: "PR-006", name: "Agus Salim", role: "Store Leader", branch: "Mirayya Kemang", baseSalary: "Rp 5.500.000", allowance: "Rp 1.200.000", deduction: "Rp 100.000", net: "Rp 6.600.000", status: "Generated" },
-  { id: "PR-007", name: "Dewi Lestari", role: "BA", branch: "Mirayya PIK", baseSalary: "Rp 4.500.000", allowance: "Rp 700.000", deduction: "Rp 0", net: "Rp 5.200.000", status: "Generated" },
-  { id: "PR-008", name: "Fajar Siddiq", role: "Gudang", branch: "Pusat", baseSalary: "Rp 4.000.000", allowance: "Rp 500.000", deduction: "Rp 50.000", net: "Rp 4.450.000", status: "Pending" },
-  { id: "PR-009", name: "Gita Savitri", role: "BA", branch: "Mirayya Kelapa Gading", baseSalary: "Rp 4.500.000", allowance: "Rp 800.000", deduction: "Rp 0", net: "Rp 5.300.000", status: "Generated" },
-  { id: "PR-010", name: "Hadi Kusuma", role: "Kasir", branch: "Mirayya Bintaro", baseSalary: "Rp 4.200.000", allowance: "Rp 600.000", deduction: "Rp 100.000", net: "Rp 4.700.000", status: "Pending" },
-  { id: "PR-011", name: "Intan Nuraini", role: "BA", branch: "Mirayya Sudirman", baseSalary: "Rp 4.500.000", allowance: "Rp 500.000", deduction: "Rp 0", net: "Rp 5.000.000", status: "Generated" },
-  { id: "PR-012", name: "Joko Supriyanto", role: "Security", branch: "Mirayya PIK", baseSalary: "Rp 3.800.000", allowance: "Rp 400.000", deduction: "Rp 0", net: "Rp 4.200.000", status: "Generated" },
-  { id: "PR-013", name: "Kirana Larasati", role: "Store Leader", branch: "Mirayya Bintaro", baseSalary: "Rp 5.500.000", allowance: "Rp 1.000.000", deduction: "Rp 200.000", net: "Rp 6.300.000", status: "Pending" },
-  { id: "PR-014", name: "Sari Indah", role: "BA", branch: "Mirayya Kemang", baseSalary: "Rp 4.500.000", allowance: "Rp 0", deduction: "Rp 0", net: "Rp 4.500.000", status: "Pending" },
-  { id: "PR-015", name: "Tono Mulyono", role: "Security", branch: "Mirayya Sudirman", baseSalary: "Rp 3.800.000", allowance: "Rp 400.000", deduction: "Rp 50.000", net: "Rp 4.150.000", status: "Generated" },
+const formatRupiah = (number: number) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(number);
+};
+
+const payrollHistoryData = [
+  { id: "PH-001", period: "Mei 2026", date: "25 Mei 2026", totalEmployees: 58, totalAmount: "Rp 282.500.000", status: "Selesai" },
+  { id: "PH-002", period: "April 2026", date: "25 Apr 2026", totalEmployees: 57, totalAmount: "Rp 278.000.000", status: "Selesai" },
+  { id: "PH-003", period: "Maret 2026", date: "25 Mar 2026", totalEmployees: 55, totalAmount: "Rp 265.500.000", status: "Selesai" },
+  { id: "PH-004", period: "Februari 2026", date: "25 Feb 2026", totalEmployees: 52, totalAmount: "Rp 250.000.000", status: "Selesai" },
+  { id: "PH-005", period: "Januari 2026", date: "25 Jan 2026", totalEmployees: 50, totalAmount: "Rp 245.500.000", status: "Selesai" },
+];
+
+const initialPayrollData = [
+  { id: "PR-001", name: "Siti Rahma", role: "HR Manager", branch: "Pusat", baseSalary: 8000000, allowance: 1000000, deduction: 150000, net: 8850000, status: "Generated", attendance: { hadir: 22, alpa: 0, cuti: 1, telat: 2 } },
+  { id: "PR-002", name: "Budi Santoso", role: "Accounting", branch: "Pusat", baseSalary: 7500000, allowance: 1000000, deduction: 0, net: 8500000, status: "Generated", attendance: { hadir: 23, alpa: 0, cuti: 0, telat: 0 } },
+  { id: "PR-003", name: "Anita Wijaya", role: "BA", branch: "Mirayya Sudirman", baseSalary: 4500000, allowance: 800000, deduction: 50000, net: 5250000, status: "Pending", attendance: { hadir: 20, alpa: 1, cuti: 2, telat: 1 } },
+  { id: "PR-004", name: "Rina Marlina", role: "Store Leader", branch: "Mirayya PIK", baseSalary: 5500000, allowance: 1200000, deduction: 0, net: 6700000, status: "Pending", attendance: { hadir: 23, alpa: 0, cuti: 0, telat: 0 } },
+  { id: "PR-005", name: "Dina Mariana", role: "BA", branch: "Mirayya Kelapa Gading", baseSalary: 4500000, allowance: 500000, deduction: 250000, net: 4750000, status: "Pending", attendance: { hadir: 19, alpa: 2, cuti: 1, telat: 5 } },
+  { id: "PR-006", name: "Agus Salim", role: "Store Leader", branch: "Mirayya Kemang", baseSalary: 5500000, allowance: 1200000, deduction: 100000, net: 6600000, status: "Generated", attendance: { hadir: 22, alpa: 0, cuti: 1, telat: 2 } },
+  { id: "PR-007", name: "Dewi Lestari", role: "BA", branch: "Mirayya PIK", baseSalary: 4500000, allowance: 700000, deduction: 0, net: 5200000, status: "Generated", attendance: { hadir: 23, alpa: 0, cuti: 0, telat: 1 } },
+  { id: "PR-008", name: "Fajar Siddiq", role: "Gudang", branch: "Pusat", baseSalary: 4000000, allowance: 500000, deduction: 50000, net: 4450000, status: "Pending", attendance: { hadir: 21, alpa: 0, cuti: 2, telat: 1 } },
+  { id: "PR-009", name: "Gita Savitri", role: "BA", branch: "Mirayya Kelapa Gading", baseSalary: 4500000, allowance: 800000, deduction: 0, net: 5300000, status: "Generated", attendance: { hadir: 23, alpa: 0, cuti: 0, telat: 0 } },
+  { id: "PR-010", name: "Hadi Kusuma", role: "Kasir", branch: "Mirayya Bintaro", baseSalary: 4200000, allowance: 600000, deduction: 100000, net: 4700000, status: "Pending", attendance: { hadir: 21, alpa: 1, cuti: 1, telat: 2 } },
+  { id: "PR-011", name: "Intan Nuraini", role: "BA", branch: "Mirayya Sudirman", baseSalary: 4500000, allowance: 500000, deduction: 0, net: 5000000, status: "Generated", attendance: { hadir: 21, alpa: 0, cuti: 2, telat: 0 } },
+  { id: "PR-012", name: "Joko Supriyanto", role: "Security", branch: "Mirayya PIK", baseSalary: 3800000, allowance: 400000, deduction: 0, net: 4200000, status: "Generated", attendance: { hadir: 23, alpa: 0, cuti: 0, telat: 0 } },
+  { id: "PR-013", name: "Kirana Larasati", role: "Store Leader", branch: "Mirayya Bintaro", baseSalary: 5500000, allowance: 1000000, deduction: 200000, net: 6300000, status: "Pending", attendance: { hadir: 20, alpa: 1, cuti: 1, telat: 4 } },
+  { id: "PR-014", name: "Sari Indah", role: "BA", branch: "Mirayya Kemang", baseSalary: 4500000, allowance: 0, deduction: 0, net: 4500000, status: "Pending", attendance: { hadir: 18, alpa: 2, cuti: 3, telat: 0 } },
+  { id: "PR-015", name: "Tono Mulyono", role: "Security", branch: "Mirayya Sudirman", baseSalary: 3800000, allowance: 400000, deduction: 50000, net: 4150000, status: "Generated", attendance: { hadir: 22, alpa: 0, cuti: 1, telat: 1 } },
 ];
 
 export default function PayrollPage() {
+  const [payrollData, setPayrollData] = useState(initialPayrollData);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
   const totalPages = Math.ceil(payrollData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = payrollData.slice(startIndex, startIndex + itemsPerPage);
+
+  // States for Editing Modal
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    baseSalary: 0,
+    allowance: 0,
+    deduction: 0
+  });
+
+  const handleOpenEdit = (employee: any) => {
+    setSelectedEmployee(employee);
+    setEditForm({
+      baseSalary: employee.baseSalary,
+      allowance: employee.allowance,
+      deduction: employee.deduction
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+    // allow typing raw numbers
+    const valueStr = e.target.value.replace(/[^0-9]/g, "");
+    const value = valueStr ? parseInt(valueStr) : 0;
+    setEditForm({
+      ...editForm,
+      [field]: value
+    });
+  };
+
+  const calculateNet = () => {
+    return editForm.baseSalary + editForm.allowance - editForm.deduction;
+  };
+
+  const handleSaveEdit = () => {
+    const updatedData = payrollData.map(emp => {
+      if (emp.id === selectedEmployee.id) {
+        return {
+          ...emp,
+          baseSalary: editForm.baseSalary,
+          allowance: editForm.allowance,
+          deduction: editForm.deduction,
+          net: calculateNet(),
+          status: "Generated" // Auto generated after review
+        };
+      }
+      return emp;
+    });
+    setPayrollData(updatedData);
+    setIsEditModalOpen(false);
+  };
+
+  const totalEstimated = payrollData.reduce((acc, curr) => acc + curr.net, 0);
+  const generatedCount = payrollData.filter(p => p.status === 'Generated').length;
 
   return (
     <div className="space-y-6">
@@ -72,7 +154,7 @@ export default function PayrollPage() {
             <CardTitle className="text-sm font-medium text-slate-600">Total Pengeluaran Gaji (Estimasi)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-800">Rp 284.500.000</div>
+            <div className="text-2xl font-bold text-slate-800">{formatRupiah(totalEstimated)}</div>
             <p className="text-xs text-slate-500 mt-1">Periode Juni 2026</p>
           </CardContent>
         </Card>
@@ -82,7 +164,7 @@ export default function PayrollPage() {
             <CardTitle className="text-sm font-medium text-slate-600">Slip Gaji Generated</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-600">12 / 58</div>
+            <div className="text-2xl font-bold text-emerald-600">{generatedCount} / {payrollData.length}</div>
             <p className="text-xs text-slate-500 mt-1">Karyawan</p>
           </CardContent>
         </Card>
@@ -145,7 +227,7 @@ export default function PayrollPage() {
                       <th className="px-6 py-4 text-emerald-600">Tunjangan</th>
                       <th className="px-6 py-4 text-rose-600">Potongan</th>
                       <th className="px-6 py-4 font-semibold text-slate-800">Total Bersih</th>
-                      <th className="px-6 py-4 text-center">Status Slip</th>
+                      <th className="px-6 py-4 text-center">Status</th>
                       <th className="px-6 py-4 text-right">Aksi</th>
                     </tr>
                   </thead>
@@ -156,32 +238,38 @@ export default function PayrollPage() {
                           <div className="font-semibold text-slate-800 whitespace-nowrap">{pr.name}</div>
                           <div className="text-slate-500 text-xs mt-0.5 whitespace-nowrap">{pr.role} • {pr.branch}</div>
                         </td>
-                        <td className="px-6 py-4 text-slate-600 whitespace-nowrap">{pr.baseSalary}</td>
-                        <td className="px-6 py-4 text-emerald-600 whitespace-nowrap">+{pr.allowance}</td>
-                        <td className="px-6 py-4 text-rose-600 whitespace-nowrap">-{pr.deduction}</td>
-                        <td className="px-6 py-4 font-bold text-slate-800 whitespace-nowrap">{pr.net}</td>
+                        <td className="px-6 py-4 text-slate-600 whitespace-nowrap">{formatRupiah(pr.baseSalary)}</td>
+                        <td className="px-6 py-4 text-emerald-600 whitespace-nowrap">+{formatRupiah(pr.allowance)}</td>
+                        <td className="px-6 py-4 text-rose-600 whitespace-nowrap">-{formatRupiah(pr.deduction)}</td>
+                        <td className="px-6 py-4 font-bold text-slate-800 whitespace-nowrap">{formatRupiah(pr.net)}</td>
                         <td className="px-6 py-4 text-center whitespace-nowrap">
                           {pr.status === 'Generated' ? (
                             <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700">
                               <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                              Tersedia
+                              Generated
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
-                              Belum Dibuat
+                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-50 text-amber-700">
+                              <AlertCircle className="w-3.5 h-3.5 mr-1" />
+                              Pending
                             </span>
                           )}
                         </td>
                         <td className="px-6 py-4 text-right whitespace-nowrap">
                           {pr.status === 'Generated' ? (
-                            <Button variant="ghost" size="sm" className="text-primary hover:bg-rose-50 text-xs h-8">
-                              <Download className="w-3.5 h-3.5 mr-1" />
-                              Unduh Slip
-                            </Button>
+                            <div className="flex items-center justify-end gap-2">
+                              <Button variant="ghost" size="sm" onClick={() => handleOpenEdit(pr)} className="text-slate-500 hover:text-slate-700 hover:bg-slate-100 text-xs h-8">
+                                <Edit className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="text-primary hover:bg-rose-50 text-xs h-8">
+                                <Download className="w-3.5 h-3.5 mr-1" />
+                                Slip
+                              </Button>
+                            </div>
                           ) : (
-                            <Button variant="outline" size="sm" className="border-primary text-primary hover:bg-rose-50 text-xs h-8">
-                              <FileText className="w-3.5 h-3.5 mr-1" />
-                              Generate Slip
+                            <Button onClick={() => handleOpenEdit(pr)} variant="outline" size="sm" className="border-primary text-primary hover:bg-rose-50 text-xs h-8">
+                              <Eye className="w-3.5 h-3.5 mr-1" />
+                              Review & Edit
                             </Button>
                           )}
                         </td>
@@ -244,20 +332,270 @@ export default function PayrollPage() {
           </Card>
         </TabsContent>
         
+        {/* Riwayat Tab */}
         <TabsContent value="riwayat" className="mt-4">
           <Card className="border-2 shadow-sm border-slate-200">
-            <CardContent className="flex flex-col items-center justify-center p-12 text-center">
-              <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-4">
-                <FileText className="w-8 h-8" />
+            <CardHeader className="pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-lg font-semibold text-slate-800">Riwayat Payroll</CardTitle>
+                <CardDescription>Data rekapitulasi penggajian bulan-bulan sebelumnya.</CardDescription>
               </div>
-              <h3 className="text-lg font-semibold text-slate-800 mb-2">Riwayat Payroll Belum Tersedia</h3>
-              <p className="text-slate-500 max-w-md mx-auto">
-                Sistem belum memiliki data riwayat payroll untuk periode sebelumnya. Data akan muncul di sini setelah payroll bulan ini diselesaikan.
-              </p>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                <Input
+                  type="text"
+                  placeholder="Cari periode..."
+                  className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-primary h-9 text-sm"
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                    <tr>
+                      <th className="px-6 py-4">Periode</th>
+                      <th className="px-6 py-4">Tanggal Eksekusi</th>
+                      <th className="px-6 py-4">Total Karyawan</th>
+                      <th className="px-6 py-4">Total Pengeluaran</th>
+                      <th className="px-6 py-4 text-center">Status</th>
+                      <th className="px-6 py-4 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {payrollHistoryData.map((history) => (
+                      <tr key={history.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-slate-800 flex items-center whitespace-nowrap">
+                            <Calendar className="w-4 h-4 mr-2 text-slate-400" />
+                            {history.period}
+                          </div>
+                          <div className="text-slate-500 text-xs mt-0.5 ml-6 whitespace-nowrap">{history.id}</div>
+                        </td>
+                        <td className="px-6 py-4 text-slate-600 whitespace-nowrap flex items-center">
+                          <Clock className="w-4 h-4 mr-2 text-slate-400" />
+                          {history.date}
+                        </td>
+                        <td className="px-6 py-4 text-slate-600 whitespace-nowrap">
+                          {history.totalEmployees} Orang
+                        </td>
+                        <td className="px-6 py-4 font-bold text-slate-800 whitespace-nowrap">
+                          {history.totalAmount}
+                        </td>
+                        <td className="px-6 py-4 text-center whitespace-nowrap">
+                          <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border-emerald-200 border">
+                            <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                            {history.status}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-primary hover:bg-rose-50 text-xs h-8">
+                                <Eye className="w-3.5 h-3.5 mr-1" />
+                                Lihat Detail
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto bg-white text-left">
+                              <DialogHeader>
+                                <DialogTitle>Detail Payroll - {history.period}</DialogTitle>
+                                <DialogDescription>
+                                  Ringkasan data penggajian karyawan untuk periode {history.period}.
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4 my-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="p-4 rounded-lg bg-slate-50 border border-slate-100">
+                                    <p className="text-xs text-slate-500 mb-1">Tanggal Eksekusi</p>
+                                    <p className="font-semibold text-slate-800">{history.date}</p>
+                                  </div>
+                                  <div className="p-4 rounded-lg bg-slate-50 border border-slate-100">
+                                    <p className="text-xs text-slate-500 mb-1">Total Karyawan</p>
+                                    <p className="font-semibold text-slate-800">{history.totalEmployees} Orang</p>
+                                  </div>
+                                  <div className="p-4 rounded-lg bg-slate-50 border border-slate-100 col-span-2 flex justify-between items-center">
+                                    <div>
+                                      <p className="text-xs text-slate-500 mb-1">Total Pengeluaran (Gaji Bersih)</p>
+                                      <p className="font-bold text-xl text-slate-800">{history.totalAmount}</p>
+                                    </div>
+                                    <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none">{history.status}</Badge>
+                                  </div>
+                                </div>
+                                
+                                <div>
+                                  <h4 className="text-sm font-semibold text-slate-800 mb-3 mt-5">Rekap Per Cabang</h4>
+                                  <div className="border border-slate-200 rounded-lg overflow-hidden">
+                                    <table className="w-full text-sm">
+                                      <thead className="bg-slate-50 border-b border-slate-200">
+                                        <tr>
+                                          <th className="px-4 py-3 text-left font-medium text-slate-600">Cabang</th>
+                                          <th className="px-4 py-3 text-right font-medium text-slate-600">Jumlah Karyawan</th>
+                                          <th className="px-4 py-3 text-right font-medium text-slate-600">Total Gaji</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-slate-100">
+                                        <tr className="hover:bg-slate-50/50">
+                                          <td className="px-4 py-3 text-slate-800">Pusat</td>
+                                          <td className="px-4 py-3 text-right text-slate-600">12</td>
+                                          <td className="px-4 py-3 text-right font-medium text-slate-800">Rp 75.000.000</td>
+                                        </tr>
+                                        <tr className="hover:bg-slate-50/50">
+                                          <td className="px-4 py-3 text-slate-800">Mirayya Sudirman</td>
+                                          <td className="px-4 py-3 text-right text-slate-600">10</td>
+                                          <td className="px-4 py-3 text-right font-medium text-slate-800">Rp 48.500.000</td>
+                                        </tr>
+                                        <tr className="hover:bg-slate-50/50">
+                                          <td className="px-4 py-3 text-slate-800">Mirayya Kemang</td>
+                                          <td className="px-4 py-3 text-right text-slate-600">9</td>
+                                          <td className="px-4 py-3 text-right font-medium text-slate-800">Rp 42.000.000</td>
+                                        </tr>
+                                        <tr className="hover:bg-slate-50/50">
+                                          <td className="px-4 py-3 text-slate-800">Lainnya (3 Cabang)</td>
+                                          <td className="px-4 py-3 text-right text-slate-600">27</td>
+                                          <td className="px-4 py-3 text-right font-medium text-slate-800">Rp 117.000.000</td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex justify-end gap-3 mt-6">
+                                <Button variant="outline" className="text-slate-600">
+                                  <Download className="w-4 h-4 mr-2" />
+                                  Unduh Rekap Laporan
+                                </Button>
+                                <Button className="bg-primary hover:bg-primary/90 text-white">
+                                  <FileText className="w-4 h-4 mr-2" />
+                                  Lihat Slip Karyawan
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Edit / Review Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto bg-white">
+          <DialogHeader className="pb-4 border-b border-slate-100">
+            <DialogTitle className="text-xl">Review & Edit Payroll</DialogTitle>
+            <DialogDescription>
+              Tinjau catatan kehadiran dan sesuaikan komponen gaji untuk {selectedEmployee?.name}.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedEmployee && (
+            <div className="py-4 space-y-6">
+              {/* Profile Bar */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-slate-800 text-lg">{selectedEmployee.name}</h3>
+                  <p className="text-slate-500 text-sm">{selectedEmployee.role} • {selectedEmployee.branch}</p>
+                </div>
+                <Badge variant="outline" className="bg-slate-50">
+                  {selectedEmployee.id}
+                </Badge>
+              </div>
+
+              {/* Attendance Summary Cards */}
+              <div>
+                <h4 className="text-sm font-semibold text-slate-800 mb-3">Ringkasan Kehadiran (26 Mei - 25 Jun)</h4>
+                <div className="grid grid-cols-4 gap-3">
+                  <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-3 text-center">
+                    <p className="text-xs text-emerald-600 font-medium mb-1">Hadir</p>
+                    <p className="text-xl font-bold text-emerald-700">{selectedEmployee.attendance.hadir} <span className="text-xs font-normal">Hr</span></p>
+                  </div>
+                  <div className="bg-rose-50 border border-rose-100 rounded-lg p-3 text-center">
+                    <p className="text-xs text-rose-600 font-medium mb-1">Alpa</p>
+                    <p className="text-xl font-bold text-rose-700">{selectedEmployee.attendance.alpa} <span className="text-xs font-normal">Hr</span></p>
+                  </div>
+                  <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-center">
+                    <p className="text-xs text-amber-600 font-medium mb-1">Cuti</p>
+                    <p className="text-xl font-bold text-amber-700">{selectedEmployee.attendance.cuti} <span className="text-xs font-normal">Hr</span></p>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                    <p className="text-xs text-slate-600 font-medium mb-1">Telat</p>
+                    <p className="text-xl font-bold text-slate-700">{selectedEmployee.attendance.telat} <span className="text-xs font-normal">x</span></p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Editable Form */}
+              <div className="border-t border-slate-100 pt-4">
+                <h4 className="text-sm font-semibold text-slate-800 mb-4 flex items-center">
+                  <Calculator className="w-4 h-4 mr-2 text-slate-400" />
+                  Kalkulator Komponen Gaji
+                </h4>
+                
+                <div className="space-y-4">
+                  <div className="grid grid-cols-12 gap-4 items-center">
+                    <Label className="col-span-4 text-slate-600">Gaji Pokok</Label>
+                    <div className="col-span-8 relative">
+                      <span className="absolute left-3 top-2.5 text-sm font-medium text-slate-400">Rp</span>
+                      <Input 
+                        value={new Intl.NumberFormat("id-ID").format(editForm.baseSalary)} 
+                        onChange={(e) => handleFormChange(e, 'baseSalary')}
+                        className="pl-9 font-medium text-slate-800 focus-visible:ring-primary"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-12 gap-4 items-center">
+                    <Label className="col-span-4 text-slate-600">Tunjangan (+)</Label>
+                    <div className="col-span-8 relative">
+                      <span className="absolute left-3 top-2.5 text-sm font-medium text-emerald-500">Rp</span>
+                      <Input 
+                        value={new Intl.NumberFormat("id-ID").format(editForm.allowance)} 
+                        onChange={(e) => handleFormChange(e, 'allowance')}
+                        className="pl-9 font-medium text-emerald-700 border-emerald-200 focus-visible:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-12 gap-4 items-center">
+                    <Label className="col-span-4 text-slate-600">Potongan (-)</Label>
+                    <div className="col-span-8 relative">
+                      <span className="absolute left-3 top-2.5 text-sm font-medium text-rose-500">Rp</span>
+                      <Input 
+                        value={new Intl.NumberFormat("id-ID").format(editForm.deduction)} 
+                        onChange={(e) => handleFormChange(e, 'deduction')}
+                        className="pl-9 font-medium text-rose-700 border-rose-200 focus-visible:ring-rose-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Net Result */}
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-5 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-primary/80 mb-1">Total Bersih (Estimasi)</p>
+                  <p className="text-xs text-slate-500">Jumlah yang akan ditransfer ke karyawan</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-primary">{formatRupiah(calculateNet())}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="border-t border-slate-100 pt-4 mt-2 sm:justify-between">
+            <Button variant="ghost" onClick={() => setIsEditModalOpen(false)}>Batal</Button>
+            <Button onClick={handleSaveEdit} className="bg-primary hover:bg-primary/90">
+              <Save className="w-4 h-4 mr-2" />
+              Simpan & Generate Slip
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

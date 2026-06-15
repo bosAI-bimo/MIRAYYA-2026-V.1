@@ -4,8 +4,13 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, Download, Calendar, MapPin, Camera, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, X as XIcon, Image as ImageIcon } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Search, Filter, Download, Calendar, MapPin, Camera, 
+  ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, 
+  X as XIcon, Image as ImageIcon,
+  Users, UserCheck, Clock, UserMinus, ArrowUpRight
+} from "lucide-react";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import Link from "next/link";
 
 const attendanceData = [
@@ -47,8 +52,26 @@ export default function AbsensiPage() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = attendanceData.slice(startIndex, startIndex + itemsPerPage);
 
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
+  };
+
   return (
-    <div className="space-y-6">
+    <motion.div 
+      className="space-y-6 lg:space-y-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+    >
       {/* Header / Navbar Separator */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-6 border-b border-slate-200 mb-6 lg:mb-8">
         <div className="space-y-1">
@@ -65,160 +88,223 @@ export default function AbsensiPage() {
               </li>
             </ol>
           </nav>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-800">Riwayat Absensi</h1>
+          <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">Riwayat Absensi</h1>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-          <Button variant="outline" className="text-slate-600 border-slate-200 w-full sm:w-auto">
+          <Button variant="outline" className="text-slate-600 border-slate-200 w-full sm:w-auto hover:bg-slate-50 transition-colors">
             <Download className="w-4 h-4 mr-2" />
             Ekspor Laporan
           </Button>
         </div>
       </div>
 
-      <Card className="border-2 shadow-sm border-slate-200">
-        <CardHeader className="pb-4 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
-            <CardTitle className="text-lg font-semibold text-slate-800">Log Kehadiran</CardTitle>
-            <CardDescription>Menampilkan riwayat absensi terbaru.</CardDescription>
-          </div>
-          <div className="flex flex-col sm:flex-row items-center gap-2">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-              <Input
-                type="text"
-                placeholder="Cari nama karyawan..."
-                className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-primary h-9 text-sm"
-              />
-            </div>
-            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[140px]">
-              <option value="all">Semua Cabang</option>
-              <option value="sudirman">Mirayya Sudirman</option>
-              <option value="kemang">Mirayya Kemang</option>
-              <option value="pik">Mirayya PIK</option>
-              <option value="kelapa_gading">Mirayya Kelapa Gading</option>
-              <option value="bintaro">Mirayya Bintaro</option>
-            </select>
-            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
-              <option value="this_month">Bulan Ini</option>
-              <option value="last_month">Bulan Lalu</option>
-              <option value="this_year">Tahun Ini</option>
-            </select>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-4">Tanggal</th>
-                  <th className="px-6 py-4">Nama Karyawan</th>
-                  <th className="px-6 py-4">Cabang</th>
-                  <th className="px-6 py-4 text-center">In / Out</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Verifikasi</th>
-                  <th className="px-6 py-4 text-right">Detail</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {paginatedData.map((record) => (
-                  <tr key={record.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 text-slate-600 whitespace-nowrap">{record.date}</td>
-                    <td className="px-6 py-4 font-semibold text-slate-800 whitespace-nowrap">{record.name}</td>
-                    <td className="px-6 py-4 text-slate-600 whitespace-nowrap">{record.branch}</td>
-                    <td className="px-6 py-4 text-center whitespace-nowrap">
-                      <div className="flex items-center justify-center space-x-2">
-                        <span className="font-medium text-slate-700">{record.timeIn}</span>
-                        <span className="text-slate-400">-</span>
-                        <span className="font-medium text-slate-700">{record.timeOut}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
-                        record.status === 'Hadir' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                        record.status === 'Terlambat' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                        'bg-amber-50 text-amber-700 border border-amber-200'
-                      }`}>
-                        {record.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {record.status !== 'Cuti' ? (
-                        <div className="flex items-center space-x-3 text-xs">
-                          <div className={`flex items-center ${record.photoStatus === 'Valid' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                            <Camera className="w-3.5 h-3.5 mr-1" />
-                            {record.photoStatus}
-                          </div>
-                          <div className={`flex items-center ${record.gpsStatus === 'Valid' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                            <MapPin className="w-3.5 h-3.5 mr-1" />
-                            {record.gpsStatus}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-slate-400 text-xs">-</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right whitespace-nowrap">
-                      <Button onClick={() => openModal(record)} variant="ghost" size="sm" className="text-primary hover:bg-rose-50 hover:text-primary/90 text-xs h-8">
-                        Lihat Bukti
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Pagination Controls */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
-            <div className="text-sm text-slate-500">
-              Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, attendanceData.length)}</span> dari <span className="font-medium text-slate-700">{attendanceData.length}</span> data
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(1)} 
-                disabled={currentPage === 1}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronsLeft className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
-                disabled={currentPage === 1}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              
-              <div className="flex items-center justify-center text-sm font-medium px-3 text-slate-600">
-                Halaman {currentPage} dari {totalPages}
-              </div>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        <motion.div variants={itemVariants} className="h-full">
+          <Card className="border-2 border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all duration-300 h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Total Karyawan</CardTitle>
+              <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600"><Users className="w-4 h-4" /></div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-800">54</div>
+              <p className="text-xs text-slate-500 mt-1 font-medium">Di 6 Cabang</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+        
+        <motion.div variants={itemVariants} className="h-full">
+          <Card className="border-2 border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all duration-300 h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Hadir (Tepat Waktu)</CardTitle>
+              <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600"><UserCheck className="w-4 h-4" /></div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-800">42</div>
+              <p className="text-xs text-emerald-600 flex items-center mt-1 font-medium">
+                <ArrowUpRight className="w-3 h-3 mr-1" /> 88% Tingkat Kehadiran
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
-                disabled={currentPage === totalPages}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(totalPages)} 
-                disabled={currentPage === totalPages}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronsRight className="h-4 w-4" />
-              </Button>
+        <motion.div variants={itemVariants} className="h-full">
+          <Card className="border-2 border-slate-200 hover:border-amber-300 hover:shadow-md transition-all duration-300 h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Terlambat</CardTitle>
+              <div className="p-2 bg-amber-50 rounded-lg text-amber-600"><Clock className="w-4 h-4" /></div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-800">4</div>
+              <p className="text-xs text-rose-500 flex items-center mt-1 font-medium">
+                <ArrowUpRight className="w-3 h-3 mr-1" /> +2 dari kemarin
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="h-full">
+          <Card className="border-2 border-slate-200 hover:border-rose-300 hover:shadow-md transition-all duration-300 h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Cuti / Izin / Alpha</CardTitle>
+              <div className="p-2 bg-rose-50 rounded-lg text-rose-600"><UserMinus className="w-4 h-4" /></div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-800">8</div>
+              <p className="text-xs text-slate-500 flex items-center mt-1 font-medium">
+                Sesuai jadwal cuti
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      <motion.div variants={itemVariants}>
+        <Card className="border-2 shadow-sm border-slate-200">
+          <CardHeader className="pb-4 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-lg font-semibold text-slate-800">Log Kehadiran</CardTitle>
+              <CardDescription>Menampilkan riwayat absensi terbaru.</CardDescription>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                <Input
+                  type="text"
+                  placeholder="Cari nama karyawan..."
+                  className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-primary h-9 text-sm"
+                />
+              </div>
+              <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[140px]">
+                <option value="all">Semua Cabang</option>
+                <option value="sudirman">Mirayya Sudirman</option>
+                <option value="kemang">Mirayya Kemang</option>
+                <option value="pik">Mirayya PIK</option>
+                <option value="kelapa_gading">Mirayya Kelapa Gading</option>
+                <option value="bintaro">Mirayya Bintaro</option>
+              </select>
+              <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
+                <option value="this_month">Bulan Ini</option>
+                <option value="last_month">Bulan Lalu</option>
+                <option value="this_year">Tahun Ini</option>
+              </select>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+                  <tr>
+                    <th className="px-6 py-4">Tanggal</th>
+                    <th className="px-6 py-4">Nama Karyawan</th>
+                    <th className="px-6 py-4">Cabang</th>
+                    <th className="px-6 py-4 text-center">In / Out</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4">Verifikasi</th>
+                    <th className="px-6 py-4 text-right">Detail</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {paginatedData.map((record) => (
+                    <tr key={record.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4 text-slate-600 whitespace-nowrap">{record.date}</td>
+                      <td className="px-6 py-4 font-semibold text-slate-800 whitespace-nowrap">{record.name}</td>
+                      <td className="px-6 py-4 text-slate-600 whitespace-nowrap">{record.branch}</td>
+                      <td className="px-6 py-4 text-center whitespace-nowrap">
+                        <div className="flex items-center justify-center space-x-2">
+                          <span className="font-medium text-slate-700">{record.timeIn}</span>
+                          <span className="text-slate-400">-</span>
+                          <span className="font-medium text-slate-700">{record.timeOut}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
+                          record.status === 'Hadir' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                          record.status === 'Terlambat' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                          'bg-amber-50 text-amber-700 border border-amber-200'
+                        }`}>
+                          {record.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {record.status !== 'Cuti' ? (
+                          <div className="flex items-center space-x-3 text-xs">
+                            <div className={`flex items-center ${record.photoStatus === 'Valid' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              <Camera className="w-3.5 h-3.5 mr-1" />
+                              {record.photoStatus}
+                            </div>
+                            <div className={`flex items-center ${record.gpsStatus === 'Valid' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              <MapPin className="w-3.5 h-3.5 mr-1" />
+                              {record.gpsStatus}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 text-xs">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                        <Button onClick={() => openModal(record)} variant="ghost" size="sm" className="text-primary hover:bg-rose-50 hover:text-primary/90 text-xs h-8">
+                          Lihat Bukti
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
+              <div className="text-sm text-slate-500">
+                Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, attendanceData.length)}</span> dari <span className="font-medium text-slate-700">{attendanceData.length}</span> data
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setCurrentPage(1)} 
+                  disabled={currentPage === 1}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                  disabled={currentPage === 1}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                
+                <div className="flex items-center justify-center text-sm font-medium px-3 text-slate-600">
+                  Halaman {currentPage} dari {totalPages}
+                </div>
+
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                  disabled={currentPage === totalPages}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setCurrentPage(totalPages)} 
+                  disabled={currentPage === totalPages}
+                  className="h-8 w-8 p-0"
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Modal Bukti Absensi */}
       <AnimatePresence>
@@ -237,10 +323,10 @@ export default function AbsensiPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.3, type: "spring", bounce: 0.2 }}
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-50 overflow-hidden border border-slate-100 flex flex-col"
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-50 overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]"
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+              <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50 shrink-0">
                 <div>
                   <h3 className="text-xl font-bold text-slate-800">Detail Absensi</h3>
                   <p className="text-sm font-medium text-slate-500 mt-1">{selectedAbsensi.name} • {selectedAbsensi.date}</p>
@@ -254,7 +340,7 @@ export default function AbsensiPage() {
               </div>
 
               {/* Body */}
-              <div className="p-6 space-y-6">
+              <div className="p-4 sm:p-5 space-y-4 sm:space-y-5 overflow-y-auto no-scrollbar">
                 <div className="flex justify-between items-center pb-4 border-b border-slate-100">
                   <div className="space-y-1">
                     <p className="text-xs text-slate-500">Cabang</p>
@@ -284,15 +370,15 @@ export default function AbsensiPage() {
                 </div>
 
                 {selectedAbsensi.status !== 'Cuti' && (
-                  <div className="bg-slate-50 rounded-2xl p-6 flex flex-col items-center justify-center border-2 border-slate-200 border-dashed gap-3">
-                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-slate-400 shadow-sm">
-                      <ImageIcon className="w-8 h-8" />
+                  <div className="bg-slate-50 rounded-2xl p-4 flex flex-col items-center justify-center border-2 border-slate-200 border-dashed gap-2">
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-400 shadow-sm">
+                      <ImageIcon className="w-6 h-6" />
                     </div>
                     <div className="text-center">
                       <p className="text-sm font-bold text-slate-700">Foto Bukti Kehadiran</p>
                       <p className="text-xs text-emerald-600 font-medium mt-1">Status GPS: {selectedAbsensi.gpsStatus}</p>
                     </div>
-                    <Button variant="outline" className="mt-2 border-slate-200 text-slate-700 hover:text-pink-600 hover:border-pink-200 hover:bg-pink-50 rounded-xl transition-all shadow-sm">
+                    <Button variant="outline" size="sm" className="mt-1 border-slate-200 text-slate-700 hover:text-pink-600 hover:border-pink-200 hover:bg-pink-50 rounded-xl transition-all shadow-sm">
                       Lihat Foto Penuh
                     </Button>
                   </div>
@@ -300,8 +386,8 @@ export default function AbsensiPage() {
               </div>
 
               {/* Footer Actions */}
-              <div className="p-6 border-t border-slate-100 bg-slate-50/80">
-                <Button onClick={closeModal} className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold h-12 rounded-xl shadow-sm transition-all cursor-pointer">
+              <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/80 shrink-0">
+                <Button onClick={closeModal} className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold h-10 rounded-xl shadow-sm transition-all cursor-pointer">
                   Tutup Detail
                 </Button>
               </div>
@@ -309,6 +395,6 @@ export default function AbsensiPage() {
           </div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }

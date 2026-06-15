@@ -115,134 +115,114 @@ export default function AccountingDashboard() {
         </div>
       </div>
 
-      {/* KPI Cards Grid - Expanded to 6 metrics for comprehensive overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+      {/* KPI Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Laba Bersih */}
         <motion.div variants={itemVariants} className="h-full">
-          <div className="bg-white rounded-2xl shadow-sm p-5 h-full flex flex-col border-2 border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer">
-            <div className="flex items-center space-x-3 mb-3 relative z-10">
+          <Card className="border-2 border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all duration-300 h-full cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Laba Bersih</CardTitle>
               <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
-                <TrendingUp className="h-5 w-5" />
+                <TrendingUp className="h-4 w-4" />
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-500 truncate">Laba Bersih</p>
-              </div>
-            </div>
-            <div className="mt-auto relative z-10">
-              <div className="text-xl font-extrabold text-slate-900 tracking-tight truncate">Rp 124,5 Jt</div>
-              <div className="mt-2 flex items-center">
-                <span className="text-xs text-emerald-700 font-bold flex items-center bg-emerald-100 px-1.5 py-0.5 rounded shrink-0">
-                  <ArrowUpRight className="h-3 w-3 mr-0.5" /> 12.5%
-                </span>
-              </div>
-            </div>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-800">Rp 124,5 Jt</div>
+              <p className="text-xs text-emerald-600 flex items-center mt-1 font-medium">
+                <ArrowUpRight className="w-3 h-3 mr-1" /> 12.5%
+              </p>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Total Omzet */}
         <motion.div variants={itemVariants} className="h-full">
-          <div className="bg-white rounded-2xl shadow-sm p-5 h-full flex flex-col border-2 border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer">
-            <div className="flex items-center space-x-3 mb-3 relative z-10">
+          <Card className="border-2 border-slate-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 h-full cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Total Omzet</CardTitle>
               <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
-                <DollarSign className="h-5 w-5" />
+                <DollarSign className="h-4 w-4" />
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-500 truncate">Total Omzet</p>
-              </div>
-            </div>
-            <div className="mt-auto relative z-10">
-              <div className="text-xl font-extrabold text-slate-900 tracking-tight truncate">Rp 450,2 Jt</div>
-              <div className="mt-2 flex items-center">
-                <span className="text-xs text-blue-700 font-bold flex items-center bg-blue-100 px-1.5 py-0.5 rounded shrink-0">
-                  <Activity className="h-3 w-3 mr-0.5" /> Aktif
-                </span>
-              </div>
-            </div>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-800">Rp 450,2 Jt</div>
+              <p className="text-xs text-blue-600 flex items-center mt-1 font-medium">
+                <Activity className="w-3 h-3 mr-1" /> Aktif
+              </p>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Arus Kas Bersih */}
         <motion.div variants={itemVariants} className="h-full">
-          <div className="bg-white rounded-2xl shadow-sm p-5 h-full flex flex-col border-2 border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer">
-            <div className="flex items-center space-x-3 mb-3 relative z-10">
+          <Card className="border-2 border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all duration-300 h-full cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Arus Kas (Net)</CardTitle>
               <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
-                <RefreshCw className="h-5 w-5" />
+                <RefreshCw className="h-4 w-4" />
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-500 truncate">Arus Kas (Net)</p>
-              </div>
-            </div>
-            <div className="mt-auto relative z-10">
-              <div className="text-xl font-extrabold text-slate-900 tracking-tight truncate">Rp +85,0 Jt</div>
-              <div className="mt-2 flex items-center">
-                <span className="text-[10px] text-slate-500 font-medium truncate">In: 500Jt | Out: 415Jt</span>
-              </div>
-            </div>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-800">Rp +85,0 Jt</div>
+              <p className="text-xs text-slate-500 mt-1 font-medium truncate">
+                In: 500Jt | Out: 415Jt
+              </p>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Pencapaian Target */}
         <motion.div variants={itemVariants} className="h-full">
-          <div className="bg-white rounded-2xl shadow-sm p-5 h-full flex flex-col border-2 border-slate-200 hover:border-purple-300 hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer">
-            <div className="flex items-center space-x-3 mb-3 relative z-10">
+          <Card className="border-2 border-slate-200 hover:border-purple-300 hover:shadow-md transition-all duration-300 h-full cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Target Omzet</CardTitle>
               <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
-                <BarChart3 className="h-5 w-5" />
+                <BarChart3 className="h-4 w-4" />
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-500 truncate">Target Omzet</p>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-800">82%</div>
+              <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="bg-purple-500 h-full rounded-full" style={{ width: '82%' }}></div>
               </div>
-            </div>
-            <div className="mt-auto relative z-10">
-              <div className="text-xl font-extrabold text-purple-600 tracking-tight truncate">82%</div>
-              <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
-                <div className="h-full bg-purple-500 rounded-full" style={{ width: '82%' }}></div>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Persetujuan EOD */}
         <motion.div variants={itemVariants} className="h-full">
-          <div className="bg-white rounded-2xl shadow-sm p-5 h-full flex flex-col border-2 border-slate-200 hover:border-rose-300 hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer">
-            <div className="flex items-center space-x-3 mb-3 relative z-10">
+          <Card className="border-2 border-slate-200 hover:border-rose-300 hover:shadow-md transition-all duration-300 h-full cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">EOD Pending</CardTitle>
               <div className="p-2 bg-rose-50 rounded-lg text-rose-600">
-                <AlertCircle className="h-5 w-5" />
+                <AlertCircle className="h-4 w-4" />
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-500 truncate">EOD Pending</p>
-              </div>
-            </div>
-            <div className="mt-auto relative z-10">
-              <div className="text-xl font-extrabold text-rose-600 tracking-tight truncate">5 <span className="text-sm font-semibold text-slate-500">Cabang</span></div>
-              <div className="mt-2 flex items-center">
-                <span className="text-xs text-rose-700 font-bold flex items-center bg-rose-100 px-1.5 py-0.5 rounded shrink-0">
-                  Butuh Verifikasi
-                </span>
-              </div>
-            </div>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-800">5 <span className="text-sm font-semibold text-slate-500">Cabang</span></div>
+              <p className="text-xs text-rose-600 mt-1 font-medium">
+                Butuh Verifikasi
+              </p>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Persetujuan PO */}
         <motion.div variants={itemVariants} className="h-full">
-          <div className="bg-white rounded-2xl shadow-sm p-5 h-full flex flex-col border-2 border-slate-200 hover:border-amber-300 hover:shadow-md transition-all duration-300 relative overflow-hidden group cursor-pointer">
-            <div className="flex items-center space-x-3 mb-3 relative z-10">
+          <Card className="border-2 border-slate-200 hover:border-amber-300 hover:shadow-md transition-all duration-300 h-full cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">PO Pending</CardTitle>
               <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
-                <FileText className="h-5 w-5" />
+                <FileText className="h-4 w-4" />
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-500 truncate">PO Pending</p>
-              </div>
-            </div>
-            <div className="mt-auto relative z-10">
-              <div className="text-xl font-extrabold text-amber-600 tracking-tight truncate">3 <span className="text-sm font-semibold text-slate-500">Dokumen</span></div>
-              <div className="mt-2 flex items-center">
-                <span className="text-xs text-amber-700 font-bold flex items-center bg-amber-100 px-1.5 py-0.5 rounded shrink-0">
-                  Review & Acc
-                </span>
-              </div>
-            </div>
-          </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-800">3 <span className="text-sm font-semibold text-slate-500">Dokumen</span></div>
+              <p className="text-xs text-amber-600 mt-1 font-medium">
+                Review & Acc
+              </p>
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
 
