@@ -3,7 +3,10 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Camera, MapPin, Clock, Filter, Search, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Camera, MapPin, Clock, Filter, Search, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Eye, Plus } from "lucide-react";
 import Link from "next/link";
 
 const historyData = [
@@ -28,6 +31,9 @@ export default function AbsensiKaryawan() {
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [checkInStatus, setCheckInStatus] = useState<"idle" | "capturing" | "success">("idle");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRecord, setSelectedRecord] = useState<typeof historyData[0] | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isLemburModalOpen, setIsLemburModalOpen] = useState(false);
   const itemsPerPage = 5;
 
   const totalPages = Math.ceil(historyData.length / itemsPerPage);
@@ -67,6 +73,12 @@ export default function AbsensiKaryawan() {
             </ol>
           </nav>
           <h1 className="text-3xl font-bold tracking-tight text-slate-800">Absensi Harian</h1>
+        </div>
+        <div className="flex sm:justify-end mt-4 md:mt-0">
+          <Button onClick={() => setIsLemburModalOpen(true)} className="bg-primary hover:bg-primary/90 text-white shadow-sm flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Ajukan Lembur
+          </Button>
         </div>
       </div>
 
@@ -183,7 +195,8 @@ export default function AbsensiKaryawan() {
                   <th className="px-4 py-3 font-semibold">Check-In</th>
                   <th className="px-4 py-3 font-semibold">Check-Out</th>
                   <th className="px-4 py-3 font-semibold">Durasi</th>
-                  <th className="px-4 py-3 font-semibold rounded-tr-md">Status</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold rounded-tr-md text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -201,6 +214,20 @@ export default function AbsensiKaryawan() {
                       }`}>
                         {row.status}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-slate-500 hover:text-primary hover:bg-primary/10" 
+                        title="Lihat Detail"
+                        onClick={() => {
+                          setSelectedRecord(row);
+                          setIsDetailModalOpen(true);
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -259,6 +286,97 @@ export default function AbsensiKaryawan() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Detail Modal */}
+      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Detail Absensi</DialogTitle>
+            <DialogDescription>
+              Informasi lengkap kehadiran Anda pada tanggal tersebut.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedRecord && (
+            <div className="grid gap-4 py-4">
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-medium text-slate-500">Tanggal</span>
+                <span className="text-base font-semibold text-slate-800">{selectedRecord.date}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                  <span className="text-sm font-medium text-slate-500">Check-In</span>
+                  <span className="text-base text-slate-800">{selectedRecord.in}</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <span className="text-sm font-medium text-slate-500">Check-Out</span>
+                  <span className="text-base text-slate-800">{selectedRecord.out}</span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-medium text-slate-500">Durasi Kerja</span>
+                <span className="text-base text-slate-800">{selectedRecord.duration}</span>
+              </div>
+              <div className="flex flex-col gap-2">
+                <span className="text-sm font-medium text-slate-500">Status</span>
+                <div>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                    selectedRecord.status === 'Tepat Waktu' ? 'bg-emerald-100 text-emerald-700' : 
+                    selectedRecord.status === 'Terlambat' ? 'bg-rose-100 text-rose-700' : 
+                    'bg-slate-100 text-slate-700'
+                  }`}>
+                    {selectedRecord.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Pengajuan Lembur */}
+      <Dialog open={isLemburModalOpen} onOpenChange={setIsLemburModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Pengajuan Lembur</DialogTitle>
+            <DialogDescription>
+              Isi form di bawah ini untuk mengajukan jadwal lembur.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="tanggal-lembur">Tanggal Lembur</Label>
+              <Input id="tanggal-lembur" type="date" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="jam-mulai">Jam Mulai</Label>
+                <Input id="jam-mulai" type="time" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="jam-selesai">Jam Selesai</Label>
+                <Input id="jam-selesai" type="time" />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="keterangan">Keterangan / Alasan</Label>
+              <textarea 
+                id="keterangan" 
+                className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Jelaskan alasan lembur dan pekerjaan yang dilakukan..."
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 mt-4">
+            <Button variant="outline" onClick={() => setIsLemburModalOpen(false)}>Batal</Button>
+            <Button onClick={() => {
+              // Simulasi submit
+              setIsLemburModalOpen(false);
+            }}>Kirim Pengajuan</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
