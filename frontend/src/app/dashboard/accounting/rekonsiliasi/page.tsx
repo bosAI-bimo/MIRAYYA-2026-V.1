@@ -7,25 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Plus, Search, CheckCircle, AlertTriangle, Building, CreditCard, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, X as XIcon, FileSpreadsheet, RefreshCw } from "lucide-react";
 import Link from "next/link";
 
-const rekonsiliasiData = [
-  { date: "10 Jun 2026", account: "BCA - 123456789", bank: "Rp 125.500.000", system: "Rp 125.500.000", diff: "Rp 0", status: "match" },
-  { date: "10 Jun 2026", account: "Mandiri - 987654321", bank: "Rp 85.200.000", system: "Rp 85.200.000", diff: "Rp 0", status: "match" },
-  { date: "09 Jun 2026", account: "BCA - 123456789", bank: "Rp 110.000.000", system: "Rp 110.050.000", diff: "- Rp 50.000", status: "mismatch" },
-  { date: "08 Jun 2026", account: "BNI - 456123789", bank: "Rp 45.100.000", system: "Rp 45.100.000", diff: "Rp 0", status: "match" },
-  { date: "07 Jun 2026", account: "BCA - 123456789", bank: "Rp 98.400.000", system: "Rp 98.400.000", diff: "Rp 0", status: "match" },
-  { date: "06 Jun 2026", account: "Mandiri - 987654321", bank: "Rp 70.000.000", system: "Rp 70.000.000", diff: "Rp 0", status: "match" },
-  { date: "05 Jun 2026", account: "BCA - 123456789", bank: "Rp 85.000.000", system: "Rp 84.500.000", diff: "+ Rp 500.000", status: "mismatch" },
-  { date: "04 Jun 2026", account: "BNI - 456123789", bank: "Rp 30.500.000", system: "Rp 30.500.000", diff: "Rp 0", status: "match" },
-  { date: "03 Jun 2026", account: "BCA - 123456789", bank: "Rp 75.200.000", system: "Rp 75.200.000", diff: "Rp 0", status: "match" },
-  { date: "02 Jun 2026", account: "Mandiri - 987654321", bank: "Rp 60.100.000", system: "Rp 60.100.000", diff: "Rp 0", status: "match" },
-  { date: "01 Jun 2026", account: "BCA - 123456789", bank: "Rp 50.000.000", system: "Rp 50.000.000", diff: "Rp 0", status: "match" },
-  { date: "31 May 2026", account: "BNI - 456123789", bank: "Rp 25.000.000", system: "Rp 25.100.000", diff: "- Rp 100.000", status: "mismatch" },
-  { date: "30 May 2026", account: "BCA - 123456789", bank: "Rp 45.000.000", system: "Rp 45.000.000", diff: "Rp 0", status: "match" },
-  { date: "29 May 2026", account: "Mandiri - 987654321", bank: "Rp 35.500.000", system: "Rp 35.500.000", diff: "Rp 0", status: "match" },
-  { date: "28 May 2026", account: "BCA - 123456789", bank: "Rp 40.200.000", system: "Rp 40.200.000", diff: "Rp 0", status: "match" },
-];
+import { fetcher } from "@/lib/api";
 
 export default function RekonsiliasiBankPage() {
+  const [rekonsiliasiData, setRekonsiliasiData] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -34,7 +19,59 @@ export default function RekonsiliasiBankPage() {
 
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedDetail, setSelectedDetail] = useState<any>(null);
-  
+
+  const [newRecon, setNewRecon] = useState({ date: '', account: '', bankBalance: '', systemBalance: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const fetchReconciliations = async () => {
+    try {
+      const data = await fetcher('/accounting/bank-reconciliations');
+      const formattedData = (data || []).map((item: any) => ({
+        id: item.id,
+        date: item.reconcileDate,
+        account: item.bankAccount,
+        bank: `Rp ${parseFloat(item.bankStatementBalance).toLocaleString('id-ID')}`,
+        system: `Rp ${parseFloat(item.posSalesBalance).toLocaleString('id-ID')}`,
+        diff: `Rp ${parseFloat(item.difference).toLocaleString('id-ID')}`,
+        status: parseFloat(item.difference) === 0 ? "match" : "mismatch",
+        rawBank: item.bankStatementBalance,
+        rawSystem: item.posSalesBalance,
+        rawDiff: item.difference
+      }));
+      setRekonsiliasiData(formattedData);
+    } catch(err) { console.error(err); }
+  };
+
+  React.useEffect(() => {
+    fetchReconciliations();
+  }, []);
+
+  const handleSubmitRecon = async () => {
+    try {
+      setIsSubmitting(true);
+      const bankVal = parseFloat(newRecon.bankBalance) || 0;
+      const sysVal = parseFloat(newRecon.systemBalance) || 0;
+      const diff = bankVal - sysVal;
+      await fetcher('/accounting/bank-reconciliations', {
+        method: 'POST',
+        body: JSON.stringify({
+          branchId: '11111111-1111-1111-1111-111111111111',
+          bankAccount: newRecon.account,
+          reconcileDate: newRecon.date,
+          bankStatementBalance: bankVal,
+          posSalesBalance: sysVal,
+          difference: diff,
+          notes: ''
+        })
+      });
+      alert('Rekonsiliasi berhasil disimpan!');
+      setNewRecon({ date: '', account: '', bankBalance: '', systemBalance: '' });
+      setIsRekonsiliasiModalOpen(false);
+      fetchReconciliations();
+    } catch(err: any) { alert("Error: " + err.message); }
+    finally { setIsSubmitting(false); }
+  };
+
   const openDetailModal = (item: any) => {
     setSelectedDetail(item);
     setIsDetailModalOpen(true);
@@ -266,21 +303,27 @@ export default function RekonsiliasiBankPage() {
 
               {/* Body */}
               <div className="p-6 space-y-6 overflow-y-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-bold text-slate-700 mb-2 block">Pilih Cabang</label>
-                    <select className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer shadow-sm transition-all">
-                      <option value="">-- Pilih Cabang --</option>
-                      <option value="sudirman">Mirayya Sudirman</option>
-                      <option value="kemang">Mirayya Kemang</option>
-                      <option value="pik">Mirayya PIK</option>
-                      <option value="kelapa_gading">Mirayya Kelapa Gading</option>
-                      <option value="bintaro">Mirayya Bintaro</option>
+                    <label className="text-sm font-bold text-slate-700 mb-2 block">Pilih Rekening Bank</label>
+                    <select value={newRecon.account} onChange={e => setNewRecon({...newRecon, account: e.target.value})} className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer shadow-sm transition-all">
+                      <option value="">-- Pilih Rekening --</option>
+                      <option value="BCA - 123456789">BCA - 123456789</option>
+                      <option value="Mandiri - 987654321">Mandiri - 987654321</option>
+                      <option value="BNI - 456123789">BNI - 456123789</option>
                     </select>
                   </div>
                   <div>
                     <label className="text-sm font-bold text-slate-700 mb-2 block">Tanggal Rekonsiliasi</label>
-                    <input type="date" className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer shadow-sm transition-all" />
+                    <input type="date" value={newRecon.date} onChange={e => setNewRecon({...newRecon, date: e.target.value})} className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer shadow-sm transition-all" />
+                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-bold text-slate-700 mb-2 block">Saldo Mutasi Bank</label>
+                    <input type="number" placeholder="0" value={newRecon.bankBalance} onChange={e => setNewRecon({...newRecon, bankBalance: e.target.value})} className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer shadow-sm transition-all" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-bold text-slate-700 mb-2 block">Saldo Pencatatan Sistem</label>
+                    <input type="number" placeholder="0" value={newRecon.systemBalance} onChange={e => setNewRecon({...newRecon, systemBalance: e.target.value})} className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer shadow-sm transition-all" />
                   </div>
                 </div>
                 <div>
@@ -300,8 +343,8 @@ export default function RekonsiliasiBankPage() {
                 <Button variant="outline" onClick={closeRekonsiliasiModal} className="flex-1 border-slate-200 text-slate-600 hover:bg-slate-100 font-bold h-12 rounded-xl transition-all cursor-pointer">
                   Batal
                 </Button>
-                <Button onClick={closeRekonsiliasiModal} className="flex-1 w-full bg-pink-600 hover:bg-pink-700 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
-                  <RefreshCw className="w-5 h-5 mr-2" /> Proses Data
+                <Button onClick={handleSubmitRecon} disabled={isSubmitting} className="flex-1 w-full bg-pink-600 hover:bg-pink-700 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                  <RefreshCw className="w-5 h-5 mr-2" /> {isSubmitting ? "Memproses..." : "Proses Data"}
                 </Button>
               </div>
             </motion.div>

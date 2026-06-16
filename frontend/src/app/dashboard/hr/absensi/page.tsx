@@ -13,27 +13,20 @@ import {
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import Link from "next/link";
 
-const attendanceData = [
-  { id: "ATT-001", date: "11 Jun 2026", name: "Siti Rahma", branch: "Pusat", timeIn: "08:45", timeOut: "17:15", status: "Hadir", photoStatus: "Valid", gpsStatus: "Valid" },
-  { id: "ATT-002", date: "11 Jun 2026", name: "Anita Wijaya", branch: "Mirayya Sudirman", timeIn: "08:50", timeOut: "-", status: "Hadir", photoStatus: "Valid", gpsStatus: "Valid" },
-  { id: "ATT-003", date: "11 Jun 2026", name: "Rina Marlina", branch: "Mirayya PIK", timeIn: "09:15", timeOut: "-", status: "Terlambat", photoStatus: "Valid", gpsStatus: "Luar Area" },
-  { id: "ATT-004", date: "11 Jun 2026", name: "Dina Mariana", branch: "Mirayya Kelapa Gading", timeIn: "-", timeOut: "-", status: "Cuti", photoStatus: "-", gpsStatus: "-" },
-  { id: "ATT-005", date: "10 Jun 2026", name: "Budi Santoso", branch: "Pusat", timeIn: "08:55", timeOut: "17:05", status: "Hadir", photoStatus: "Valid", gpsStatus: "Valid" },
-  { id: "ATT-006", date: "10 Jun 2026", name: "Anita Wijaya", branch: "Mirayya Sudirman", timeIn: "08:58", timeOut: "17:20", status: "Hadir", photoStatus: "Valid", gpsStatus: "Valid" },
-  { id: "ATT-007", date: "10 Jun 2026", name: "Tono Mulyono", branch: "Mirayya Sudirman", timeIn: "08:50", timeOut: "17:10", status: "Hadir", photoStatus: "Valid", gpsStatus: "Valid" },
-  { id: "ATT-008", date: "10 Jun 2026", name: "Agus Salim", branch: "Mirayya Kemang", timeIn: "09:05", timeOut: "17:00", status: "Terlambat", photoStatus: "Valid", gpsStatus: "Valid" },
-  { id: "ATT-009", date: "10 Jun 2026", name: "Dewi Lestari", branch: "Mirayya PIK", timeIn: "08:40", timeOut: "17:30", status: "Hadir", photoStatus: "Valid", gpsStatus: "Valid" },
-  { id: "ATT-010", date: "09 Jun 2026", name: "Siti Rahma", branch: "Pusat", timeIn: "08:55", timeOut: "17:15", status: "Hadir", photoStatus: "Valid", gpsStatus: "Valid" },
-  { id: "ATT-011", date: "09 Jun 2026", name: "Budi Santoso", branch: "Pusat", timeIn: "-", timeOut: "-", status: "Cuti", photoStatus: "-", gpsStatus: "-" },
-  { id: "ATT-012", date: "09 Jun 2026", name: "Fajar Siddiq", branch: "Pusat", timeIn: "08:45", timeOut: "17:00", status: "Hadir", photoStatus: "Valid", gpsStatus: "Valid" },
-  { id: "ATT-013", date: "09 Jun 2026", name: "Gita Savitri", branch: "Mirayya Kelapa Gading", timeIn: "08:50", timeOut: "17:10", status: "Hadir", photoStatus: "Valid", gpsStatus: "Valid" },
-  { id: "ATT-014", date: "08 Jun 2026", name: "Hadi Kusuma", branch: "Mirayya Bintaro", timeIn: "09:20", timeOut: "17:00", status: "Terlambat", photoStatus: "Valid", gpsStatus: "Valid" },
-  { id: "ATT-015", date: "08 Jun 2026", name: "Intan Nuraini", branch: "Mirayya Sudirman", timeIn: "08:40", timeOut: "17:05", status: "Hadir", photoStatus: "Valid", gpsStatus: "Valid" },
-];
+import { fetcher } from "@/lib/api";
 
 export default function AbsensiPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [attendanceData, setAttendanceData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    fetcher('/hr/attendance-log')
+      .then(data => setAttendanceData(data || []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
   const [selectedAbsensi, setSelectedAbsensi] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

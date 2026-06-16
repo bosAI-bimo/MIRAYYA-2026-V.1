@@ -8,15 +8,65 @@ import { Search, Plus, MapPin, MoreHorizontal, Phone, Users, ChevronRight, X as 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
+import { fetcher } from "@/lib/api";
+
 export default function CabangPage() {
-  const branches = [
-    { id: "BR-001", name: "Kantor Pusat", address: "Jl. Sudirman No. 1, Jakarta", phone: "021-555-0100", employees: 12, status: "Aktif" },
-    { id: "BR-002", name: "Mirayya Sudirman", address: "Mall Sudirman Lt. G, Jakarta", phone: "021-555-0101", employees: 8, status: "Aktif" },
-    { id: "BR-003", name: "Mirayya Kemang", address: "Jl. Kemang Raya No. 15, Jakarta", phone: "021-555-0102", employees: 10, status: "Aktif" },
-    { id: "BR-004", name: "Mirayya PIK", address: "PIK Avenue Lt. 1, Jakarta", phone: "021-555-0103", employees: 9, status: "Aktif" },
-    { id: "BR-005", name: "Mirayya Kelapa Gading", address: "MKG Lt. 2, Jakarta Utara", phone: "021-555-0104", employees: 11, status: "Aktif" },
-    { id: "BR-006", name: "Mirayya Bintaro", address: "Bintaro Xchange Lt. G, Tangsel", phone: "021-555-0105", employees: 8, status: "Renovasi" },
-  ];
+  const [branches, setBranches] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [newBranch, setNewBranch] = React.useState({ name: '', phone: '', address: '', status: 'Aktif' });
+
+  const fetchBranches = async () => {
+    try {
+      setLoading(true);
+      const data = await fetcher('/admin/branches');
+      setBranches(data || []);
+    } catch(err) { console.error(err); }
+    finally { setLoading(false); }
+  };
+
+  React.useEffect(() => {
+    fetchBranches();
+  }, []);
+
+  const handleAddSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      await fetcher('/admin/branches', {
+        method: 'POST',
+        body: JSON.stringify({ name: newBranch.name, address: newBranch.address, phone: newBranch.phone })
+      });
+      setIsAddModalOpen(false);
+      setNewBranch({ name: '', phone: '', address: '', status: 'Aktif' });
+      await fetchBranches();
+    } catch (err: any) { alert("Error: " + err.message); }
+    finally { setIsSubmitting(false); }
+  };
+
+  const handleEditSubmit = async () => {
+    if (!selectedCabang) return;
+    try {
+      setIsSubmitting(true);
+      await fetcher(`/admin/branches/${selectedCabang.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ name: selectedCabang.name, address: selectedCabang.address, phone: selectedCabang.phone })
+      });
+      setIsEditModalOpen(false);
+      await fetchBranches();
+    } catch (err: any) { alert("Error: " + err.message); }
+    finally { setIsSubmitting(false); }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedCabang) return;
+    try {
+      setIsSubmitting(true);
+      await fetcher(`/admin/branches/${selectedCabang.id}`, { method: 'DELETE' });
+      setIsNonaktifModalOpen(false);
+      await fetchBranches();
+    } catch (err: any) { alert("Error: " + err.message); }
+    finally { setIsSubmitting(false); }
+  };
 
   const [selectedCabang, setSelectedCabang] = React.useState<any>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -308,22 +358,23 @@ export default function CabangPage() {
               <div className="p-6 space-y-4 overflow-y-auto">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Nama Cabang</label>
-                  <Input placeholder="Contoh: Mirayya Blok M" className="border-slate-200 focus-visible:ring-primary" />
+                  <Input value={newBranch.name} onChange={e => setNewBranch({...newBranch, name: e.target.value})} placeholder="Contoh: Mirayya Blok M" className="border-slate-200 focus-visible:ring-primary" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Nomor Telepon</label>
-                  <Input placeholder="Contoh: 021-1234567" className="border-slate-200 focus-visible:ring-primary" />
+                  <Input value={newBranch.phone} onChange={e => setNewBranch({...newBranch, phone: e.target.value})} placeholder="Contoh: 021-1234567" className="border-slate-200 focus-visible:ring-primary" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Alamat Lengkap</label>
                   <textarea 
                     className="w-full min-h-[100px] px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white"
                     placeholder="Masukkan alamat lengkap cabang"
+                    value={newBranch.address} onChange={e => setNewBranch({...newBranch, address: e.target.value})}
                   ></textarea>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Status</label>
-                  <select className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white">
+                  <select value={newBranch.status} onChange={e => setNewBranch({...newBranch, status: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white">
                     <option value="Aktif">Aktif</option>
                     <option value="Renovasi">Renovasi</option>
                     <option value="Tutup">Tutup Sementara</option>
@@ -333,11 +384,11 @@ export default function CabangPage() {
 
               {/* Footer */}
               <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
-                <Button variant="outline" onClick={closeAddModal} className="border-slate-200 text-slate-600 hover:bg-slate-100">
+                <Button variant="outline" onClick={closeAddModal} disabled={isSubmitting} className="border-slate-200 text-slate-600 hover:bg-slate-100">
                   Batal
                 </Button>
-                <Button onClick={closeAddModal} className="bg-primary hover:bg-primary/90 text-white">
-                  Simpan Cabang
+                <Button onClick={handleAddSubmit} disabled={isSubmitting} className="bg-primary hover:bg-primary/90 text-white">
+                  {isSubmitting ? "Menyimpan..." : "Simpan Cabang"}
                 </Button>
               </div>
             </motion.div>
@@ -382,28 +433,28 @@ export default function CabangPage() {
               <div className="p-6 space-y-4 overflow-y-auto">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Nama Cabang</label>
-                  <Input defaultValue={selectedCabang.name} className="border-slate-200 focus-visible:ring-primary" />
+                  <Input value={selectedCabang.name} onChange={e => setSelectedCabang({...selectedCabang, name: e.target.value})} className="border-slate-200 focus-visible:ring-primary" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Nomor Telepon</label>
-                  <Input defaultValue={selectedCabang.phone} className="border-slate-200 focus-visible:ring-primary" />
+                  <Input value={selectedCabang.phone} onChange={e => setSelectedCabang({...selectedCabang, phone: e.target.value})} className="border-slate-200 focus-visible:ring-primary" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Alamat Lengkap</label>
                   <textarea 
                     className="w-full min-h-[100px] px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white"
-                    defaultValue={selectedCabang.address}
+                    value={selectedCabang.address} onChange={e => setSelectedCabang({...selectedCabang, address: e.target.value})}
                   ></textarea>
                 </div>
               </div>
 
               {/* Footer */}
               <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
-                <Button variant="outline" onClick={closeEditModal} className="border-slate-200 text-slate-600 hover:bg-slate-100">
+                <Button variant="outline" onClick={closeEditModal} disabled={isSubmitting} className="border-slate-200 text-slate-600 hover:bg-slate-100">
                   Batal
                 </Button>
-                <Button onClick={closeEditModal} className="bg-primary hover:bg-primary/90 text-white">
-                  Simpan Perubahan
+                <Button onClick={handleEditSubmit} disabled={isSubmitting} className="bg-primary hover:bg-primary/90 text-white">
+                  {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
                 </Button>
               </div>
             </motion.div>
@@ -555,11 +606,11 @@ export default function CabangPage() {
 
               {/* Footer */}
               <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
-                <Button variant="outline" onClick={closeNonaktifModal} className="border-slate-200 text-slate-600 hover:bg-slate-100">
+                <Button variant="outline" onClick={closeNonaktifModal} disabled={isSubmitting} className="border-slate-200 text-slate-600 hover:bg-slate-100">
                   Batal
                 </Button>
-                <Button onClick={closeNonaktifModal} className="bg-rose-600 hover:bg-rose-700 text-white">
-                  Konfirmasi Status
+                <Button onClick={handleDelete} disabled={isSubmitting} className="bg-rose-600 hover:bg-rose-700 text-white">
+                  {isSubmitting ? "Memproses..." : "Hapus Cabang"}
                 </Button>
               </div>
             </motion.div>

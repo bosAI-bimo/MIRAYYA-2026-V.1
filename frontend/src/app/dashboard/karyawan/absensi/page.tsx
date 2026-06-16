@@ -8,50 +8,70 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Camera, MapPin, Clock, Filter, Search, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Eye, Plus } from "lucide-react";
 import Link from "next/link";
+import { fetcher } from "@/lib/api";
 
-const historyData = [
-  { date: "11 Jun 2026", in: "07:55", out: "16:05", duration: "8j 10m", status: "Tepat Waktu" },
-  { date: "10 Jun 2026", in: "07:50", out: "16:00", duration: "8j 10m", status: "Tepat Waktu" },
-  { date: "09 Jun 2026", in: "08:15", out: "16:10", duration: "7j 55m", status: "Terlambat" },
-  { date: "08 Jun 2026", in: "07:58", out: "16:02", duration: "8j 4m", status: "Tepat Waktu" },
-  { date: "07 Jun 2026", in: "-", out: "-", duration: "-", status: "Libur" },
-  { date: "06 Jun 2026", in: "07:45", out: "16:00", duration: "8j 15m", status: "Tepat Waktu" },
-  { date: "05 Jun 2026", in: "08:05", out: "16:05", duration: "8j", status: "Terlambat" },
-  { date: "04 Jun 2026", in: "07:55", out: "16:10", duration: "8j 15m", status: "Tepat Waktu" },
-  { date: "03 Jun 2026", in: "07:50", out: "16:00", duration: "8j 10m", status: "Tepat Waktu" },
-  { date: "02 Jun 2026", in: "-", out: "-", duration: "-", status: "Cuti" },
-  { date: "01 Jun 2026", in: "07:59", out: "16:01", duration: "8j 2m", status: "Tepat Waktu" },
-  { date: "31 May 2026", in: "-", out: "-", duration: "-", status: "Libur" },
-  { date: "30 May 2026", in: "07:50", out: "16:00", duration: "8j 10m", status: "Tepat Waktu" },
-  { date: "29 May 2026", in: "08:20", out: "16:20", duration: "8j", status: "Terlambat" },
-  { date: "28 May 2026", in: "07:55", out: "16:05", duration: "8j 10m", status: "Tepat Waktu" },
-];
+
 
 export default function AbsensiKaryawan() {
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [checkInStatus, setCheckInStatus] = useState<"idle" | "capturing" | "success">("idle");
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedRecord, setSelectedRecord] = useState<typeof historyData[0] | null>(null);
+  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isLemburModalOpen, setIsLemburModalOpen] = useState(false);
   const itemsPerPage = 5;
 
-  const totalPages = Math.ceil(historyData.length / itemsPerPage);
+  const fetchHistory = async () => {
+    try {
+      const data = await fetcher('/hr/attendance-log');
+      // For Karyawan dashboard, we should filter by their userId, 
+      // but we will show all or a mocked subset for now since auth isn't fully wired.
+      setHistoryData(data || []);
+    } catch(err) { console.error(err); }
+  };
+
+  React.useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const totalPages = Math.max(1, Math.ceil(historyData.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = historyData.slice(startIndex, startIndex + itemsPerPage);
 
-  const handleCheckIn = () => {
+  const handleCheckIn = async () => {
     setIsCheckingIn(true);
     setCheckInStatus("capturing");
     
-    // Simulate capturing photo and GPS
-    setTimeout(() => {
+    try {
+      // Simulate capturing photo and GPS delay
+      await new Promise(r => setTimeout(r, 1000));
+
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0];
+      const timeStr = now.toTimeString().split(' ')[0].substring(0, 5);
+
+      await fetcher('/hr/attendance', {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: '00000000-0000-0000-0000-000000000000', // placeholder
+          attendanceDate: dateStr,
+          timeIn: timeStr,
+          locationGps: '-6.200000, 106.816666'
+        })
+      });
+
       setCheckInStatus("success");
+      fetchHistory(); // refresh data
       setTimeout(() => {
         setIsCheckingIn(false);
         setCheckInStatus("idle");
       }, 2000);
-    }, 2000);
+    } catch(err: any) {
+      alert("Gagal Check-In: " + err.message);
+      setIsCheckingIn(false);
+      setCheckInStatus("idle");
+    }
   };
 
   return (
@@ -202,17 +222,17 @@ export default function AbsensiKaryawan() {
               <tbody>
                 {paginatedData.map((row, index) => (
                   <tr key={index} className="border-b border-slate-100 hover:bg-slate-50 last:border-0">
-                    <td className="px-4 py-3 font-medium text-slate-800">{row.date}</td>
-                    <td className="px-4 py-3 text-slate-600">{row.in}</td>
-                    <td className="px-4 py-3 text-slate-600">{row.out}</td>
-                    <td className="px-4 py-3 text-slate-600">{row.duration}</td>
+                    <td className="px-4 py-3 font-medium text-slate-800">{row.attendanceDate || row.date}</td>
+                    <td className="px-4 py-3 text-slate-600">{row.timeIn || row.in || '-'}</td>
+                    <td className="px-4 py-3 text-slate-600">{row.timeOut || row.out || '-'}</td>
+                    <td className="px-4 py-3 text-slate-600">{row.duration || '-'}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        row.status === 'Tepat Waktu' ? 'bg-emerald-100 text-emerald-700' : 
+                        (row.status === 'Tepat Waktu' || row.timeIn) ? 'bg-emerald-100 text-emerald-700' : 
                         row.status === 'Terlambat' ? 'bg-rose-100 text-rose-700' : 
                         'bg-slate-100 text-slate-700'
                       }`}>
-                        {row.status}
+                        {row.status || 'Hadir'}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -222,7 +242,13 @@ export default function AbsensiKaryawan() {
                         className="h-8 w-8 text-slate-500 hover:text-primary hover:bg-primary/10" 
                         title="Lihat Detail"
                         onClick={() => {
-                          setSelectedRecord(row);
+                          setSelectedRecord({
+                            date: row.attendanceDate || row.date,
+                            in: row.timeIn || row.in || '-',
+                            out: row.timeOut || row.out || '-',
+                            duration: row.duration || '-',
+                            status: row.status || 'Hadir'
+                          });
                           setIsDetailModalOpen(true);
                         }}
                       >

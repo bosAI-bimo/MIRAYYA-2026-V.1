@@ -18,6 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Search, Download, Calculator, CheckCircle2, FileText, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Eye, Calendar, Clock, Edit, Save, AlertCircle, Users, Check, X } from "lucide-react";
 import Link from "next/link";
+import { fetcher } from "@/lib/api";
 
 const formatRupiah = (number: number) => {
   return new Intl.NumberFormat("id-ID", {
@@ -55,8 +56,28 @@ const initialPayrollData = [
 
 export default function PayrollPage() {
   const [payrollData, setPayrollData] = useState(initialPayrollData);
+  const [dbPayrollData, setDbPayrollData] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+
+  const fetchPayroll = async () => {
+    try {
+      const data = await fetcher('/hr/payroll');
+      setDbPayrollData(data || []);
+      // Here we could map dbPayrollData back to our UI list if we had user relations joined.
+      // Since it's a mock UI right now we'll just keep the UI but mark generated based on DB.
+      if (data && data.length > 0) {
+        const generatedIds = data.map((p: any) => p.userId);
+        setPayrollData(prev => prev.map(p => 
+          generatedIds.includes(p.id) ? { ...p, status: 'Generated' } : p
+        ));
+      }
+    } catch(err) { console.error(err); }
+  };
+
+  React.useEffect(() => {
+    fetchPayroll();
+  }, []);
 
   const totalPages = Math.ceil(payrollData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -95,22 +116,46 @@ export default function PayrollPage() {
     return editForm.baseSalary + editForm.allowance - editForm.deduction;
   };
 
-  const handleSaveEdit = () => {
-    const updatedData = payrollData.map(emp => {
-      if (emp.id === selectedEmployee.id) {
-        return {
-          ...emp,
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSaveEdit = async () => {
+    try {
+      setIsSubmitting(true);
+      const net = calculateNet();
+      
+      // Post to backend
+      await fetcher('/hr/payroll', {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: selectedEmployee.id, // we use mock id for now
+          period: '2026-06-01', // Example period
           baseSalary: editForm.baseSalary,
-          allowance: editForm.allowance,
-          deduction: editForm.deduction,
-          net: calculateNet(),
-          status: "Generated" // Auto generated after review
-        };
-      }
-      return emp;
-    });
-    setPayrollData(updatedData);
-    setIsEditModalOpen(false);
+          allowances: editForm.allowance,
+          deductions: editForm.deduction,
+          netSalary: net,
+          slipPdfUrl: null
+        })
+      });
+
+      const updatedData = payrollData.map(emp => {
+        if (emp.id === selectedEmployee.id) {
+          return {
+            ...emp,
+            baseSalary: editForm.baseSalary,
+            allowance: editForm.allowance,
+            deduction: editForm.deduction,
+            net: net,
+            status: "Generated" // Auto generated after review
+          };
+        }
+        return emp;
+      });
+      setPayrollData(updatedData);
+      setIsEditModalOpen(false);
+      alert('Slip gaji berhasil di-generate!');
+      fetchPayroll();
+    } catch(err: any) { alert("Error: " + err.message); }
+    finally { setIsSubmitting(false); }
   };
 
   const totalEstimated = payrollData.reduce((acc, curr) => acc + curr.net, 0);
@@ -390,6 +435,7 @@ export default function PayrollPage() {
                         </td>
                         <td className="px-6 py-4 text-right whitespace-nowrap">
                           <Dialog>
+                            {/* @ts-ignore */}
                             <DialogTrigger asChild>
                               <Button variant="ghost" size="sm" className="text-primary hover:bg-rose-50 text-xs h-8">
                                 <Eye className="w-3.5 h-3.5 mr-1" />
@@ -589,9 +635,9 @@ export default function PayrollPage() {
 
           <DialogFooter className="border-t border-slate-100 pt-4 mt-2 sm:justify-between">
             <Button variant="ghost" onClick={() => setIsEditModalOpen(false)}>Batal</Button>
-            <Button onClick={handleSaveEdit} className="bg-primary hover:bg-primary/90">
+            <Button onClick={handleSaveEdit} disabled={isSubmitting} className="bg-primary hover:bg-primary/90">
               <Save className="w-4 h-4 mr-2" />
-              Simpan & Generate Slip
+              {isSubmitting ? "Menyimpan..." : "Simpan & Generate Slip"}
             </Button>
           </DialogFooter>
         </DialogContent>

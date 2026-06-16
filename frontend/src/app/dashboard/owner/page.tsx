@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, Variants, AnimatePresence } from "framer-motion";
 import { 
   TrendingUp, 
@@ -34,7 +34,8 @@ import {
   Sparkles,
   Send,
   Bot,
-  Zap
+  Zap,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
@@ -44,170 +45,52 @@ import {
   PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis, LineChart, Line
 } from 'recharts';
 import { Button } from "@/components/ui/button";
+import { fetcher } from "@/lib/api";
 
 // --- MOCK DATA ---
 
-// 1. Financial Data
-const omzetData = [
-  { name: 'Cabang Pusat', omzet: 125000000, target: 120000000 },
-  { name: 'Cabang Utara', omzet: 85000000, target: 90000000 },
-  { name: 'Cabang Selatan', omzet: 95000000, target: 80000000 },
-  { name: 'Cabang Timur', omzet: 110000000, target: 105000000 },
-  { name: 'Cabang Barat', omzet: 70000000, target: 75000000 },
-  { name: 'Cabang Baru', omzet: 45000000, target: 50000000 },
-];
-
-const profitTrend = [
-  { month: 'Jan', profit: 45000000 },
-  { month: 'Feb', profit: 52000000 },
-  { month: 'Mar', profit: 48000000 },
-  { month: 'Apr', profit: 61000000 },
-  { month: 'Mei', profit: 59000000 },
-  { month: 'Jun', profit: 72000000 },
-];
-
-// 5. Detailed Financial Data
-const cashFlowStatus = {
-  in: 520000000,
-  out: 448000000,
-  net: 72000000
-};
-
-const costBreakdown = [
-  { name: 'Gaji Karyawan', value: 245000000, color: '#f43f5e' },
-  { name: 'Pembelian Inventory (PO)', value: 150000000, color: '#8b5cf6' },
-  { name: 'Petty Cash Cabang', value: 35000000, color: '#f59e0b' },
-  { name: 'Marketing & Ads', value: 18000000, color: '#06b6d4' },
-];
-
-const paymentMethods = [
-  { name: 'QRIS', value: 45, color: '#10b981' },
-  { name: 'Tunai', value: 30, color: '#f59e0b' },
-  { name: 'EDC/Card', value: 25, color: '#3b82f6' },
-];
-
-const branchProfitability = [
-  { branch: 'Cabang Pusat', revenue: 125000000, cost: 95000000, profit: 30000000, margin: 24, status: 'Healthy' },
-  { branch: 'Cabang Timur', revenue: 110000000, cost: 85000000, profit: 25000000, margin: 22.7, status: 'Healthy' },
-  { branch: 'Cabang Selatan', revenue: 95000000, cost: 82000000, profit: 13000000, margin: 13.6, status: 'Warning' },
-  { branch: 'Cabang Utara', revenue: 85000000, cost: 70000000, profit: 15000000, margin: 17.6, status: 'Healthy' },
-  { branch: 'Cabang Barat', revenue: 70000000, cost: 68000000, profit: 2000000, margin: 2.8, status: 'Critical' },
-  { branch: 'Cabang Baru', revenue: 45000000, cost: 48000000, profit: -3000000, margin: -6.6, status: 'Critical' },
-].sort((a, b) => b.profit - a.profit);
-
-// 2. RFM Data
-const rfmSegmentDistribution = [
-  { name: 'Champions', value: 35, color: '#10b981', desc: 'Belanja sering, terbaru, nominal besar' },
-  { name: 'Loyal', value: 25, color: '#3b82f6', desc: 'Sering belanja & nominal lumayan' },
-  { name: 'Potential Loyalist', value: 15, color: '#8b5cf6', desc: 'Baru tapi sudah >1x belanja' },
-  { name: 'New Customers', value: 10, color: '#06b6d4', desc: 'Baru pertama kali belanja' },
-  { name: 'At Risk', value: 10, color: '#f59e0b', desc: 'Sering belanja tapi sudah lama tidak datang' },
-  { name: 'Lost', value: 5, color: '#f43f5e', desc: 'Lama tidak datang, frekuensi rendah' },
-];
-
-const rfmScatterData = [
-  { name: "Diana (Champions)", recency: 2, frequency: 24, monetary: 8500000, fill: "#10b981" },
-  { name: "Siti (Champions)", recency: 5, frequency: 18, monetary: 4200000, fill: "#10b981" },
-  { name: "Bunga (Loyal)", recency: 12, frequency: 15, monetary: 3800000, fill: "#3b82f6" },
-  { name: "Rina (Potential)", recency: 4, frequency: 3, monetary: 800000, fill: "#8b5cf6" },
-  { name: "Ani (At Risk)", recency: 45, frequency: 8, monetary: 1500000, fill: "#f59e0b" },
-  { name: "Maya (Lost)", recency: 85, frequency: 2, monetary: 450000, fill: "#f43f5e" },
-  { name: "Kirana (New)", recency: 1, frequency: 1, monetary: 250000, fill: "#06b6d4" },
-  { name: "Sarah (Loyal)", recency: 20, frequency: 12, monetary: 2900000, fill: "#3b82f6" },
-  { name: "Citra (At Risk)", recency: 50, frequency: 11, monetary: 3100000, fill: "#f59e0b" },
-  { name: "Putri (Champions)", recency: 3, frequency: 22, monetary: 6200000, fill: "#10b981" },
-];
-
-const rfmCustomers = [
-  { id: 1, name: "Diana Kartika", branch: "Cabang Pusat", lastPurchase: "2 hari lalu", frequency: 24, spent: 8500000, segment: "Champions" },
-  { id: 2, name: "Putri Titian", branch: "Cabang Timur", lastPurchase: "3 hari lalu", frequency: 22, spent: 6200000, segment: "Champions" },
-  { id: 3, name: "Siti Rahma", branch: "Cabang Utara", lastPurchase: "5 hari lalu", frequency: 18, spent: 4200000, segment: "Champions" },
-  { id: 4, name: "Bunga Jelita", branch: "Cabang Selatan", lastPurchase: "12 hari lalu", frequency: 15, spent: 3800000, segment: "Loyal" },
-  { id: 5, name: "Sarah Sechan", branch: "Cabang Utara", lastPurchase: "20 hari lalu", frequency: 12, spent: 2900000, segment: "Loyal" },
-];
-
-// 3. Product & Inventory Data
-const fastMoving = [
-  { id: 1, name: "Mirayya Liptint Velvet", sold: 1240, branch: "Semua Cabang", stock: 150 },
-  { id: 2, name: "Mirayya Cushion Foundation", sold: 850, branch: "Cabang Pusat", stock: 80 },
-  { id: 3, name: "Mirayya Glow Serum", sold: 720, branch: "Cabang Timur", stock: 200 },
-];
-
-const mediumMoving = [
-  { id: 4, name: "Mirayya Acne Spot Gel", sold: 450, branch: "Semua Cabang", stock: 320 },
-  { id: 5, name: "Mirayya Hydrating Toner", sold: 380, branch: "Cabang Selatan", stock: 210 },
-  { id: 6, name: "Mirayya Loose Powder", sold: 310, branch: "Cabang Utara", stock: 150 },
-];
-
-const slowMoving = [
-  { id: 7, name: "Mirayya Matte Lipstick (Old Ed.)", sold: 45, branch: "Cabang Barat", stock: 300, idleCapital: 15000000 },
-  { id: 8, name: "Mirayya Setting Spray", sold: 60, branch: "Cabang Baru", stock: 150, idleCapital: 12000000 },
-];
-
-const deadStock = [
-  { id: 9, name: "Mirayya Eyeshadow Palette (V1)", sold: 0, branch: "Gudang Pusat", stock: 450, idleCapital: 45000000, action: "Flash Sale 50%" },
-  { id: 10, name: "Mirayya Contour Stick", sold: 0, branch: "Cabang Barat", stock: 120, idleCapital: 8400000, action: "Buy 1 Get 1" },
-];
-
-const criticalStock = [
-  { branch: "Cabang Pusat", name: "Cushion Refill 02", sisa: 5, status: "Kritis" },
-  { branch: "Cabang Selatan", name: "Liptint Velvet 04", sisa: 8, status: "Kritis" },
-  { branch: "Cabang Baru", name: "Sunscreen Gel", sisa: 12, status: "Warning" },
-];
-
-// 4. HR Data
-const attendanceDetails = [
-  { branch: "Pusat", Tepat: 10, Telat: 2, Izin: 0, Alpha: 0 },
-  { branch: "Utara", Tepat: 6, Telat: 1, Izin: 1, Alpha: 0 },
-  { branch: "Selatan", Tepat: 8, Telat: 1, Izin: 0, Alpha: 1 },
-  { branch: "Timur", Tepat: 10, Telat: 0, Izin: 0, Alpha: 0 },
-  { branch: "Barat", Tepat: 6, Telat: 2, Izin: 0, Alpha: 0 },
-  { branch: "Baru", Tepat: 6, Telat: 0, Izin: 0, Alpha: 0 },
-];
-
-const topPerformers = [
-  { id: 1, name: "Diana Kartika", role: "Sr. Beauty Advisor", branch: "Cabang Pusat", sales: 45000000, target: 40000000, achievement: 112 },
-  { id: 2, name: "Putri Titian", role: "Beauty Advisor", branch: "Cabang Timur", sales: 38000000, target: 35000000, achievement: 108 },
-  { id: 3, name: "Sarah Sechan", role: "Store Leader", branch: "Cabang Utara", sales: 32000000, target: 30000000, achievement: 106 },
-];
-
-const lateActionList = [
-  { id: 1, name: "Sari Indah", role: "BA", branch: "Cabang Pusat", time: "09:15 WIB", delay: 15, sp: 0, action: "Teguran Lisan" },
-  { id: 2, name: "Budi Santoso", role: "Store Leader", branch: "Cabang Utara", time: "09:20 WIB", delay: 20, sp: 1, action: "Kirim SP 2" },
-  { id: 3, name: "Ani Yudhoyono", role: "BA", branch: "Cabang Selatan", time: "09:45 WIB", delay: 45, sp: 2, action: "Review SP 3" },
-];
-
-// 5. AI Insights Data
-const aiForecasting = [
-  { day: 'Tgl 1', actual: 15000000, predicted: 15000000 },
-  { day: 'Tgl 5', actual: 75000000, predicted: 76000000 },
-  { day: 'Tgl 10', actual: 160000000, predicted: 155000000 },
-  { day: 'Tgl 15', actual: 245000000, predicted: 240000000 },
-  { day: 'Tgl 20', actual: 320000000, predicted: 310000000 },
-  { day: 'Tgl 25', actual: null, predicted: 400000000 },
-  { day: 'Tgl 30', actual: null, predicted: 515000000 },
-];
-
-const aiRecommendations = [
-  { id: 1, type: "Kritis", title: "Idle Capital Membengkak", desc: "Terdapat Rp 53.400.000 modal mengendap di Dead Stock Cabang Pusat & Barat. Segera adakan Flash Sale akhir pekan ini untuk mencairkan kas.", icon: AlertCircle, color: "rose" },
-  { id: 2, type: "Peringatan", title: "Margin Laba Cabang Barat Menurun", desc: "Margin laba Cabang Barat anjlok ke 2.8%. Evaluasi kembali biaya operasional dan efisiensi Petty Cash di cabang tersebut.", icon: AlertTriangle, color: "amber" },
-  { id: 3, type: "Peluang", title: "Segmen 'Champions' Bertumbuh", desc: "Terdapat peningkatan 15% pada jumlah pelanggan segmen Champions. Luncurkan program loyalitas eksklusif (Mirayya VIP) untuk mempertahankan mereka.", icon: Lightbulb, color: "emerald" },
-];
-
-// Utils
-const formatRupiah = (number: number) => {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(number);
-};
-
 export default function OwnerDashboardPage() {
-  const totalOmzet = omzetData.reduce((acc, curr) => acc + curr.omzet, 0);
-  const totalTarget = omzetData.reduce((acc, curr) => acc + curr.target, 0);
-  const targetAchievement = ((totalOmzet / totalTarget) * 100).toFixed(1);
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetcher('/owner/dashboard-stats')
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const omzetData = data?.omzetData || [];
+  const profitTrend = data?.profitTrend || [];
+  const cashFlowStatus = data?.cashFlowStatus || { in: 0, out: 0, net: 0 };
+  const costBreakdown = data?.costBreakdown || [];
+  const paymentMethods = data?.paymentMethods || [];
+  const branchProfitability = data?.branchProfitability || [];
+  const rfmSegmentDistribution = data?.rfmSegmentDistribution || [];
+  const rfmScatterData = data?.rfmScatterData || [];
+  const rfmCustomers = data?.rfmCustomers || [];
+  const fastMoving = data?.fastMoving || [];
+  const mediumMoving = data?.mediumMoving || [];
+  const slowMoving = data?.slowMoving || [];
+  const deadStock = data?.deadStock || [];
+  const criticalStock = data?.criticalStock || [];
+  const attendanceDetails = data?.attendanceDetails || [];
+  const topPerformers = data?.topPerformers || [];
+  const lateActionList = data?.lateActionList || [];
+  const aiForecasting = data?.aiForecasting || [];
+  const aiRecommendations = data?.aiRecommendations || [];
+
+  const formatRupiah = (number: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(number);
+  };
+
+  const totalOmzet = data?.totalOmzet || 0;
+  const targetAchievement = data?.targetAchievement || 0;
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -266,6 +149,11 @@ export default function OwnerDashboardPage() {
       </div>
 
       {/* 8 KPI Cards (2 rows x 4) */}
+      {loading ? (
+        <div className="flex h-32 items-center justify-center w-full">
+          <Loader2 className="w-8 h-8 animate-spin text-pink-600" />
+        </div>
+      ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {/* Row 1 */}
         <motion.div variants={itemVariants} className="h-full">
@@ -290,7 +178,7 @@ export default function OwnerDashboardPage() {
               <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600"><TrendingUp className="w-4 h-4" /></div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">{formatRupiah(72000000)}</div>
+              <div className="text-2xl font-bold text-slate-800">{formatRupiah(data?.labaBersih || 0)}</div>
               <p className="text-xs text-emerald-600 flex items-center mt-1 font-medium">
                 <ArrowUpRight className="w-3 h-3 mr-1" /> Margin 13.6%
               </p>
@@ -320,7 +208,7 @@ export default function OwnerDashboardPage() {
               <div className="p-2 bg-violet-50 rounded-lg text-violet-600"><Package className="w-4 h-4" /></div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">4,892</div>
+              <div className="text-2xl font-bold text-slate-800">{data?.totalTransaksi || 0}</div>
               <p className="text-xs text-emerald-600 flex items-center mt-1 font-medium">
                 <ArrowUpRight className="w-3 h-3 mr-1" /> +8.2% dari bulan lalu
               </p>
@@ -336,7 +224,7 @@ export default function OwnerDashboardPage() {
               <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600"><Users className="w-4 h-4" /></div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">54</div>
+              <div className="text-2xl font-bold text-slate-800">{data?.totalKaryawan || 0}</div>
               <p className="text-xs text-slate-500 mt-1 font-medium">
                 Di 6 Cabang
               </p>
@@ -351,7 +239,7 @@ export default function OwnerDashboardPage() {
               <div className="p-2 bg-teal-50 rounded-lg text-teal-600"><UserCheck className="w-4 h-4" /></div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">96.3%</div>
+              <div className="text-2xl font-bold text-slate-800">{data?.tingkatKehadiran || 0}%</div>
               <p className="text-xs text-rose-500 flex items-center mt-1 font-medium">
                 <AlertCircle className="w-3 h-3 mr-1" /> 2 Orang Terlambat
               </p>
@@ -366,7 +254,7 @@ export default function OwnerDashboardPage() {
               <div className="p-2 bg-amber-50 rounded-lg text-amber-600"><FileText className="w-4 h-4" /></div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">3</div>
+              <div className="text-2xl font-bold text-slate-800">{data?.pendingPo || 0}</div>
               <p className="text-xs text-amber-600 mt-1 font-medium">
                 Menunggu Acc Accounting
               </p>
@@ -381,7 +269,7 @@ export default function OwnerDashboardPage() {
               <div className="p-2 bg-rose-100 rounded-lg text-rose-600"><AlertTriangle className="w-4 h-4" /></div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-rose-600">8 Item</div>
+              <div className="text-2xl font-bold text-rose-600">{data?.stokKritis || 0} Item</div>
               <p className="text-xs text-rose-500 mt-1 font-medium">
                 Sisa &lt; 10 pcs
               </p>
@@ -389,6 +277,7 @@ export default function OwnerDashboardPage() {
           </Card>
         </motion.div>
       </div>
+      )}
 
       {/* Tabs */}
       <motion.div variants={itemVariants}>
@@ -443,7 +332,7 @@ export default function OwnerDashboardPage() {
                           paddingAngle={2}
                           dataKey="value"
                         >
-                          {rfmSegmentDistribution.map((entry, index) => (
+                          {rfmSegmentDistribution.map((entry: any, index: number) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
@@ -455,7 +344,7 @@ export default function OwnerDashboardPage() {
                     </ResponsiveContainer>
                   </div>
                   <div className="space-y-2 mt-2 max-h-[150px] overflow-y-auto pr-2 no-scrollbar">
-                    {rfmSegmentDistribution.map((item, idx) => (
+                    {rfmSegmentDistribution.map((item: any, idx: number) => (
                       <div key={idx} className="flex items-center justify-between text-sm">
                         <div className="flex items-center">
                           <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: item.color }} />
@@ -518,7 +407,7 @@ export default function OwnerDashboardPage() {
                           }}
                         />
                         <Scatter data={rfmScatterData} fill="#8884d8">
-                          {rfmScatterData.map((entry, index) => (
+                          {rfmScatterData.map((entry: any, index: number) => (
                             <Cell key={`cell-${index}`} fill={entry.fill} opacity={0.8} />
                           ))}
                         </Scatter>
@@ -553,7 +442,7 @@ export default function OwnerDashboardPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {rfmCustomers.map((c) => (
+                        {rfmCustomers.map((c: any) => (
                           <tr key={c.id} className="hover:bg-slate-50/50">
                             <td className="px-6 py-4 font-bold text-slate-800">{c.name}</td>
                             <td className="px-6 py-4 text-slate-600">{c.branch}</td>
@@ -793,7 +682,7 @@ export default function OwnerDashboardPage() {
                   </div>
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Laba Bersih Bulan Ini</p>
-                    <p className="text-2xl font-bold text-slate-800 mt-1">{formatRupiah(profitTrend[5].profit)}</p>
+                    <p className="text-2xl font-bold text-slate-800 mt-1">{formatRupiah(profitTrend[5]?.profit || 0)}</p>
                     <p className="text-xs text-emerald-600 flex items-center mt-1 font-semibold">
                       <TrendingUp className="w-3 h-3 mr-1" /> Naik 22% vs Bulan Lalu
                     </p>

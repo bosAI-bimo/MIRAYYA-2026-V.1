@@ -9,33 +9,33 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Plus, Trash2, Send, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
-// Mock data (Sebaiknya diambil dari API / Context di real app)
-const inventoryData = [
-  { code: "SKN-001", name: "Mirayya Glow Serum", stock: 45, minStock: 20 },
-  { code: "SKN-002", name: "Mirayya Hydrating Toner", stock: 12, minStock: 15 },
-  { code: "MKP-001", name: "Matte Lip Cream - Rose", stock: 5, minStock: 15 },
-  { code: "MKP-002", name: "Flawless Cushion 01", stock: 28, minStock: 10 },
-  { code: "MKP-003", name: "Flawless Cushion 02", stock: 32, minStock: 10 },
-  { code: "BDY-001", name: "Brightening Body Lotion", stock: 8, minStock: 10 },
-  { code: "SKN-003", name: "Mirayya Acne Spot Treatment", stock: 60, minStock: 15 },
-  { code: "MKP-004", name: "Lip Tint - Peach", stock: 15, minStock: 20 },
-  { code: "MKP-005", name: "Lip Tint - Berry", stock: 0, minStock: 20 },
-  { code: "BDY-002", name: "Exfoliating Body Scrub", stock: 40, minStock: 15 },
-  { code: "SKN-004", name: "Sunscreen SPF 50", stock: 55, minStock: 30 },
-  { code: "SKN-005", name: "Gentle Facial Wash", stock: 22, minStock: 25 },
-  { code: "MKP-006", name: "Mascara Waterproof", stock: 10, minStock: 15 },
-  { code: "MKP-007", name: "Eyebrow Pencil - Brown", stock: 75, minStock: 30 },
-  { code: "BDY-003", name: "Moisturizing Shower Gel", stock: 18, minStock: 20 },
-];
+import { fetcher } from "@/lib/api";
 
 export default function OrderPage() {
+  return (
+    <React.Suspense fallback={<div className="p-8 text-center text-slate-500">Memuat data...</div>}>
+      <OrderPageContent />
+    </React.Suspense>
+  );
+}
+
+function OrderPageContent() {
   const searchParams = useSearchParams();
   const itemCode = searchParams.get("itemCode");
   const qtyParam = searchParams.get("qty");
   
+  const [inventoryData, setInventoryData] = useState<any[]>([]);
   const [orderItems, setOrderItems] = useState<{code: string, qty: number}[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
+    fetcher('/store/inventory').then(data => setInventoryData(data || []));
+  }, []);
+
+  useEffect(() => {
+    if (inventoryData.length === 0) return;
+    
     if (itemCode) {
       const item = inventoryData.find(i => i.code === itemCode);
       if (item) {
@@ -48,7 +48,7 @@ export default function OrderPage() {
     } else {
       setOrderItems([{ code: "", qty: 1 }]);
     }
-  }, [itemCode, qtyParam]);
+  }, [itemCode, qtyParam, inventoryData]);
 
   const handleAddItem = () => {
     setOrderItems([...orderItems, { code: "", qty: 1 }]);
@@ -79,6 +79,38 @@ export default function OrderPage() {
       }
     });
     setOrderItems(newItems.filter(i => i.code !== ""));
+  };
+
+  const handleSubmitOrder = async () => {
+    if (orderItems.length === 0 || orderItems.some(i => i.code === "")) return;
+    try {
+      setIsSubmitting(true);
+      
+      const itemsToSubmit = orderItems.map(oi => {
+        const product = inventoryData.find(p => p.code === oi.code);
+        return {
+          productCode: oi.code,
+          productName: product ? product.name : oi.code,
+          quantity: oi.qty,
+          unitPrice: 100000, // Hardcoded price for now
+          movementCategory: "FAST_MOVING"
+        };
+      });
+
+      await fetcher('/store/orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          branchId: '11111111-1111-1111-1111-111111111111',
+          createdBy: '00000000-0000-0000-0000-000000000000',
+          totalAmount: itemsToSubmit.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0),
+          items: itemsToSubmit
+        })
+      });
+      alert("Pengajuan PO Berhasil Dikirim!");
+      setOrderItems([{ code: "", qty: 1 }]);
+      setNotes("");
+    } catch(err: any) { alert("Error: " + err.message); }
+    finally { setIsSubmitting(false); }
   };
 
   return (
@@ -177,6 +209,8 @@ export default function OrderPage() {
                 <div className="mt-6 pt-4 border-t border-slate-100">
                   <label className="block text-sm font-medium text-slate-700 mb-2">Catatan Tambahan (Opsional)</label>
                   <textarea 
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
                     className="w-full p-3 text-sm rounded-md border-2 border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary min-h-[100px]"
                     placeholder="Tuliskan catatan untuk Accounting jika ada..."
                   ></textarea>
@@ -185,11 +219,11 @@ export default function OrderPage() {
                 <div className="flex justify-end pt-4">
                   <Button 
                     className="bg-primary hover:bg-primary/90 text-white px-8"
-                    onClick={() => alert("Pengajuan PO Berhasil Dikirim!")}
-                    disabled={orderItems.length === 0 || orderItems.some(i => i.code === "")}
+                    onClick={handleSubmitOrder}
+                    disabled={orderItems.length === 0 || orderItems.some(i => i.code === "") || isSubmitting}
                   >
                     <Send className="w-4 h-4 mr-2" />
-                    Kirim PO
+                    {isSubmitting ? "Mengirim..." : "Kirim PO"}
                   </Button>
                 </div>
               </div>

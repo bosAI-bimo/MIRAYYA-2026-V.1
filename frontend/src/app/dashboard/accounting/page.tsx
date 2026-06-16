@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, Variants, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,12 +8,30 @@ import {
   DollarSign, FileText, CheckCircle, TrendingUp, AlertCircle, 
   CreditCard, ChevronRight, Activity, ArrowUpRight, X as XIcon, 
   Download, Printer, Check, Image as ImageIcon, RefreshCw, BarChart3, PieChart,
-  ArrowDownRight, Building2, Wallet, FileSpreadsheet
+  ArrowDownRight, Building2, Wallet, FileSpreadsheet, Loader2
 } from "lucide-react";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { fetcher } from "@/lib/api";
 
 export default function AccountingDashboard() {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await fetcher("/accounting/dashboard-stats");
+        setStats(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
   const [activeTab, setActiveTab] = useState("overview");
   const [eodFilter, setEodFilter] = useState("pending");
   const [poFilter, setPoFilter] = useState("pending");
@@ -116,6 +134,11 @@ export default function AccountingDashboard() {
       </div>
 
       {/* KPI Cards Grid */}
+      {loading ? (
+        <div className="flex h-32 items-center justify-center w-full">
+          <Loader2 className="w-8 h-8 animate-spin text-pink-600" />
+        </div>
+      ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Laba Bersih */}
         <motion.div variants={itemVariants} className="h-full">
@@ -127,7 +150,7 @@ export default function AccountingDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">Rp 124,5 Jt</div>
+              <div className="text-2xl font-bold text-slate-800">Rp {(stats?.labaBersih || 0).toLocaleString('id-ID')}</div>
               <p className="text-xs text-emerald-600 flex items-center mt-1 font-medium">
                 <ArrowUpRight className="w-3 h-3 mr-1" /> 12.5%
               </p>
@@ -145,7 +168,7 @@ export default function AccountingDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">Rp 450,2 Jt</div>
+              <div className="text-2xl font-bold text-slate-800">Rp {(stats?.totalOmzet || 0).toLocaleString('id-ID')}</div>
               <p className="text-xs text-blue-600 flex items-center mt-1 font-medium">
                 <Activity className="w-3 h-3 mr-1" /> Aktif
               </p>
@@ -163,9 +186,9 @@ export default function AccountingDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">Rp +85,0 Jt</div>
+              <div className="text-2xl font-bold text-slate-800">Rp +{(stats?.arusKasNet || 0).toLocaleString('id-ID')}</div>
               <p className="text-xs text-slate-500 mt-1 font-medium truncate">
-                In: 500Jt | Out: 415Jt
+                Estimasi bulan ini
               </p>
             </CardContent>
           </Card>
@@ -181,9 +204,9 @@ export default function AccountingDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">82%</div>
+              <div className="text-2xl font-bold text-slate-800">{stats?.targetOmzetPercentage || 0}%</div>
               <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div className="bg-purple-500 h-full rounded-full" style={{ width: '82%' }}></div>
+                <div className="bg-purple-500 h-full rounded-full" style={{ width: `${stats?.targetOmzetPercentage || 0}%` }}></div>
               </div>
             </CardContent>
           </Card>
@@ -199,7 +222,7 @@ export default function AccountingDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">5 <span className="text-sm font-semibold text-slate-500">Cabang</span></div>
+              <div className="text-2xl font-bold text-slate-800">{stats?.pendingEod || 0} <span className="text-sm font-semibold text-slate-500">Cabang</span></div>
               <p className="text-xs text-rose-600 mt-1 font-medium">
                 Butuh Verifikasi
               </p>
@@ -217,7 +240,7 @@ export default function AccountingDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">3 <span className="text-sm font-semibold text-slate-500">Dokumen</span></div>
+              <div className="text-2xl font-bold text-slate-800">{stats?.pendingPo || 0} <span className="text-sm font-semibold text-slate-500">Dokumen</span></div>
               <p className="text-xs text-amber-600 mt-1 font-medium">
                 Review & Acc
               </p>
@@ -225,6 +248,7 @@ export default function AccountingDashboard() {
           </Card>
         </motion.div>
       </div>
+      )}
 
       <motion.div variants={itemVariants}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -385,29 +409,21 @@ export default function AccountingDashboard() {
                   </div>
                 </div>
                 <div className="divide-y divide-slate-100 flex-1 overflow-y-auto max-h-[400px]">
-                  {(eodFilter === "pending" ? [
-                    { branch: "Mirayya Sudirman", date: "11 Jun 2026", omzet: "Rp 12.500.000", cash: "Rp 4.500.000", edc: "Rp 5.000.000", qris: "Rp 3.000.000", pettyCash: "Rp 150.000", setoranBersih: "Rp 4.350.000", status: "Pending" },
-                    { branch: "Mirayya Kemang", date: "11 Jun 2026", omzet: "Rp 8.200.000", cash: "Rp 2.200.000", edc: "Rp 3.000.000", qris: "Rp 3.000.000", pettyCash: "Rp 50.000", setoranBersih: "Rp 2.150.000", status: "Pending" },
-                    { branch: "Mirayya PIK", date: "10 Jun 2026", omzet: "Rp 15.100.000", cash: "Rp 5.100.000", edc: "Rp 6.000.000", qris: "Rp 4.000.000", pettyCash: "Rp 200.000", setoranBersih: "Rp 4.900.000", status: "Pending" },
-                  ] : [
-                    { branch: "Mirayya Kelapa Gading", date: "09 Jun 2026", omzet: "Rp 10.500.000", status: "Disetujui" },
-                    { branch: "Mirayya Bintaro", date: "09 Jun 2026", omzet: "Rp 9.200.000", status: "Ditolak" },
-                    { branch: "Mirayya Sudirman", date: "08 Jun 2026", omzet: "Rp 14.100.000", status: "Disetujui" },
-                  ]).map((item, i) => (
+                  {(eodFilter === "pending" ? (stats?.pendingEodList || []) : (stats?.completedEodList || [])).map((item: any, i: number) => (
                     <div key={i} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-colors group gap-4 cursor-pointer">
                       <div className="flex items-center space-x-4 min-w-0 flex-1">
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
-                          item.status === 'Pending' ? 'bg-rose-50 text-rose-500 border-rose-100/50 group-hover:bg-rose-100' :
-                          item.status === 'Disetujui' ? 'bg-emerald-50 text-emerald-500 border-emerald-100/50' :
+                          item.status === 'PENDING' ? 'bg-rose-50 text-rose-500 border-rose-100/50 group-hover:bg-rose-100' :
+                          item.status === 'APPROVED' || item.status === 'Disetujui' ? 'bg-emerald-50 text-emerald-500 border-emerald-100/50' :
                           'bg-slate-100 text-slate-500 border-slate-200/50'
                         } transition-colors`}>
-                          {item.status === 'Ditolak' ? <XIcon className="w-6 h-6" /> : <CheckCircle className="w-6 h-6" />}
+                          {item.status === 'REJECTED' || item.status === 'Ditolak' ? <XIcon className="w-6 h-6" /> : <CheckCircle className="w-6 h-6" />}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <p className="font-bold text-slate-800 truncate">{item.branch}</p>
-                            {item.status !== 'Pending' && (
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${item.status === 'Disetujui' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>
+                            {item.status !== 'PENDING' && (
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${item.status === 'APPROVED' || item.status === 'Disetujui' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>
                                 {item.status}
                               </span>
                             )}
@@ -415,7 +431,7 @@ export default function AccountingDashboard() {
                           <p className="text-sm text-slate-500 mt-1 font-medium truncate">{item.date} • <span className="text-slate-700">{item.omzet}</span></p>
                         </div>
                       </div>
-                      {item.status === 'Pending' ? (
+                      {item.status === 'PENDING' ? (
                         <Button 
                           onClick={() => openReviewModal(item)}
                           variant="outline" size="sm" className="border-slate-200 text-slate-600 hover:bg-slate-800 hover:text-white rounded-full px-5 h-9 font-semibold transition-all shadow-sm group-hover:shadow group-hover:border-slate-800 shrink-0 cursor-pointer">
@@ -461,20 +477,7 @@ export default function AccountingDashboard() {
                   </div>
                 </div>
                 <div className="divide-y divide-slate-100 flex-1 overflow-y-auto max-h-[400px]">
-                  {(poFilter === "pending" ? [
-                    { branch: "Mirayya Kelapa Gading", id: "PO-2606-042", total: "Rp 4.500.000", status: "Pending", items: [
-                      { name: "Wardah Lightening Serum", qty: 20, price: "Rp 75.000", category: "Fast Moving" },
-                      { name: "Make Over Powerstay", qty: 10, price: "Rp 150.000", category: "Fast Moving" },
-                      { name: "Emina Sun Battle", qty: 30, price: "Rp 50.000", category: "Fast Moving" }
-                    ] },
-                    { branch: "Mirayya Sudirman", id: "PO-2606-043", total: "Rp 2.100.000", status: "Pending", items: [
-                      { name: "Somethinc Niacinamide", qty: 10, price: "Rp 120.000", category: "Fast Moving" },
-                      { name: "Avoskin PHTE", qty: 5, price: "Rp 180.000", category: "Slow Moving" }
-                    ] },
-                  ] : [
-                    { branch: "Mirayya Kemang", id: "PO-2606-039", total: "Rp 5.200.000", status: "Disetujui" },
-                    { branch: "Mirayya PIK", id: "PO-2606-038", total: "Rp 1.500.000", status: "Ditolak" },
-                  ]).map((item, i) => (
+                  {(poFilter === "pending" ? (stats?.pendingPoList || []) : (stats?.completedPoList || [])).map((item: any, i: number) => (
                     <div key={i} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-colors group gap-4 cursor-pointer">
                       <div className="flex items-center space-x-4 min-w-0 flex-1">
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
@@ -550,11 +553,7 @@ export default function AccountingDashboard() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {[
-                        { date: "10 Jun 2026", branch: "Mirayya Sudirman", bank: "Rp 15.100.000", pos: "Rp 15.100.000", diff: 0, status: "Cocok" },
-                        { date: "10 Jun 2026", branch: "Mirayya Kemang", bank: "Rp 8.200.000", pos: "Rp 8.300.000", diff: -100000, status: "Selisih" },
-                        { date: "10 Jun 2026", branch: "Mirayya PIK", bank: "Rp 12.000.000", pos: "Rp 12.000.000", diff: 0, status: "Cocok" },
-                      ].map((item, i) => (
+                      {(stats?.rekonsiliasiList || []).map((item: any, i: number) => (
                         <tr key={i} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-6 py-4">
                             <p className="font-bold text-slate-800">{item.branch}</p>
@@ -598,12 +597,7 @@ export default function AccountingDashboard() {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                  {[
-                    { branch: "Mirayya Sudirman", target: "Rp 150.000.000", actual: "Rp 135.000.000", percentage: 90, status: "safe" },
-                    { branch: "Mirayya Kemang", target: "Rp 100.000.000", actual: "Rp 60.000.000", percentage: 60, status: "danger" },
-                    { branch: "Mirayya PIK", target: "Rp 200.000.000", actual: "Rp 210.000.000", percentage: 105, status: "excellent" },
-                    { branch: "Mirayya Kelapa Gading", target: "Rp 120.000.000", actual: "Rp 95.000.000", percentage: 79, status: "warning" },
-                  ].map((item, i) => (
+                  {(stats?.pencapaianTargetList || []).map((item: any, i: number) => (
                     <div key={i} className="space-y-3">
                       <div className="flex justify-between items-end text-sm">
                         <span className="font-bold text-slate-800 text-base">{item.branch}</span>
@@ -643,12 +637,7 @@ export default function AccountingDashboard() {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                  {[
-                    { branch: "Mirayya Sudirman", budget: "Rp 15.000.000", used: "Rp 12.500.000", percentage: 83, status: "warning" },
-                    { branch: "Mirayya Kemang", budget: "Rp 10.000.000", used: "Rp 4.200.000", percentage: 42, status: "safe" },
-                    { branch: "Mirayya PIK", budget: "Rp 12.000.000", used: "Rp 11.500.000", percentage: 95, status: "danger" },
-                    { branch: "Mirayya Kelapa Gading", budget: "Rp 10.000.000", used: "Rp 5.500.000", percentage: 55, status: "safe" },
-                  ].map((item, i) => (
+                  {(stats?.anggaranCabangList || []).map((item: any, i: number) => (
                     <div key={i} className="space-y-3">
                       <div className="flex justify-between items-end text-sm">
                         <span className="font-bold text-slate-800 text-base">{item.branch}</span>
@@ -684,11 +673,7 @@ export default function AccountingDashboard() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y divide-slate-100">
-                  {[
-                    { branch: "Mirayya Sudirman", desc: "Beli galon & tisu", amount: "Rp 150.000", date: "11 Jun 2026", by: "Sari (Store Leader)" },
-                    { branch: "Mirayya Kemang", desc: "Ongkir GoSend antar barang", amount: "Rp 45.000", date: "10 Jun 2026", by: "Budi (Store Leader)" },
-                    { branch: "Mirayya PIK", desc: "Plastik sampah", amount: "Rp 35.000", date: "09 Jun 2026", by: "Rina (Store Leader)" },
-                  ].map((item, i) => (
+                  {(stats?.pettyCashList || []).map((item: any, i: number) => (
                     <div key={i} onClick={() => openPettyCashModal(item)} className="flex justify-between items-center p-6 hover:bg-slate-50 transition-colors group gap-4 cursor-pointer">
                       <div className="flex items-center space-x-4 min-w-0 flex-1">
                         <div className="w-12 h-12 bg-slate-100 rounded-2xl text-slate-500 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm border border-transparent group-hover:border-slate-200 transition-all duration-300 shrink-0">

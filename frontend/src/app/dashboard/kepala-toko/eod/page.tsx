@@ -1,5 +1,6 @@
-import React from "react";
+"use client";
 
+import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,67 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { UploadCloud, CheckCircle2, FileCheck, ChevronRight, Wallet, Receipt } from "lucide-react";
 import Link from "next/link";
 
+import { fetcher } from "@/lib/api";
+
 export default function EODPage() {
+  const [eodData, setEodData] = React.useState({
+    totalOmzet: '',
+    cashAmount: '',
+    edcAmount: '',
+    qrisAmount: ''
+  });
+  
+  const [pettyCash, setPettyCash] = React.useState({
+    amount: '',
+    description: ''
+  });
+
+  const [isSubmittingEod, setIsSubmittingEod] = React.useState(false);
+  const [isSubmittingPc, setIsSubmittingPc] = React.useState(false);
+
+  const handleSubmitEod = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsSubmittingEod(true);
+      await fetcher('/store/eod-reports', {
+        method: 'POST',
+        body: JSON.stringify({
+          branchId: '11111111-1111-1111-1111-111111111111', // Will be replaced by real auth branch
+          reportDate: new Date().toISOString(),
+          totalOmzet: parseFloat(eodData.totalOmzet) || 0,
+          cashAmount: parseFloat(eodData.cashAmount) || 0,
+          edcAmount: parseFloat(eodData.edcAmount) || 0,
+          qrisAmount: parseFloat(eodData.qrisAmount) || 0,
+          pettyCashUsed: 0,
+          evidencePhotos: [],
+          submittedBy: '00000000-0000-0000-0000-000000000000'
+        })
+      });
+      alert('Laporan EOD berhasil dikirim!');
+      setEodData({ totalOmzet: '', cashAmount: '', edcAmount: '', qrisAmount: '' });
+    } catch(err: any) { alert("Error: " + err.message); }
+    finally { setIsSubmittingEod(false); }
+  };
+
+  const handleSubmitPettyCash = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsSubmittingPc(true);
+      await fetcher('/store/petty-cash', {
+        method: 'POST',
+        body: JSON.stringify({
+          branchId: '11111111-1111-1111-1111-111111111111',
+          amount: parseFloat(pettyCash.amount) || 0,
+          description: pettyCash.description,
+          recordedBy: '00000000-0000-0000-0000-000000000000'
+        })
+      });
+      alert('Penggunaan Petty Cash berhasil dicatat!');
+      setPettyCash({ amount: '', description: '' });
+    } catch(err: any) { alert("Error: " + err.message); }
+    finally { setIsSubmittingPc(false); }
+  };
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header / Navbar Separator */}
@@ -62,7 +123,7 @@ export default function EODPage() {
                     <label className="text-sm font-medium text-slate-700">Total Omzet Keseluruhan</label>
                     <div className="relative">
                       <span className="absolute left-3 top-2.5 text-slate-500">Rp</span>
-                      <Input type="number" className="pl-10" placeholder="0" />
+                      <Input type="number" className="pl-10" placeholder="0" value={eodData.totalOmzet} onChange={e => setEodData({...eodData, totalOmzet: e.target.value})} />
                     </div>
                   </div>
                 </div>
@@ -74,21 +135,21 @@ export default function EODPage() {
                       <label className="text-sm font-medium text-slate-700">Tunai (Cash)</label>
                       <div className="relative">
                         <span className="absolute left-3 top-2.5 text-slate-500">Rp</span>
-                        <Input type="number" className="pl-10" placeholder="0" />
+                        <Input type="number" className="pl-10" placeholder="0" value={eodData.cashAmount} onChange={e => setEodData({...eodData, cashAmount: e.target.value})} />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-700">Mesin EDC (Debit/Kredit)</label>
                       <div className="relative">
                         <span className="absolute left-3 top-2.5 text-slate-500">Rp</span>
-                        <Input type="number" className="pl-10" placeholder="0" />
+                        <Input type="number" className="pl-10" placeholder="0" value={eodData.edcAmount} onChange={e => setEodData({...eodData, edcAmount: e.target.value})} />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-700">QRIS / Transfer</label>
                       <div className="relative">
                         <span className="absolute left-3 top-2.5 text-slate-500">Rp</span>
-                        <Input type="number" className="pl-10" placeholder="0" />
+                        <Input type="number" className="pl-10" placeholder="0" value={eodData.qrisAmount} onChange={e => setEodData({...eodData, qrisAmount: e.target.value})} />
                       </div>
                     </div>
                   </div>
@@ -109,9 +170,9 @@ export default function EODPage() {
                 </div>
               </CardContent>
               <CardFooter className="bg-slate-50 border-t border-slate-100 flex justify-end p-4 rounded-b-lg">
-                <Button className="bg-primary hover:bg-primary/90 text-white px-8">
+                <Button className="bg-primary hover:bg-primary/90 text-white px-8" onClick={handleSubmitEod} disabled={isSubmittingEod}>
                   <FileCheck className="w-4 h-4 mr-2" />
-                  Kirim Laporan EOD
+                  {isSubmittingEod ? "Mengirim..." : "Kirim Laporan EOD"}
                 </Button>
               </CardFooter>
             </Card>
@@ -131,12 +192,12 @@ export default function EODPage() {
                     <label className="text-sm font-medium text-slate-700">Nominal Terpakai</label>
                     <div className="relative">
                       <span className="absolute left-3 top-2.5 text-slate-500">Rp</span>
-                      <Input type="number" className="pl-10" placeholder="0" />
+                      <Input type="number" className="pl-10" placeholder="0" value={pettyCash.amount} onChange={e => setPettyCash({...pettyCash, amount: e.target.value})} />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">Keterangan</label>
-                    <Input type="text" placeholder="Contoh: Beli air mineral galon" />
+                    <Input type="text" placeholder="Contoh: Beli air mineral galon" value={pettyCash.description} onChange={e => setPettyCash({...pettyCash, description: e.target.value})} />
                   </div>
                 </div>
               </CardContent>
@@ -155,9 +216,9 @@ export default function EODPage() {
                 </div>
               </CardContent>
               <CardFooter className="bg-slate-50 border-t border-slate-100 flex justify-end p-4 rounded-b-lg">
-                <Button className="bg-primary hover:bg-primary/90 text-white px-8">
+                <Button className="bg-primary hover:bg-primary/90 text-white px-8" onClick={handleSubmitPettyCash} disabled={isSubmittingPc}>
                   <FileCheck className="w-4 h-4 mr-2" />
-                  Kirim Laporan Petty Cash
+                  {isSubmittingPc ? "Mengirim..." : "Kirim Laporan Petty Cash"}
                 </Button>
               </CardFooter>
             </Card>

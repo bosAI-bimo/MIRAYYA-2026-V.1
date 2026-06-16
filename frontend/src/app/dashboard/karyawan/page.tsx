@@ -1,13 +1,23 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion, type Variants } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CalendarCheck, Clock, MapPin, ReceiptText, ChevronRight } from "lucide-react";
+import { CalendarCheck, Clock, MapPin, ReceiptText, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { fetcher } from "@/lib/api";
 
 export default function KaryawanDashboard() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetcher('/hr/employee-dashboard')
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
@@ -55,6 +65,11 @@ export default function KaryawanDashboard() {
         </div>
       </div>
 
+      {loading ? (
+        <div className="flex h-32 items-center justify-center w-full">
+          <Loader2 className="w-8 h-8 animate-spin text-pink-600" />
+        </div>
+      ) : (
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Status Kehadiran Hari Ini */}
         <motion.div variants={itemVariants} className="h-full">
@@ -83,19 +98,19 @@ export default function KaryawanDashboard() {
             <CalendarCheck className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl lg:text-2xl font-bold text-slate-800">18 Hari</div>
+            <div className="text-xl lg:text-2xl font-bold text-slate-800">{data?.totalKehadiran || 0} Hari</div>
             <div className="flex space-x-4 mt-2">
               <div className="flex flex-col">
                 <span className="text-xs text-slate-500">Tepat Waktu</span>
-                <span className="text-sm font-semibold text-emerald-600">16</span>
+                <span className="text-sm font-semibold text-emerald-600">{data?.tepatWaktu || 0}</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-xs text-slate-500">Terlambat</span>
-                <span className="text-sm font-semibold text-rose-500">2</span>
+                <span className="text-sm font-semibold text-rose-500">{data?.terlambat || 0}</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-xs text-slate-500">Absen</span>
-                <span className="text-sm font-semibold text-slate-600">0</span>
+                <span className="text-sm font-semibold text-slate-600">{data?.absen || 0}</span>
               </div>
             </div>
           </CardContent>
@@ -121,6 +136,7 @@ export default function KaryawanDashboard() {
         </Card>
         </motion.div>
       </div>
+      )}
 
       {/* Riwayat Terakhir */}
       <motion.div variants={itemVariants}>
@@ -131,11 +147,7 @@ export default function KaryawanDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {[
-              { date: "11 Jun 2026", in: "07:55", out: "16:05", status: "Tepat Waktu", location: "Mirayya Pusat" },
-              { date: "10 Jun 2026", in: "07:50", out: "16:00", status: "Tepat Waktu", location: "Mirayya Pusat" },
-              { date: "09 Jun 2026", in: "08:15", out: "16:10", status: "Terlambat", location: "Mirayya Pusat" },
-            ].map((item, i) => (
+            {(data?.riwayatAbsensi || []).map((item: any, i: number) => (
               <div key={i} className="flex items-center justify-between p-3 border rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
                 <div className="flex items-center space-x-4">
                   <div className={`w-2 h-10 rounded-full ${item.status === 'Tepat Waktu' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>

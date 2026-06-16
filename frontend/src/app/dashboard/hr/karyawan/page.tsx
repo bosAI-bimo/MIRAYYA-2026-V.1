@@ -10,23 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Search, Plus, MoreHorizontal, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Users, UserCheck, UserMinus, UserX, ArrowUpRight, ArrowDownRight, Eye, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 
-const employees = [
-  { id: "EMP-001", name: "Siti Rahma", email: "siti.hr@mirayya.com", phone: "0812-1111-2222", role: "HR Manager", branch: "Pusat", status: "Aktif" },
-  { id: "EMP-002", name: "Budi Santoso", email: "budi.acc@mirayya.com", phone: "0812-2222-3333", role: "Accounting", branch: "Pusat", status: "Aktif" },
-  { id: "EMP-003", name: "Anita Wijaya", email: "anita.ba@mirayya.com", phone: "0813-3333-4444", role: "BA", branch: "Mirayya Sudirman", status: "Aktif" },
-  { id: "EMP-004", name: "Rina Marlina", email: "rina.sl@mirayya.com", phone: "0856-4444-5555", role: "Store Leader", branch: "Mirayya PIK", status: "Aktif" },
-  { id: "EMP-005", name: "Dina Mariana", email: "dina.ba@mirayya.com", phone: "0812-5555-6666", role: "BA", branch: "Mirayya Kelapa Gading", status: "Cuti" },
-  { id: "EMP-006", name: "Sari Indah", email: "sari.ba@mirayya.com", phone: "0811-6666-7777", role: "BA", branch: "Mirayya Kemang", status: "Nonaktif" },
-  { id: "EMP-007", name: "Tono Mulyono", email: "tono@mirayya.com", phone: "0812-7777-8888", role: "Security", branch: "Mirayya Sudirman", status: "Aktif" },
-  { id: "EMP-008", name: "Agus Salim", email: "agus@mirayya.com", phone: "0815-8888-9999", role: "Store Leader", branch: "Mirayya Kemang", status: "Aktif" },
-  { id: "EMP-009", name: "Dewi Lestari", email: "dewi.l@mirayya.com", phone: "0813-9999-0000", role: "BA", branch: "Mirayya PIK", status: "Aktif" },
-  { id: "EMP-010", name: "Fajar Siddiq", email: "fajar@mirayya.com", phone: "0812-0000-1111", role: "Gudang", branch: "Pusat", status: "Aktif" },
-  { id: "EMP-011", name: "Gita Savitri", email: "gita@mirayya.com", phone: "0857-1234-5678", role: "BA", branch: "Mirayya Kelapa Gading", status: "Aktif" },
-  { id: "EMP-012", name: "Hadi Kusuma", email: "hadi@mirayya.com", phone: "0812-8765-4321", role: "Kasir", branch: "Mirayya Bintaro", status: "Aktif" },
-  { id: "EMP-013", name: "Intan Nuraini", email: "intan@mirayya.com", phone: "0811-2345-6789", role: "BA", branch: "Mirayya Sudirman", status: "Cuti" },
-  { id: "EMP-014", name: "Joko Supriyanto", email: "joko@mirayya.com", phone: "0813-9876-5432", role: "Security", branch: "Mirayya PIK", status: "Aktif" },
-  { id: "EMP-015", name: "Kirana Larasati", email: "kirana@mirayya.com", phone: "0812-5432-1987", role: "Store Leader", branch: "Mirayya Bintaro", status: "Aktif" },
-];
+import { fetcher } from "@/lib/api";
 
 export default function KaryawanPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,6 +20,91 @@ export default function KaryawanPage() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const itemsPerPage = 5;
+
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [roles, setRoles] = useState<any[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [newEmp, setNewEmp] = useState({ name: '', email: '', phone: '', roleId: '', branchId: '', password: 'password123' });
+
+  const fetchEmployees = async () => {
+    try {
+      setLoading(true);
+      const data = await fetcher('/hr/employees');
+      setEmployees(data || []);
+    } catch(err) { console.error(err); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => {
+    fetchEmployees();
+    fetcher('/admin/roles').then(data => {
+      setRoles(data || []);
+      if(data && data.length > 0) setNewEmp(prev => ({...prev, roleId: data[0].id}));
+    }).catch(console.error);
+    fetcher('/admin/branches').then(data => {
+      setBranches(data || []);
+      if(data && data.length > 0) setNewEmp(prev => ({...prev, branchId: data[0].id}));
+    }).catch(console.error);
+  }, []);
+
+  const handleAddSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      await fetcher('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          fullName: newEmp.name,
+          email: newEmp.email,
+          phone: newEmp.phone,
+          password: newEmp.password,
+          roleId: newEmp.roleId,
+          branchId: newEmp.branchId || null
+        })
+      });
+      setAddModalOpen(false);
+      setNewEmp({ name: '', email: '', phone: '', roleId: roles[0]?.id || '', branchId: branches[0]?.id || '', password: 'password123' });
+      await fetchEmployees();
+    } catch (error: any) {
+      alert("Gagal menambahkan karyawan: " + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditSubmit = async () => {
+    if (!selectedEmployee) return;
+    try {
+      setIsSubmitting(true);
+      await fetcher(`/admin/users/${selectedEmployee.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          name: selectedEmployee.name,
+          phone: selectedEmployee.phone,
+          roleId: selectedEmployee.roleId,
+          branchId: selectedEmployee.branchId || null
+        })
+      });
+      setEditModalOpen(false);
+      await fetchEmployees();
+    } catch (error: any) {
+      alert("Gagal mengupdate karyawan: " + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menonaktifkan/menghapus karyawan ini?")) return;
+    try {
+      await fetcher(`/admin/users/${id}`, { method: 'DELETE' });
+      await fetchEmployees();
+    } catch (error: any) {
+      alert("Gagal menghapus karyawan: " + error.message);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -278,8 +347,14 @@ export default function KaryawanPage() {
                             <Edit className="w-4 h-4 mr-2" /> Edit Karyawan
                           </button>
                           <div className="h-px bg-slate-100 my-1 mx-2" />
-                          <button className="w-full px-4 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 flex items-center transition-colors">
-                            <Trash2 className="w-4 h-4 mr-2" /> Nonaktifkan
+                          <button className="w-full px-4 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 flex items-center transition-colors"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleDelete(emp.id);
+                              setActiveDropdown(null);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" /> Nonaktifkan / Hapus
                           </button>
                         </div>
                       )}
@@ -415,55 +490,37 @@ export default function KaryawanPage() {
           {selectedEmployee && (
             <div className="grid gap-4 py-2 mt-2 overflow-y-auto pr-1 flex-grow scrollbar-thin scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
               <div className="grid gap-2">
-                <Label htmlFor="name" className="text-slate-700 font-semibold">
-                  Nama Lengkap
-                </Label>
-                <Input id="name" defaultValue={selectedEmployee.name} className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+                <Label htmlFor="name" className="text-slate-700 font-semibold">Nama Lengkap</Label>
+                <Input id="name" value={selectedEmployee.name} onChange={(e) => setSelectedEmployee({...selectedEmployee, name: e.target.value})} className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="email" className="text-slate-700 font-semibold">
-                  Alamat Email
-                </Label>
-                <Input id="email" type="email" defaultValue={selectedEmployee.email} className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+                <Label htmlFor="email" className="text-slate-700 font-semibold">Alamat Email</Label>
+                <Input id="email" type="email" value={selectedEmployee.email} disabled className="bg-slate-50 focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="phone" className="text-slate-700 font-semibold">
-                  Nomor HP
-                </Label>
-                <Input id="phone" type="tel" defaultValue={selectedEmployee.phone} className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+                <Label htmlFor="phone" className="text-slate-700 font-semibold">Nomor HP</Label>
+                <Input id="phone" type="tel" value={selectedEmployee.phone || ''} onChange={(e) => setSelectedEmployee({...selectedEmployee, phone: e.target.value})} className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="role" className="text-slate-700 font-semibold">
-                  Role (Peran)
-                </Label>
-                <select id="role" defaultValue={selectedEmployee.role} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
-                  <option value="HR Manager">HR Manager</option>
-                  <option value="Accounting">Accounting</option>
-                  <option value="BA">BA</option>
-                  <option value="Store Leader">Store Leader</option>
-                  <option value="Security">Security</option>
-                  <option value="Gudang">Gudang</option>
-                  <option value="Kasir">Kasir</option>
+                <Label htmlFor="role" className="text-slate-700 font-semibold">Role (Peran)</Label>
+                <select id="role" value={selectedEmployee.roleId || ''} onChange={(e) => setSelectedEmployee({...selectedEmployee, roleId: e.target.value})} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
+                  {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                 </select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="branch" className="text-slate-700 font-semibold">
-                  Penempatan Cabang
-                </Label>
-                <select id="branch" defaultValue={selectedEmployee.branch} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
-                  <option value="Pusat">Pusat</option>
-                  <option value="Mirayya Sudirman">Mirayya Sudirman</option>
-                  <option value="Mirayya PIK">Mirayya PIK</option>
-                  <option value="Mirayya Kelapa Gading">Mirayya Kelapa Gading</option>
-                  <option value="Mirayya Kemang">Mirayya Kemang</option>
-                  <option value="Mirayya Bintaro">Mirayya Bintaro</option>
+                <Label htmlFor="branch" className="text-slate-700 font-semibold">Penempatan Cabang</Label>
+                <select id="branch" value={selectedEmployee.branchId || ''} onChange={(e) => setSelectedEmployee({...selectedEmployee, branchId: e.target.value})} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
+                  <option value="">-- Pilih Cabang --</option>
+                  {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </select>
               </div>
             </div>
           )}
           <DialogFooter className="sm:justify-end gap-2 border-t border-slate-100 pt-5 mt-2 shrink-0">
-            <Button variant="outline" onClick={() => setEditModalOpen(false)} className="font-semibold">Batal</Button>
-            <Button className="bg-pink-600 hover:bg-pink-700 text-white font-semibold" onClick={() => setEditModalOpen(false)}>Simpan Perubahan</Button>
+            <Button variant="outline" onClick={() => setEditModalOpen(false)} className="font-semibold" disabled={isSubmitting}>Batal</Button>
+            <Button className="bg-pink-600 hover:bg-pink-700 text-white font-semibold" onClick={handleEditSubmit} disabled={isSubmitting}>
+              {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -479,54 +536,40 @@ export default function KaryawanPage() {
           </DialogHeader>
           <div className="grid gap-4 py-2 mt-2 overflow-y-auto pr-1 flex-grow scrollbar-thin scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
             <div className="grid gap-2">
-              <Label htmlFor="add-name" className="text-slate-700 font-semibold">
-                Nama Lengkap
-              </Label>
-              <Input id="add-name" placeholder="Masukkan nama karyawan" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+              <Label htmlFor="add-name" className="text-slate-700 font-semibold">Nama Lengkap</Label>
+              <Input id="add-name" value={newEmp.name} onChange={(e) => setNewEmp({...newEmp, name: e.target.value})} placeholder="Masukkan nama karyawan" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="add-email" className="text-slate-700 font-semibold">
-                Alamat Email
-              </Label>
-              <Input id="add-email" type="email" placeholder="contoh@mirayya.com" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+              <Label htmlFor="add-email" className="text-slate-700 font-semibold">Alamat Email</Label>
+              <Input id="add-email" type="email" value={newEmp.email} onChange={(e) => setNewEmp({...newEmp, email: e.target.value})} placeholder="contoh@mirayya.com" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="add-phone" className="text-slate-700 font-semibold">
-                Nomor HP
-              </Label>
-              <Input id="add-phone" type="tel" placeholder="08xx-xxxx-xxxx" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+              <Label htmlFor="add-phone" className="text-slate-700 font-semibold">Nomor HP</Label>
+              <Input id="add-phone" type="tel" value={newEmp.phone} onChange={(e) => setNewEmp({...newEmp, phone: e.target.value})} placeholder="08xx-xxxx-xxxx" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="add-role" className="text-slate-700 font-semibold">
-                Role (Peran)
-              </Label>
-              <select id="add-role" defaultValue="BA" className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
-                <option value="HR Manager">HR Manager</option>
-                <option value="Accounting">Accounting</option>
-                <option value="BA">BA</option>
-                <option value="Store Leader">Store Leader</option>
-                <option value="Security">Security</option>
-                <option value="Gudang">Gudang</option>
-                <option value="Kasir">Kasir</option>
+              <Label htmlFor="add-password" className="text-slate-700 font-semibold">Password Sementara</Label>
+              <Input id="add-password" type="text" value={newEmp.password} onChange={(e) => setNewEmp({...newEmp, password: e.target.value})} placeholder="password123" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="add-role" className="text-slate-700 font-semibold">Role (Peran)</Label>
+              <select id="add-role" value={newEmp.roleId} onChange={(e) => setNewEmp({...newEmp, roleId: e.target.value})} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
+                {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="add-branch" className="text-slate-700 font-semibold">
-                Penempatan Cabang
-              </Label>
-              <select id="add-branch" defaultValue="Pusat" className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
-                <option value="Pusat">Pusat</option>
-                <option value="Mirayya Sudirman">Mirayya Sudirman</option>
-                <option value="Mirayya PIK">Mirayya PIK</option>
-                <option value="Mirayya Kelapa Gading">Mirayya Kelapa Gading</option>
-                <option value="Mirayya Kemang">Mirayya Kemang</option>
-                <option value="Mirayya Bintaro">Mirayya Bintaro</option>
+              <Label htmlFor="add-branch" className="text-slate-700 font-semibold">Penempatan Cabang</Label>
+              <select id="add-branch" value={newEmp.branchId} onChange={(e) => setNewEmp({...newEmp, branchId: e.target.value})} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
+                <option value="">-- Pilih Cabang --</option>
+                {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
               </select>
             </div>
           </div>
           <DialogFooter className="sm:justify-end gap-2 border-t border-slate-100 pt-5 mt-2 shrink-0">
-            <Button variant="outline" onClick={() => setAddModalOpen(false)} className="font-semibold">Batal</Button>
-            <Button className="bg-pink-600 hover:bg-pink-700 text-white font-semibold" onClick={() => setAddModalOpen(false)}>Simpan Data</Button>
+            <Button variant="outline" onClick={() => setAddModalOpen(false)} className="font-semibold" disabled={isSubmitting}>Batal</Button>
+            <Button className="bg-pink-600 hover:bg-pink-700 text-white font-semibold" onClick={handleAddSubmit} disabled={isSubmitting}>
+              {isSubmitting ? "Menyimpan..." : "Simpan Data"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

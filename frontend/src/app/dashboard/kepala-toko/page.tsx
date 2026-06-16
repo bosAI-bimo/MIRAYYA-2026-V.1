@@ -1,14 +1,33 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion, type Variants } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, ShoppingCart, FileCheck, CheckCircle2, AlertCircle, ChevronRight, Package, ClipboardList, TrendingDown, Clock, ArrowRight, Receipt, Activity, Banknote, Store } from "lucide-react";
+import { Wallet, ShoppingCart, FileCheck, CheckCircle2, AlertCircle, ChevronRight, Package, ClipboardList, TrendingDown, Clock, ArrowRight, Receipt, Activity, Banknote, Store, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { fetcher } from "@/lib/api";
 
 export default function KepalaTokoDashboard() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetcher('/store/dashboard-stats')
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const formatRupiah = (number: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(number);
+  };
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
@@ -64,6 +83,11 @@ export default function KepalaTokoDashboard() {
       </div>
 
       {/* KPI Cards Grid - 6 metrics in Owner Dashboard Style */}
+      {loading ? (
+        <div className="flex h-32 items-center justify-center w-full">
+          <Loader2 className="w-8 h-8 animate-spin text-pink-600" />
+        </div>
+      ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-8">
         
         {/* KPI 1: Sisa Anggaran PO */}
@@ -168,6 +192,7 @@ export default function KepalaTokoDashboard() {
           </Card>
         </motion.div>
       </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
         {/* Left Column (Wider) */}
@@ -188,11 +213,7 @@ export default function KepalaTokoDashboard() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y divide-slate-100">
-                  {[
-                    { id: "PO-202606-003", date: "10 Jun 2026", items: 5, total: "Rp 3.500.000", status: "Menunggu Approval", color: "amber" },
-                    { id: "PO-202606-002", date: "05 Jun 2026", items: 12, total: "Rp 8.200.000", status: "Sedang Dikirim", color: "blue" },
-                    { id: "PO-202605-015", date: "28 Mei 2026", items: 8, total: "Rp 5.100.000", status: "Selesai", color: "emerald" },
-                  ].map((item, i) => (
+                  {(data?.poList || []).map((item: any, i: number) => (
                     <div key={i} className="flex items-center justify-between p-4 lg:px-6 hover:bg-slate-50 transition-colors">
                       <div className="flex items-center space-x-4">
                         <div className={`p-3 rounded-xl bg-${item.color}-50 text-${item.color}-600 border border-${item.color}-100`}>
@@ -241,15 +262,11 @@ export default function KepalaTokoDashboard() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y divide-slate-100">
-                  {[
-                    { title: "Beli Air Minum Galon", date: "Hari Ini, 10:30", amount: "Rp 150.000", type: "Konsumsi", icon: Receipt },
-                    { title: "Plastik Kemasan", date: "Kemarin, 14:15", amount: "Rp 320.000", type: "Perlengkapan", icon: Receipt },
-                    { title: "Biaya Kebersihan Bulanan", date: "12 Jun 2026", amount: "Rp 200.000", type: "Operasional", icon: Receipt },
-                  ].map((item, i) => (
+                  {(data?.pettyCashList || []).map((item: any, i: number) => (
                     <div key={i} className="flex items-center justify-between p-4 lg:px-6 hover:bg-slate-50 transition-colors">
                       <div className="flex items-center space-x-4">
                         <div className="p-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-600">
-                          <item.icon className="w-5 h-5" />
+                          <Receipt className="w-5 h-5" />
                         </div>
                         <div>
                           <p className="font-bold text-slate-800">{item.title}</p>
@@ -285,12 +302,7 @@ export default function KepalaTokoDashboard() {
               </CardHeader>
               <CardContent className="p-6 flex-1">
                 <div className="space-y-5">
-                  {[
-                    { name: "Lipstick Matte Ruby", stock: 2, min: 10 },
-                    { name: "Serum Vitamin C 30ml", stock: 5, min: 15 },
-                    { name: "Toner Exfoliating", stock: 8, min: 20 },
-                    { name: "Sunscreen SPF 50", stock: 12, min: 25 },
-                  ].map((item, i) => (
+                  {(data?.stokKritisList || []).map((item: any, i: number) => (
                     <div key={i} className="flex flex-col space-y-1.5">
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-bold text-slate-700 truncate mr-2">{item.name}</span>
