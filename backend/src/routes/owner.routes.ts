@@ -2,8 +2,12 @@ import { Router } from "express";
 import { db } from "../db";
 import { eodReports, orders, attendance, branches, users } from "../db/schema";
 import { sql, eq, desc } from "drizzle-orm";
+import { requireAuth, requireRole } from "../middlewares/authMiddleware";
 
 const router = Router();
+
+router.use(requireAuth);
+router.use(requireRole("owner"));
 
 router.get("/dashboard-stats", async (req, res) => {
   try {

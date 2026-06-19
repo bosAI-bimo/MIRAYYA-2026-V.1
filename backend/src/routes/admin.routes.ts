@@ -2,8 +2,12 @@ import { Router } from "express";
 import { db } from "../db";
 import { branches, roles, users } from "../db/schema";
 import { eq } from "drizzle-orm";
+import { requireAuth, requireRole } from "../middlewares/authMiddleware";
 
 const router = Router();
+
+router.use(requireAuth);
+router.use(requireRole("hr", "owner"));
 
 // --- BRANCHES ---
 
@@ -116,7 +120,7 @@ router.delete("/roles/:id", async (req, res) => {
 
 router.get("/users", async (req, res) => {
   try {
-    const allUsers = await db.select().from(users);
+    const allUsers = await db.select().from(users).where(eq(users.isDeleted, false));
     res.json(allUsers);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -141,7 +145,11 @@ router.put("/users/:id", async (req, res) => {
 router.delete("/users/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedUser = await db.delete(users).where(eq(users.id, id)).returning();
+    const currentUserId = (req as any).user?.id || "system";
+    const deletedUser = await db.update(users)
+      .set({ isDeleted: true, updatedBy: currentUserId })
+      .where(eq(users.id, id))
+      .returning();
     if (deletedUser.length === 0) return res.status(404).json({ message: "User not found" });
     res.json({ message: "User deleted successfully" });
   } catch (error: any) {

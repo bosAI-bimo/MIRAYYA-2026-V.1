@@ -7,19 +7,45 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { Search, Plus, MoreHorizontal, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Users, UserCheck, UserMinus, UserX, ArrowUpRight, ArrowDownRight, Eye, Edit, Trash2 } from "lucide-react";
+import { Search, Plus, MoreHorizontal, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Users, UserCheck, UserMinus, UserX, ArrowUpRight, ArrowDownRight, Eye, Edit, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
 import { fetcher } from "@/lib/api";
 
+const addEmployeeSchema = z.object({
+  fullName: z.string().min(3, "Nama minimal 3 karakter"),
+  email: z.string().email("Format email tidak valid"),
+  phone: z.string().min(10, "Nomor HP minimal 10 digit"),
+  password: z.string().min(6, "Password minimal 6 karakter"),
+  roleId: z.string().min(1, "Role wajib dipilih"),
+  branchId: z.string().optional(),
+});
+type AddEmployeeFormValues = z.infer<typeof addEmployeeSchema>;
+
+const editEmployeeSchema = z.object({
+  fullName: z.string().min(3, "Nama minimal 3 karakter"),
+  phone: z.string().min(10, "Nomor HP minimal 10 digit"),
+  roleId: z.string().min(1, "Role wajib dipilih"),
+  branchId: z.string().optional(),
+});
+type EditEmployeeFormValues = z.infer<typeof editEmployeeSchema>;
+
 export default function KaryawanPage() {
-  const [currentPage, setCurrentPage] = useState(1);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
-  const itemsPerPage = 5;
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [branchFilter, setBranchFilter] = useState("all");
+  const itemsPerPage = 10;
 
   const [employees, setEmployees] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
@@ -27,82 +53,116 @@ export default function KaryawanPage() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [newEmp, setNewEmp] = useState({ name: '', email: '', phone: '', roleId: '', branchId: '', password: 'password123' });
+  const addForm = useForm<AddEmployeeFormValues>({
+    resolver: zodResolver(addEmployeeSchema),
+    defaultValues: { fullName: '', email: '', phone: '', password: 'password123', roleId: '', branchId: '' }
+  });
+
+  const editForm = useForm<EditEmployeeFormValues>({
+    resolver: zodResolver(editEmployeeSchema),
+    defaultValues: { fullName: '', phone: '', roleId: '', branchId: '' }
+  });
 
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const data = await fetcher('/hr/employees');
-      setEmployees(data || []);
+      const queryParams = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: itemsPerPage.toString(),
+        search: searchQuery,
+        branchId: branchFilter
+      });
+      const res = await fetcher(`/hr/employees?${queryParams.toString()}`);
+      setEmployees(res?.data || []);
+      setTotalPages(res?.metadata?.totalPages || 1);
     } catch(err) { console.error(err); }
     finally { setLoading(false); }
   };
 
   useEffect(() => {
-    fetchEmployees();
+    const timer = setTimeout(() => {
+      fetchEmployees();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [currentPage, searchQuery, branchFilter]);
+
+  useEffect(() => {
     fetcher('/admin/roles').then(data => {
       setRoles(data || []);
-      if(data && data.length > 0) setNewEmp(prev => ({...prev, roleId: data[0].id}));
+      if(data && data.length > 0 && !addForm.getValues('roleId')) {
+        addForm.setValue('roleId', data[0].id);
+      }
     }).catch(console.error);
     fetcher('/admin/branches').then(data => {
       setBranches(data || []);
-      if(data && data.length > 0) setNewEmp(prev => ({...prev, branchId: data[0].id}));
+      if(data && data.length > 0 && !addForm.getValues('branchId')) {
+        addForm.setValue('branchId', data[0].id);
+      }
     }).catch(console.error);
   }, []);
 
-  const handleAddSubmit = async () => {
+  const handleAddSubmit = async (data: AddEmployeeFormValues) => {
     try {
-      setIsSubmitting(true);
-      await fetcher('/auth/register', {
+      const res = await fetcher('/auth/register', {
         method: 'POST',
         body: JSON.stringify({
-          fullName: newEmp.name,
-          email: newEmp.email,
-          phone: newEmp.phone,
-          password: newEmp.password,
-          roleId: newEmp.roleId,
-          branchId: newEmp.branchId || null
+          fullName: data.fullName,
+          email: data.email,
+          phone: data.phone,
+          password: data.password,
+          roleId: data.roleId,
+          branchId: data.branchId || null
         })
       });
       setAddModalOpen(false);
-      setNewEmp({ name: '', email: '', phone: '', roleId: roles[0]?.id || '', branchId: branches[0]?.id || '', password: 'password123' });
+      addForm.reset({ fullName: '', email: '', phone: '', password: 'password123', roleId: roles[0]?.id || '', branchId: branches[0]?.id || '' });
+      toast.success(res?.message || "Karyawan baru berhasil ditambahkan!");
       await fetchEmployees();
     } catch (error: any) {
-      alert("Gagal menambahkan karyawan: " + error.message);
-    } finally {
-      setIsSubmitting(false);
+      toast.error("Gagal menambahkan karyawan: " + error.message);
     }
   };
 
-  const handleEditSubmit = async () => {
+  const handleEditSubmit = async (data: EditEmployeeFormValues) => {
     if (!selectedEmployee) return;
     try {
-      setIsSubmitting(true);
       await fetcher(`/admin/users/${selectedEmployee.id}`, {
         method: 'PUT',
         body: JSON.stringify({
-          name: selectedEmployee.name,
-          phone: selectedEmployee.phone,
-          roleId: selectedEmployee.roleId,
-          branchId: selectedEmployee.branchId || null
+          name: data.fullName,
+          phone: data.phone,
+          roleId: data.roleId,
+          branchId: data.branchId || null
         })
       });
       setEditModalOpen(false);
+      toast.success("Karyawan berhasil diperbarui!");
       await fetchEmployees();
     } catch (error: any) {
-      alert("Gagal mengupdate karyawan: " + error.message);
-    } finally {
-      setIsSubmitting(false);
+      toast.error("Gagal mengupdate karyawan: " + error.message);
     }
+  };
+
+  const openEditModal = (emp: any) => {
+    setSelectedEmployee(emp);
+    editForm.reset({
+      fullName: emp.name,
+      phone: emp.phone || '',
+      roleId: emp.roleId || '',
+      branchId: emp.branchId || ''
+    });
+    setEditModalOpen(true);
+    setActiveDropdown(null);
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Apakah Anda yakin ingin menonaktifkan/menghapus karyawan ini?")) return;
     try {
       await fetcher(`/admin/users/${id}`, { method: 'DELETE' });
+      toast.success("Karyawan berhasil dinonaktifkan/dihapus!");
       await fetchEmployees();
     } catch (error: any) {
-      alert("Gagal menghapus karyawan: " + error.message);
+      toast.error("Gagal menghapus karyawan: " + error.message);
     }
   };
 
@@ -117,9 +177,9 @@ export default function KaryawanPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const totalPages = Math.ceil(employees.length / itemsPerPage);
+  // Since pagination is server-side, paginatedData is just employees
+  const paginatedData = employees;
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = employees.slice(startIndex, startIndex + itemsPerPage);
 
   const totalKaryawan = employees.length;
   const aktifKaryawan = employees.filter(e => e.status === "Aktif").length;
@@ -248,11 +308,23 @@ export default function KaryawanPage() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
               <Input
                 type="text"
-                placeholder="Cari nama atau ID..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Cari nama atau email..."
                 className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-pink-500 focus-visible:ring-offset-0 focus-visible:border-pink-500 h-10 rounded-xl"
               />
             </div>
-            <select className="px-4 py-2 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[160px] shadow-sm transition-all">
+            <select 
+              value={branchFilter}
+              onChange={(e) => {
+                setBranchFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-4 py-2 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[160px] shadow-sm transition-all"
+            >
               <option value="all">Semua Cabang</option>
               <option value="sudirman">Mirayya Sudirman</option>
               <option value="kemang">Mirayya Kemang</option>
@@ -339,9 +411,7 @@ export default function KaryawanPage() {
                             className="w-full px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-pink-600 flex items-center transition-colors"
                             onClick={(e) => {
                               e.preventDefault();
-                              setSelectedEmployee(emp);
-                              setEditModalOpen(true);
-                              setActiveDropdown(null);
+                              openEditModal(emp);
                             }}
                           >
                             <Edit className="w-4 h-4 mr-2" /> Edit Karyawan
@@ -368,7 +438,7 @@ export default function KaryawanPage() {
           {/* Pagination Controls */}
           <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
             <div className="text-sm text-slate-500">
-              Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, employees.length)}</span> dari <span className="font-medium text-slate-700">{employees.length}</span> data
+              Menampilkan <span className="font-medium text-slate-700">{employees.length > 0 ? startIndex + 1 : 0}</span> - <span className="font-medium text-slate-700">{startIndex + employees.length}</span> data
             </div>
             <div className="flex items-center gap-1.5">
               <Button 
@@ -481,96 +551,113 @@ export default function KaryawanPage() {
       {/* Edit Modal */}
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
         <DialogContent className="sm:max-w-[450px] p-6 max-h-[90vh] flex flex-col">
-          <DialogHeader className="shrink-0">
-            <DialogTitle className="text-xl font-bold text-slate-800">Edit Karyawan</DialogTitle>
-            <DialogDescription className="text-slate-500">
-              Perbarui data informasi karyawan di sini. Klik simpan saat selesai.
-            </DialogDescription>
-          </DialogHeader>
-          {selectedEmployee && (
-            <div className="grid gap-4 py-2 mt-2 overflow-y-auto pr-1 flex-grow scrollbar-thin scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
-              <div className="grid gap-2">
-                <Label htmlFor="name" className="text-slate-700 font-semibold">Nama Lengkap</Label>
-                <Input id="name" value={selectedEmployee.name} onChange={(e) => setSelectedEmployee({...selectedEmployee, name: e.target.value})} className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+          <form onSubmit={editForm.handleSubmit(handleEditSubmit)} className="flex flex-col h-full overflow-hidden">
+            <DialogHeader className="shrink-0 mb-4">
+              <DialogTitle className="text-xl font-bold text-slate-800">Edit Karyawan</DialogTitle>
+              <DialogDescription className="text-slate-500">
+                Perbarui data informasi karyawan di sini. Klik simpan saat selesai.
+              </DialogDescription>
+            </DialogHeader>
+            {selectedEmployee && (
+              <div className="grid gap-4 py-2 mt-2 overflow-y-auto pr-1 flex-grow scrollbar-thin scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
+                <div className="grid gap-2">
+                  <Label htmlFor="name" className="text-slate-700 font-semibold">Nama Lengkap</Label>
+                  <Input id="name" {...editForm.register("fullName")} className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+                  {editForm.formState.errors.fullName && <p className="text-xs text-rose-500">{editForm.formState.errors.fullName.message}</p>}
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="email" className="text-slate-700 font-semibold">Alamat Email</Label>
+                  <Input id="email" type="email" value={selectedEmployee.email} disabled className="bg-slate-50 focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+                  <p className="text-xs text-slate-500">Email tidak bisa diubah.</p>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="phone" className="text-slate-700 font-semibold">Nomor HP</Label>
+                  <Input id="phone" type="tel" {...editForm.register("phone")} className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+                  {editForm.formState.errors.phone && <p className="text-xs text-rose-500">{editForm.formState.errors.phone.message}</p>}
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="role" className="text-slate-700 font-semibold">Role (Peran)</Label>
+                  <select id="role" {...editForm.register("roleId")} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
+                    {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  </select>
+                  {editForm.formState.errors.roleId && <p className="text-xs text-rose-500">{editForm.formState.errors.roleId.message}</p>}
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="branch" className="text-slate-700 font-semibold">Penempatan Cabang</Label>
+                  <select id="branch" {...editForm.register("branchId")} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
+                    <option value="">-- Pilih Cabang --</option>
+                    {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email" className="text-slate-700 font-semibold">Alamat Email</Label>
-                <Input id="email" type="email" value={selectedEmployee.email} disabled className="bg-slate-50 focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="phone" className="text-slate-700 font-semibold">Nomor HP</Label>
-                <Input id="phone" type="tel" value={selectedEmployee.phone || ''} onChange={(e) => setSelectedEmployee({...selectedEmployee, phone: e.target.value})} className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="role" className="text-slate-700 font-semibold">Role (Peran)</Label>
-                <select id="role" value={selectedEmployee.roleId || ''} onChange={(e) => setSelectedEmployee({...selectedEmployee, roleId: e.target.value})} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
-                  {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                </select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="branch" className="text-slate-700 font-semibold">Penempatan Cabang</Label>
-                <select id="branch" value={selectedEmployee.branchId || ''} onChange={(e) => setSelectedEmployee({...selectedEmployee, branchId: e.target.value})} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
-                  <option value="">-- Pilih Cabang --</option>
-                  {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                </select>
-              </div>
-            </div>
-          )}
-          <DialogFooter className="sm:justify-end gap-2 border-t border-slate-100 pt-5 mt-2 shrink-0">
-            <Button variant="outline" onClick={() => setEditModalOpen(false)} className="font-semibold" disabled={isSubmitting}>Batal</Button>
-            <Button className="bg-pink-600 hover:bg-pink-700 text-white font-semibold" onClick={handleEditSubmit} disabled={isSubmitting}>
-              {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
-            </Button>
-          </DialogFooter>
+            )}
+            <DialogFooter className="sm:justify-end gap-2 border-t border-slate-100 pt-5 mt-2 shrink-0">
+              <Button type="button" variant="outline" onClick={() => setEditModalOpen(false)} className="font-semibold" disabled={editForm.formState.isSubmitting}>Batal</Button>
+              <Button type="submit" className="bg-pink-600 hover:bg-pink-700 text-white font-semibold" disabled={editForm.formState.isSubmitting}>
+                {editForm.formState.isSubmitting ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Menyimpan...</>
+                ) : "Simpan Perubahan"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
       {/* Add Modal */}
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
         <DialogContent className="sm:max-w-[450px] p-6 max-h-[90vh] flex flex-col">
-          <DialogHeader className="shrink-0">
-            <DialogTitle className="text-xl font-bold text-slate-800">Tambah Karyawan</DialogTitle>
-            <DialogDescription className="text-slate-500">
-              Isi data lengkap karyawan baru di bawah ini.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-2 mt-2 overflow-y-auto pr-1 flex-grow scrollbar-thin scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
-            <div className="grid gap-2">
-              <Label htmlFor="add-name" className="text-slate-700 font-semibold">Nama Lengkap</Label>
-              <Input id="add-name" value={newEmp.name} onChange={(e) => setNewEmp({...newEmp, name: e.target.value})} placeholder="Masukkan nama karyawan" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+          <form onSubmit={addForm.handleSubmit(handleAddSubmit)} className="flex flex-col h-full overflow-hidden">
+            <DialogHeader className="shrink-0 mb-4">
+              <DialogTitle className="text-xl font-bold text-slate-800">Tambah Karyawan</DialogTitle>
+              <DialogDescription className="text-slate-500">
+                Isi data lengkap karyawan baru di bawah ini.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-2 mt-2 overflow-y-auto pr-1 flex-grow scrollbar-thin scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300">
+              <div className="grid gap-2">
+                <Label htmlFor="add-name" className="text-slate-700 font-semibold">Nama Lengkap</Label>
+                <Input id="add-name" {...addForm.register("fullName")} placeholder="Masukkan nama karyawan" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+                {addForm.formState.errors.fullName && <p className="text-xs text-rose-500">{addForm.formState.errors.fullName.message}</p>}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="add-email" className="text-slate-700 font-semibold">Alamat Email</Label>
+                <Input id="add-email" type="email" {...addForm.register("email")} placeholder="contoh@mirayya.com" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+                {addForm.formState.errors.email && <p className="text-xs text-rose-500">{addForm.formState.errors.email.message}</p>}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="add-phone" className="text-slate-700 font-semibold">Nomor HP</Label>
+                <Input id="add-phone" type="tel" {...addForm.register("phone")} placeholder="08xx-xxxx-xxxx" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+                {addForm.formState.errors.phone && <p className="text-xs text-rose-500">{addForm.formState.errors.phone.message}</p>}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="add-password" className="text-slate-700 font-semibold">Password Sementara</Label>
+                <Input id="add-password" type="text" {...addForm.register("password")} placeholder="password123" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
+                {addForm.formState.errors.password && <p className="text-xs text-rose-500">{addForm.formState.errors.password.message}</p>}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="add-role" className="text-slate-700 font-semibold">Role (Peran)</Label>
+                <select id="add-role" {...addForm.register("roleId")} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
+                  {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                </select>
+                {addForm.formState.errors.roleId && <p className="text-xs text-rose-500">{addForm.formState.errors.roleId.message}</p>}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="add-branch" className="text-slate-700 font-semibold">Penempatan Cabang</Label>
+                <select id="add-branch" {...addForm.register("branchId")} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
+                  <option value="">-- Pilih Cabang --</option>
+                  {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                </select>
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="add-email" className="text-slate-700 font-semibold">Alamat Email</Label>
-              <Input id="add-email" type="email" value={newEmp.email} onChange={(e) => setNewEmp({...newEmp, email: e.target.value})} placeholder="contoh@mirayya.com" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="add-phone" className="text-slate-700 font-semibold">Nomor HP</Label>
-              <Input id="add-phone" type="tel" value={newEmp.phone} onChange={(e) => setNewEmp({...newEmp, phone: e.target.value})} placeholder="08xx-xxxx-xxxx" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="add-password" className="text-slate-700 font-semibold">Password Sementara</Label>
-              <Input id="add-password" type="text" value={newEmp.password} onChange={(e) => setNewEmp({...newEmp, password: e.target.value})} placeholder="password123" className="focus-visible:ring-pink-500 border-slate-300 font-medium h-10" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="add-role" className="text-slate-700 font-semibold">Role (Peran)</Label>
-              <select id="add-role" value={newEmp.roleId} onChange={(e) => setNewEmp({...newEmp, roleId: e.target.value})} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
-                {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-              </select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="add-branch" className="text-slate-700 font-semibold">Penempatan Cabang</Label>
-              <select id="add-branch" value={newEmp.branchId} onChange={(e) => setNewEmp({...newEmp, branchId: e.target.value})} className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 font-medium text-slate-800 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:border-transparent">
-                <option value="">-- Pilih Cabang --</option>
-                {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
-            </div>
-          </div>
-          <DialogFooter className="sm:justify-end gap-2 border-t border-slate-100 pt-5 mt-2 shrink-0">
-            <Button variant="outline" onClick={() => setAddModalOpen(false)} className="font-semibold" disabled={isSubmitting}>Batal</Button>
-            <Button className="bg-pink-600 hover:bg-pink-700 text-white font-semibold" onClick={handleAddSubmit} disabled={isSubmitting}>
-              {isSubmitting ? "Menyimpan..." : "Simpan Data"}
-            </Button>
-          </DialogFooter>
+            <DialogFooter className="sm:justify-end gap-2 border-t border-slate-100 pt-5 mt-2 shrink-0">
+              <Button type="button" variant="outline" onClick={() => setAddModalOpen(false)} className="font-semibold" disabled={addForm.formState.isSubmitting}>Batal</Button>
+              <Button type="submit" className="bg-pink-600 hover:bg-pink-700 text-white font-semibold" disabled={addForm.formState.isSubmitting}>
+                {addForm.formState.isSubmitting ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Menyimpan...</>
+                ) : "Simpan Data"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </motion.div>

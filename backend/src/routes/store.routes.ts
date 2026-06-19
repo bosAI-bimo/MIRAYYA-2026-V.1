@@ -2,8 +2,12 @@ import { Router } from "express";
 import { db } from "../db";
 import { eodReports, orders, orderItems, pettyCashTransactions, attendance, branches, users } from "../db/schema";
 import { sql, eq } from "drizzle-orm";
+import { requireAuth, requireRole } from "../middlewares/authMiddleware";
 
 const router = Router();
+
+router.use(requireAuth);
+router.use(requireRole("store_leader", "owner"));
 
 router.get("/dashboard-stats", async (req, res) => {
   try {
@@ -39,21 +43,21 @@ router.get("/dashboard-stats", async (req, res) => {
 router.get("/inventory", async (req, res) => {
   try {
     const inventoryData = [
-      { code: "SKN-001", name: "Mirayya Glow Serum", stock: 45, minStock: 20 },
-      { code: "SKN-002", name: "Mirayya Hydrating Toner", stock: 12, minStock: 15 },
-      { code: "MKP-001", name: "Matte Lip Cream - Rose", stock: 5, minStock: 15 },
-      { code: "MKP-002", name: "Flawless Cushion 01", stock: 28, minStock: 10 },
-      { code: "MKP-003", name: "Flawless Cushion 02", stock: 32, minStock: 10 },
-      { code: "BDY-001", name: "Brightening Body Lotion", stock: 8, minStock: 10 },
-      { code: "SKN-003", name: "Mirayya Acne Spot Treatment", stock: 60, minStock: 15 },
-      { code: "MKP-004", name: "Lip Tint - Peach", stock: 15, minStock: 20 },
-      { code: "MKP-005", name: "Lip Tint - Berry", stock: 0, minStock: 20 },
-      { code: "BDY-002", name: "Exfoliating Body Scrub", stock: 40, minStock: 15 },
-      { code: "SKN-004", name: "Sunscreen SPF 50", stock: 55, minStock: 30 },
-      { code: "SKN-005", name: "Gentle Facial Wash", stock: 22, minStock: 25 },
-      { code: "MKP-006", name: "Mascara Waterproof", stock: 10, minStock: 15 },
-      { code: "MKP-007", name: "Eyebrow Pencil - Brown", stock: 75, minStock: 30 },
-      { code: "BDY-003", name: "Moisturizing Shower Gel", stock: 18, minStock: 20 },
+      { code: "SKN-001", name: "Mirayya Glow Serum", category: "Skincare", hpp: 65000, sell: 120000, stock: 45, minStock: 20, movement: "slow" },
+      { code: "SKN-002", name: "Mirayya Hydrating Toner", category: "Skincare", hpp: 45000, sell: 85000, stock: 12, minStock: 15, movement: "fast" },
+      { code: "MKP-001", name: "Matte Lip Cream - Rose", category: "Makeup", hpp: 35000, sell: 75000, stock: 5, minStock: 15, movement: "fast" },
+      { code: "MKP-002", name: "Flawless Cushion 01", category: "Makeup", hpp: 80000, sell: 150000, stock: 28, minStock: 10, movement: "slow" },
+      { code: "MKP-003", name: "Flawless Cushion 02", category: "Makeup", hpp: 80000, sell: 150000, stock: 32, minStock: 10, movement: "slow" },
+      { code: "BDY-001", name: "Brightening Body Lotion", category: "Bodycare", hpp: 50000, sell: 95000, stock: 8, minStock: 10, movement: "fast" },
+      { code: "SKN-003", name: "Mirayya Acne Spot Treatment", category: "Skincare", hpp: 55000, sell: 105000, stock: 60, minStock: 15, movement: "slow" },
+      { code: "MKP-004", name: "Lip Tint - Peach", category: "Makeup", hpp: 30000, sell: 65000, stock: 15, minStock: 20, movement: "fast" },
+      { code: "MKP-005", name: "Lip Tint - Berry", category: "Makeup", hpp: 30000, sell: 65000, stock: 0, minStock: 20, movement: "fast" },
+      { code: "BDY-002", name: "Exfoliating Body Scrub", category: "Bodycare", hpp: 60000, sell: 110000, stock: 40, minStock: 15, movement: "slow" },
+      { code: "SKN-004", name: "Sunscreen SPF 50", category: "Skincare", hpp: 40000, sell: 80000, stock: 55, minStock: 30, movement: "slow" },
+      { code: "SKN-005", name: "Gentle Facial Wash", category: "Skincare", hpp: 35000, sell: 70000, stock: 22, minStock: 25, movement: "fast" },
+      { code: "MKP-006", name: "Mascara Waterproof", category: "Makeup", hpp: 45000, sell: 90000, stock: 10, minStock: 15, movement: "fast" },
+      { code: "MKP-007", name: "Eyebrow Pencil - Brown", category: "Makeup", hpp: 25000, sell: 50000, stock: 75, minStock: 30, movement: "dead" },
+      { code: "BDY-003", name: "Moisturizing Shower Gel", category: "Bodycare", hpp: 45000, sell: 85000, stock: 18, minStock: 20, movement: "fast" },
     ];
     res.json(inventoryData);
   } catch (error) {
@@ -75,7 +79,14 @@ router.get("/orders", async (req, res) => {
 // Transactional endpoint for creating Order with Order Items
 router.post("/orders", async (req, res) => {
   try {
-    const { branchId, createdBy, totalAmount, budgetId, items } = req.body;
+    const { totalAmount, budgetId, items } = req.body;
+    let branchId = (req as any).user?.branchId || req.body.branchId;
+    const createdBy = (req as any).user?.id;
+
+    if (!branchId) {
+      const firstBranch = await db.select().from(branches).limit(1);
+      if (firstBranch.length > 0) branchId = firstBranch[0].id;
+    }
     
     // We will use a db transaction
     const result = await db.transaction(async (tx) => {
@@ -142,7 +153,7 @@ router.delete("/orders/:id", async (req, res) => {
 
 router.get("/eod-reports", async (req, res) => {
   try {
-    const allEod = await db.select().from(eodReports);
+    const allEod = await db.select().from(eodReports).where(eq(eodReports.isDeleted, false));
     res.json(allEod);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -151,25 +162,14 @@ router.get("/eod-reports", async (req, res) => {
 
 router.post("/eod-reports", async (req, res) => {
   try {
-    let { branchId, reportDate, totalOmzet, cashAmount, edcAmount, qrisAmount, pettyCashUsed, evidencePhotos, submittedBy } = req.body;
+    let { reportDate, totalOmzet, cashAmount, edcAmount, qrisAmount, pettyCashUsed, evidencePhotos } = req.body;
     
-    // Auto-fix dummy IDs for testing
-    const firstBranch = await db.select().from(branches).limit(1);
-    if (firstBranch.length > 0) branchId = firstBranch[0].id;
-    
-    let firstUser = await db.select().from(users).limit(1);
-    if (firstUser.length === 0) {
-      const dummyUser = await db.insert(users).values({
-        id: "dummy-user-id",
-        name: "Dummy User",
-        email: "dummy@example.com",
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }).returning();
-      submittedBy = dummyUser[0].id;
-    } else {
-      submittedBy = firstUser[0].id;
+    let branchId = (req as any).user?.branchId || req.body.branchId;
+    const submittedBy = (req as any).user?.id;
+
+    if (!branchId) {
+      const firstBranch = await db.select().from(branches).limit(1);
+      if (firstBranch.length > 0) branchId = firstBranch[0].id;
     }
 
     const newEod = await db.insert(eodReports)
@@ -199,7 +199,11 @@ router.put("/eod-reports/:id", async (req, res) => {
 router.delete("/eod-reports/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedEod = await db.delete(eodReports).where(eq(eodReports.id, id as any)).returning();
+    const currentUserId = (req as any).user?.id || "system";
+    const deletedEod = await db.update(eodReports)
+      .set({ isDeleted: true, updatedBy: currentUserId })
+      .where(eq(eodReports.id, id as any))
+      .returning();
     if (deletedEod.length === 0) return res.status(404).json({ message: "EOD Report not found" });
     res.json({ message: "EOD Report deleted" });
   } catch (error: any) {
@@ -211,7 +215,7 @@ router.delete("/eod-reports/:id", async (req, res) => {
 
 router.get("/petty-cash", async (req, res) => {
   try {
-    const allPettyCash = await db.select().from(pettyCashTransactions);
+    const allPettyCash = await db.select().from(pettyCashTransactions).where(eq(pettyCashTransactions.isDeleted, false));
     res.json(allPettyCash);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -220,25 +224,14 @@ router.get("/petty-cash", async (req, res) => {
 
 router.post("/petty-cash", async (req, res) => {
   try {
-    let { branchId, description, amount, receiptPhotoUrl, recordedBy } = req.body;
+    let { description, amount, receiptPhotoUrl } = req.body;
 
-    // Auto-fix dummy IDs for testing
-    const firstBranch = await db.select().from(branches).limit(1);
-    if (firstBranch.length > 0) branchId = firstBranch[0].id;
-    
-    let firstUser = await db.select().from(users).limit(1);
-    if (firstUser.length === 0) {
-      const dummyUser = await db.insert(users).values({
-        id: "dummy-user-id",
-        name: "Dummy User",
-        email: "dummy@example.com",
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }).returning();
-      recordedBy = dummyUser[0].id;
-    } else {
-      recordedBy = firstUser[0].id;
+    let branchId = (req as any).user?.branchId || req.body.branchId;
+    const recordedBy = (req as any).user?.id;
+
+    if (!branchId) {
+      const firstBranch = await db.select().from(branches).limit(1);
+      if (firstBranch.length > 0) branchId = firstBranch[0].id;
     }
 
     const newPettyCash = await db.insert(pettyCashTransactions)
@@ -268,7 +261,11 @@ router.put("/petty-cash/:id", async (req, res) => {
 router.delete("/petty-cash/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedPettyCash = await db.delete(pettyCashTransactions).where(eq(pettyCashTransactions.id, id as any)).returning();
+    const currentUserId = (req as any).user?.id || "system";
+    const deletedPettyCash = await db.update(pettyCashTransactions)
+      .set({ isDeleted: true, updatedBy: currentUserId })
+      .where(eq(pettyCashTransactions.id, id as any))
+      .returning();
     if (deletedPettyCash.length === 0) return res.status(404).json({ message: "Petty Cash not found" });
     res.json({ message: "Petty Cash deleted" });
   } catch (error: any) {

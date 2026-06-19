@@ -4,31 +4,57 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Plus, FileText, Download, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Image as ImageIcon, X as XIcon, Wallet, TrendingDown, TrendingUp, Settings, Upload } from "lucide-react";
+import { Search, Filter, Plus, FileText, Download, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Image as ImageIcon, X as XIcon, Wallet, TrendingDown, TrendingUp, Settings, Upload, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { BranchSelector } from "@/components/ui/branch-selector";
 
-const pettyCashData = [
-  { date: "11 Jun 2026", branch: "Mirayya Sudirman", desc: "Beli galon air (4 buah)", by: "Sari (Store Leader)", amount: "Rp 80.000" },
-  { date: "11 Jun 2026", branch: "Mirayya Sudirman", desc: "Tisu wajah & toilet", by: "Sari (Store Leader)", amount: "Rp 70.000" },
-  { date: "10 Jun 2026", branch: "Mirayya Kemang", desc: "Ongkir GoSend antar barang", by: "Budi (Store Leader)", amount: "Rp 45.000" },
-  { date: "09 Jun 2026", branch: "Mirayya PIK", desc: "Plastik sampah", by: "Rina (Store Leader)", amount: "Rp 35.000" },
-  { date: "09 Jun 2026", branch: "Mirayya Kelapa Gading", desc: "Beli lampu LED pengganti", by: "Tomo (Store Leader)", amount: "Rp 120.000" },
-  { date: "08 Jun 2026", branch: "Mirayya Bintaro", desc: "Beli spidol & lakban", by: "Nina (Store Leader)", amount: "Rp 55.000" },
-  { date: "08 Jun 2026", branch: "Pusat", desc: "Beli materai 10rb (10 pcs)", by: "Anita (Admin)", amount: "Rp 100.000" },
-  { date: "07 Jun 2026", branch: "Mirayya Sudirman", desc: "Beli kopi & gula", by: "Sari (Store Leader)", amount: "Rp 65.000" },
-  { date: "06 Jun 2026", branch: "Mirayya Kemang", desc: "Pembersih lantai", by: "Budi (Store Leader)", amount: "Rp 40.000" },
-  { date: "05 Jun 2026", branch: "Mirayya PIK", desc: "Cetak brosur promo", by: "Rina (Store Leader)", amount: "Rp 150.000" },
-  { date: "05 Jun 2026", branch: "Pusat", desc: "Beli ATK", by: "Anita (Admin)", amount: "Rp 250.000" },
-  { date: "04 Jun 2026", branch: "Mirayya Kelapa Gading", desc: "Beli sabun cuci tangan", by: "Tomo (Store Leader)", amount: "Rp 30.000" },
-  { date: "03 Jun 2026", branch: "Mirayya Bintaro", desc: "Parkir tamu khusus", by: "Nina (Store Leader)", amount: "Rp 20.000" },
-  { date: "02 Jun 2026", branch: "Mirayya Sudirman", desc: "Layanan servis AC", by: "Sari (Store Leader)", amount: "Rp 350.000" },
-  { date: "01 Jun 2026", branch: "Pusat", desc: "Konsumsi meeting bulanan", by: "Anita (Admin)", amount: "Rp 450.000" },
-];
+// Mock fetcher function for demo
+const fetcher = async (url: string) => {
+  return [];
+};
+
+const transactionSchema = z.object({
+  date: z.string().min(1, { message: "Tanggal wajib diisi" }),
+  branch: z.string().min(1, { message: "Cabang wajib dipilih" }),
+  description: z.string().min(3, { message: "Deskripsi minimal 3 karakter" }),
+  amount: z.string().refine((val) => {
+    const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
+    return num > 0;
+  }, { message: "Nominal harus lebih dari 0" }),
+});
+
+type TransactionFormValues = z.infer<typeof transactionSchema>;
 
 export default function PettyCashPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [pettyCashData, setPettyCashData] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    const fetchPettyCash = async () => {
+      try {
+        const data = await fetcher('/store/petty-cash');
+        // Map database fields to UI fields
+        const formattedData = (data || []).map((item: any) => ({
+          id: item.id,
+          date: item.transactionDate ? new Date(item.transactionDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
+          branch: item.branchId || "Pusat",
+          desc: item.description,
+          by: item.recordedBy || "System",
+          amount: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.amount)
+        }));
+        setPettyCashData(formattedData);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchPettyCash();
+  }, []);
 
   const [selectedPettyCash, setSelectedPettyCash] = useState<any>(null);
   const [isPettyCashModalOpen, setIsPettyCashModalOpen] = useState(false);
@@ -71,8 +97,42 @@ export default function PettyCashPage() {
     }));
   };
 
-  const handleSaveAllBudgets = () => {
-    alert("Anggaran petty cash untuk semua cabang berhasil disimpan!");
+  const [isSubmittingBudget, setIsSubmittingBudget] = useState(false);
+
+  const handleSaveAllBudgets = async () => {
+    setIsSubmittingBudget(true);
+    // Simulate API Call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsSubmittingBudget(false);
+    toast.success("Anggaran petty cash untuk semua cabang berhasil disimpan!");
+  };
+
+  const form = useForm<TransactionFormValues>({
+    resolver: zodResolver(transactionSchema),
+    defaultValues: {
+      date: "",
+      branch: "",
+      description: "",
+      amount: "",
+    }
+  });
+
+  const onSubmitTransaction = async (data: TransactionFormValues) => {
+    // Simulate API Call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    toast.success("Transaksi berhasil ditambahkan!");
+    closeAddTransactionModal();
+    form.reset();
+  };
+
+  const amountValue = form.watch("amount");
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9]/g, '');
+    if (val) {
+      form.setValue("amount", new Intl.NumberFormat("id-ID").format(parseInt(val, 10)));
+    } else {
+      form.setValue("amount", "");
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -166,8 +226,15 @@ export default function PettyCashPage() {
             })}
           </div>
           <div className="mt-8 flex justify-end">
-            <Button onClick={handleSaveAllBudgets} className="bg-primary hover:bg-primary/90 text-white font-bold px-8 py-2.5 h-auto rounded-xl shadow-sm">
-              Simpan Semua Anggaran
+            <Button onClick={handleSaveAllBudgets} disabled={isSubmittingBudget} className="bg-primary hover:bg-primary/90 text-white font-bold px-8 py-2.5 h-auto rounded-xl shadow-sm disabled:opacity-70">
+              {isSubmittingBudget ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : (
+                "Simpan Semua Anggaran"
+              )}
             </Button>
           </div>
         </CardContent>
@@ -396,58 +463,78 @@ export default function PettyCashPage() {
                 </button>
               </div>
 
-              <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">Tanggal</label>
-                    <input type="date" className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">Cabang</label>
-                    <select className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer">
-                      <option value="">Pilih Cabang...</option>
-                      <option value="Pusat">Pusat</option>
-                      <option value="Mirayya Sudirman">Mirayya Sudirman</option>
-                      <option value="Mirayya Kemang">Mirayya Kemang</option>
-                      <option value="Mirayya PIK">Mirayya PIK</option>
-                      <option value="Mirayya Kelapa Gading">Mirayya Kelapa Gading</option>
-                      <option value="Mirayya Bintaro">Mirayya Bintaro</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">Deskripsi Pengeluaran</label>
-                  <input type="text" placeholder="Contoh: Beli galon air (4 buah)" className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white" />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">Nominal</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 font-medium text-sm">Rp</span>
-                    <input type="text" placeholder="0" className="w-full pl-9 pr-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white font-medium" />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">Bukti Struk/Kuitansi</label>
-                  <div className="w-full border-2 border-dashed border-slate-300 rounded-lg p-4 flex flex-col items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer group">
-                    <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                      <Upload className="w-4 h-4" />
+              <form onSubmit={form.handleSubmit(onSubmitTransaction)} className="flex flex-col flex-1 overflow-hidden">
+                <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Tanggal</label>
+                      <input 
+                        type="date" 
+                        {...form.register("date")}
+                        className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white" 
+                      />
+                      {form.formState.errors.date && <p className="text-xs text-rose-500">{form.formState.errors.date.message}</p>}
                     </div>
-                    <p className="text-xs font-medium">Klik untuk unggah (Max 5MB)</p>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700">Cabang</label>
+                      <BranchSelector {...form.register("branch")} />
+                      {form.formState.errors.branch && <p className="text-xs text-rose-500">{form.formState.errors.branch.message}</p>}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">Deskripsi Pengeluaran</label>
+                    <input 
+                      type="text" 
+                      placeholder="Contoh: Beli galon air (4 buah)" 
+                      {...form.register("description")}
+                      className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white" 
+                    />
+                    {form.formState.errors.description && <p className="text-xs text-rose-500">{form.formState.errors.description.message}</p>}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">Nominal</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 font-medium text-sm">Rp</span>
+                      <input 
+                        type="text" 
+                        placeholder="0" 
+                        value={amountValue}
+                        onChange={handleAmountChange}
+                        className="w-full pl-9 pr-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white font-medium" 
+                      />
+                    </div>
+                    {form.formState.errors.amount && <p className="text-xs text-rose-500">{form.formState.errors.amount.message}</p>}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700">Bukti Struk/Kuitansi</label>
+                    <div className="w-full border-2 border-dashed border-slate-300 rounded-lg p-4 flex flex-col items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer group">
+                      <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                        <Upload className="w-4 h-4" />
+                      </div>
+                      <p className="text-xs font-medium">Klik untuk unggah (Max 5MB)</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="p-5 border-t border-slate-100 bg-slate-50/80 flex gap-3">
-                <Button onClick={closeAddTransactionModal} variant="outline" className="flex-1 border-slate-200 text-slate-700 hover:bg-slate-100 font-bold h-10 rounded-lg transition-all text-sm">
-                  Batal
-                </Button>
-                <Button onClick={() => { alert('Transaksi berhasil ditambahkan!'); closeAddTransactionModal(); }} className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold h-10 rounded-lg shadow-sm transition-all text-sm">
-                  Simpan
-                </Button>
-              </div>
+                <div className="p-5 border-t border-slate-100 bg-slate-50/80 flex gap-3">
+                  <Button type="button" onClick={closeAddTransactionModal} variant="outline" className="flex-1 border-slate-200 text-slate-700 hover:bg-slate-100 font-bold h-10 rounded-lg transition-all text-sm">
+                    Batal
+                  </Button>
+                  <Button type="submit" disabled={form.formState.isSubmitting} className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold h-10 rounded-lg shadow-sm transition-all text-sm disabled:opacity-70">
+                    {form.formState.isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Menyimpan...
+                      </>
+                    ) : (
+                      "Simpan"
+                    )}
+                  </Button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}

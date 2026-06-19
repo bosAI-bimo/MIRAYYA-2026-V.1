@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,29 +12,17 @@ import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Search, Filter, Download, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Package, AlertTriangle, TrendingDown, ShoppingCart, TrendingUp, Skull, Zap } from "lucide-react";
 import Link from "next/link";
-
-const inventoryData = [
-  { code: "SKN-001", name: "Mirayya Glow Serum", category: "Skincare", hpp: 65000, sell: 120000, stock: 45, minStock: 20, movement: "slow" },
-  { code: "SKN-002", name: "Mirayya Hydrating Toner", category: "Skincare", hpp: 45000, sell: 85000, stock: 12, minStock: 15, movement: "fast" },
-  { code: "MKP-001", name: "Matte Lip Cream - Rose", category: "Makeup", hpp: 35000, sell: 75000, stock: 5, minStock: 15, movement: "fast" },
-  { code: "MKP-002", name: "Flawless Cushion 01", category: "Makeup", hpp: 80000, sell: 150000, stock: 28, minStock: 10, movement: "slow" },
-  { code: "MKP-003", name: "Flawless Cushion 02", category: "Makeup", hpp: 80000, sell: 150000, stock: 32, minStock: 10, movement: "slow" },
-  { code: "BDY-001", name: "Brightening Body Lotion", category: "Bodycare", hpp: 50000, sell: 95000, stock: 8, minStock: 10, movement: "fast" },
-  { code: "SKN-003", name: "Mirayya Acne Spot Treatment", category: "Skincare", hpp: 55000, sell: 105000, stock: 60, minStock: 15, movement: "slow" },
-  { code: "MKP-004", name: "Lip Tint - Peach", category: "Makeup", hpp: 30000, sell: 65000, stock: 15, minStock: 20, movement: "fast" },
-  { code: "MKP-005", name: "Lip Tint - Berry", category: "Makeup", hpp: 30000, sell: 65000, stock: 0, minStock: 20, movement: "fast" },
-  { code: "BDY-002", name: "Exfoliating Body Scrub", category: "Bodycare", hpp: 60000, sell: 110000, stock: 40, minStock: 15, movement: "slow" },
-  { code: "SKN-004", name: "Sunscreen SPF 50", category: "Skincare", hpp: 40000, sell: 80000, stock: 55, minStock: 30, movement: "slow" },
-  { code: "SKN-005", name: "Gentle Facial Wash", category: "Skincare", hpp: 35000, sell: 70000, stock: 22, minStock: 25, movement: "fast" },
-  { code: "MKP-006", name: "Mascara Waterproof", category: "Makeup", hpp: 45000, sell: 90000, stock: 10, minStock: 15, movement: "fast" },
-  { code: "MKP-007", name: "Eyebrow Pencil - Brown", category: "Makeup", hpp: 25000, sell: 50000, stock: 75, minStock: 30, movement: "dead" },
-  { code: "BDY-003", name: "Moisturizing Shower Gel", category: "Bodycare", hpp: 45000, sell: 85000, stock: 18, minStock: 20, movement: "fast" },
-];
+import { fetcher } from "@/lib/api";
 
 export default function InventoryPage() {
   const router = useRouter();
+  const [inventoryData, setInventoryData] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    fetcher('/store/inventory').then(data => setInventoryData(data || []));
+  }, []);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
   const itemsPerPage = 8;

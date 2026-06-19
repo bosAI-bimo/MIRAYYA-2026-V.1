@@ -54,7 +54,6 @@ export default function AbsensiKaryawan() {
       await fetcher('/hr/attendance', {
         method: 'POST',
         body: JSON.stringify({
-          userId: '00000000-0000-0000-0000-000000000000', // placeholder
           attendanceDate: dateStr,
           timeIn: timeStr,
           locationGps: '-6.200000, 106.816666'

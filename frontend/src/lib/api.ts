@@ -4,6 +4,7 @@ export const fetcher = async (url: string, options: RequestInit = {}) => {
   try {
     const res = await fetch(`${API_BASE_URL}${url}`, {
       cache: "no-store",
+      credentials: "include",
       ...options,
       headers: {
         "Content-Type": "application/json",
@@ -13,12 +14,16 @@ export const fetcher = async (url: string, options: RequestInit = {}) => {
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.error || errorData.message || "An error occurred while fetching data");
+      const error = new Error(errorData.error || errorData.message || "An error occurred while fetching data") as any;
+      error.status = res.status;
+      throw error;
     }
 
     return res.json();
-  } catch (error) {
-    console.error(`API Error on ${url}:`, error);
+  } catch (error: any) {
+    if (error.status !== 401) {
+      console.error(`API Error on ${url}:`, error);
+    }
     throw error;
   }
 };

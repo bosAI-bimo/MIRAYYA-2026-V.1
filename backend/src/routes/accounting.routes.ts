@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { db } from "../db";
 import { eodReports, pettyCashTransactions, branches, budgets, revenueTargets, bankReconciliations, users } from "../db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
+import { requireAuth, requireRole } from "../middlewares/authMiddleware";
 
 const router = Router();
+
+router.use(requireAuth);
+router.use(requireRole("accounting", "owner"));
 
 router.get("/dashboard-stats", async (req, res) => {
   try {
@@ -33,7 +37,7 @@ router.get("/dashboard-stats", async (req, res) => {
     })
     .from(eodReports)
     .leftJoin(branches, eq(eodReports.branchId, branches.id))
-    .where(eq(eodReports.status, "PENDING"))
+    .where(and(eq(eodReports.status, "PENDING"), eq(eodReports.isDeleted, false)))
     .orderBy(sql`${eodReports.reportDate} DESC`);
 
     const pendingEodList = pendingEodListRaw.map(eod => ({
@@ -58,7 +62,7 @@ router.get("/dashboard-stats", async (req, res) => {
     })
     .from(eodReports)
     .leftJoin(branches, eq(eodReports.branchId, branches.id))
-    .where(sql`${eodReports.status} != 'PENDING'`)
+    .where(and(sql`${eodReports.status} != 'PENDING'`, eq(eodReports.isDeleted, false)))
     .orderBy(sql`${eodReports.reportDate} DESC`);
     
     const completedEodList = completedEodListRaw.map(eod => ({
@@ -81,6 +85,7 @@ router.get("/dashboard-stats", async (req, res) => {
     .from(pettyCashTransactions)
     .leftJoin(branches, eq(pettyCashTransactions.branchId, branches.id))
     .leftJoin(users, eq(pettyCashTransactions.recordedBy, users.id))
+    .where(eq(pettyCashTransactions.isDeleted, false))
     .orderBy(sql`${pettyCashTransactions.transactionDate} DESC`)
     .limit(10);
 
@@ -225,7 +230,14 @@ router.get("/bank-reconciliations", async (req, res) => {
 
 router.post("/bank-reconciliations", async (req, res) => {
   try {
-    const { branchId, bankAccount, reconcileDate, bankStatementBalance, posSalesBalance, difference, notes } = req.body;
+    const { bankAccount, reconcileDate, bankStatementBalance, posSalesBalance, difference, notes } = req.body;
+    let branchId = req.body.branchId || (req as any).user?.branchId;
+    
+    if (!branchId) {
+      const firstBranch = await db.select().from(branches).limit(1);
+      if (firstBranch.length > 0) branchId = firstBranch[0].id;
+    }
+
     const newRecon = await db.insert(bankReconciliations)
       .values({ branchId, bankAccount, reconcileDate, bankStatementBalance, posSalesBalance, difference, notes })
       .returning();
@@ -258,6 +270,155 @@ router.delete("/bank-reconciliations/:id", async (req, res) => {
       .returning();
     if (deletedRecon.length === 0) return res.status(404).json({ message: "Bank Reconciliation not found" });
     res.json({ message: "Bank Reconciliation deleted" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- EOD REPORTS (For Approval) ---
+
+router.get("/eod-reports", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const branchId = req.query.branchId as string;
+    const status = req.query.status as string; // 'pending' or 'completed'
+    
+    const offset = (page - 1) * limit;
+    
+    let conditions = [eq(eodReports.isDeleted, false)];
+    if (branchId && branchId !== 'all') {
+       conditions.push(eq(eodReports.branchId, branchId));
+    }
+    if (status === 'pending') {
+       conditions.push(eq(eodReports.status, 'PENDING'));
+    } else if (status === 'completed') {
+       // Assuming completed means anything not PENDING
+       conditions.push(sql`${eodReports.status} != 'PENDING'`);
+    }
+    
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    // Count total rows
+    const totalQuery = await db.select({ count: sql<number>`count(*)` })
+      .from(eodReports)
+      .where(whereClause);
+      
+    const total = Number(totalQuery[0]?.count) || 0;
+
+    const reports = await db.select({
+      id: eodReports.id,
+      reportDate: eodReports.reportDate,
+      totalOmzet: eodReports.totalOmzet,
+      cashAmount: eodReports.cashAmount,
+      edcAmount: eodReports.edcAmount,
+      qrisAmount: eodReports.qrisAmount,
+      pettyCashUsed: eodReports.pettyCashUsed,
+      status: eodReports.status,
+      branchId: eodReports.branchId,
+      branchName: branches.name,
+    })
+    .from(eodReports)
+    .leftJoin(branches, eq(eodReports.branchId, branches.id))
+    .where(whereClause)
+    .orderBy(sql`${eodReports.reportDate} DESC`)
+    .limit(limit)
+    .offset(offset);
+    
+    res.json({
+      data: reports,
+      metadata: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put("/eod-reports/:id/approve", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body; // APPROVED or REJECTED
+    const updated = await db.update(eodReports)
+      .set({ status })
+      .where(eq(eodReports.id, id as any))
+      .returning();
+    res.json(updated[0]);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- ACCOUNTING REPORTS ---
+
+router.get("/profit-loss", async (req, res) => {
+  try {
+    const { month, branchId } = req.query;
+    // Dummy logic for now
+    res.json({
+      month,
+      branchId,
+      revenue: 50000000,
+      cogs: 20000000,
+      grossProfit: 30000000,
+      operatingExpenses: 10000000,
+      netProfit: 20000000
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/cash-flow", async (req, res) => {
+  try {
+    const { month, branchId } = req.query;
+    // Dummy logic for now
+    res.json({
+      month,
+      branchId,
+      operatingActivities: 15000000,
+      investingActivities: -5000000,
+      financingActivities: 0,
+      netCashFlow: 10000000,
+      endingBalance: 45000000
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- JOURNAL ENTRIES ---
+
+import { journalEntries } from "../db/schema";
+
+router.get("/journal-entries", async (req, res) => {
+  try {
+    const entries = await db.select().from(journalEntries).where(eq(journalEntries.isDeleted, false));
+    res.json(entries);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/journal-entries", async (req, res) => {
+  try {
+    const { entryDate, description, debitAccount, creditAccount, amount } = req.body;
+    let branchId = req.body.branchId || (req as any).user?.branchId;
+    const createdBy = (req as any).user?.id;
+
+    if (!branchId) {
+      const firstBranch = await db.select().from(branches).limit(1);
+      if (firstBranch.length > 0) branchId = firstBranch[0].id;
+    }
+
+    const newEntry = await db.insert(journalEntries)
+      .values({ entryDate, description, debitAccount, creditAccount, amount, branchId, createdBy })
+      .returning();
+    res.status(201).json(newEntry[0]);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

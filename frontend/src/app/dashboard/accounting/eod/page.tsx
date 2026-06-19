@@ -1,34 +1,72 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Search, Eye, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Download, Printer, Check, X as XIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-
-const dummyData = [
-  { branch: "Mirayya Sudirman", date: "11 Jun 2026", omzet: "Rp 12.500.000", petty: "Rp 150.000", cash: "Rp 4.500.000", edc: "Rp 5.000.000", qris: "Rp 3.000.000", pettyCash: "Rp 150.000", setoranBersih: "Rp 4.350.000", status: "Menunggu" },
-  { branch: "Mirayya Kemang", date: "11 Jun 2026", omzet: "Rp 8.200.000", petty: "Rp 45.000", cash: "Rp 2.200.000", edc: "Rp 3.000.000", qris: "Rp 3.000.000", pettyCash: "Rp 45.000", setoranBersih: "Rp 2.155.000", status: "Menunggu" },
-  { branch: "Mirayya PIK", date: "10 Jun 2026", omzet: "Rp 15.100.000", petty: "Rp 35.000", cash: "Rp 5.100.000", edc: "Rp 6.000.000", qris: "Rp 4.000.000", pettyCash: "Rp 35.000", setoranBersih: "Rp 5.065.000", status: "Menunggu" },
-  { branch: "Mirayya Kelapa Gading", date: "10 Jun 2026", omzet: "Rp 9.800.000", petty: "Rp 0", cash: "Rp 3.000.000", edc: "Rp 4.000.000", qris: "Rp 2.800.000", pettyCash: "Rp 0", setoranBersih: "Rp 3.000.000", status: "Disetujui" },
-  { branch: "Mirayya Bintaro", date: "09 Jun 2026", omzet: "Rp 11.200.000", petty: "Rp 120.000", cash: "Rp 4.200.000", edc: "Rp 4.000.000", qris: "Rp 3.000.000", pettyCash: "Rp 120.000", setoranBersih: "Rp 4.080.000", status: "Ditolak" },
-  { branch: "Mirayya Sudirman", date: "10 Jun 2026", omzet: "Rp 11.000.000", petty: "Rp 100.000", status: "Disetujui" },
-  { branch: "Mirayya Kemang", date: "10 Jun 2026", omzet: "Rp 7.500.000", petty: "Rp 50.000", status: "Disetujui" },
-  { branch: "Mirayya PIK", date: "09 Jun 2026", omzet: "Rp 14.200.000", petty: "Rp 15.000", status: "Disetujui" },
-  { branch: "Mirayya Kelapa Gading", date: "09 Jun 2026", omzet: "Rp 10.500.000", petty: "Rp 0", status: "Disetujui" },
-  { branch: "Mirayya Bintaro", date: "08 Jun 2026", omzet: "Rp 12.800.000", petty: "Rp 100.000", status: "Disetujui" },
-  { branch: "Mirayya Sudirman", date: "09 Jun 2026", omzet: "Rp 13.200.000", petty: "Rp 80.000", status: "Disetujui" },
-  { branch: "Mirayya Kemang", date: "09 Jun 2026", omzet: "Rp 8.900.000", petty: "Rp 20.000", status: "Disetujui" },
-  { branch: "Mirayya PIK", date: "08 Jun 2026", omzet: "Rp 16.500.000", petty: "Rp 50.000", status: "Disetujui" },
-  { branch: "Mirayya Kelapa Gading", date: "08 Jun 2026", omzet: "Rp 9.200.000", petty: "Rp 0", status: "Disetujui" },
-  { branch: "Mirayya Bintaro", date: "07 Jun 2026", omzet: "Rp 10.900.000", petty: "Rp 150.000", status: "Disetujui" },
-];
+import { fetcher } from "@/lib/api";
 
 export default function EODApprovalPage() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [filterStatus, setFilterStatus] = useState("pending");
-  const itemsPerPage = 5;
+  const [branchFilter, setBranchFilter] = useState("all");
+  const itemsPerPage = 10;
+
+  const [eodData, setEodData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const queryParams = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: itemsPerPage.toString(),
+        branchId: branchFilter,
+        status: filterStatus
+      });
+      const res = await fetcher(`/accounting/eod-reports?${queryParams.toString()}`);
+      if (res && res.data) {
+        setEodData(res.data.map((d: any) => ({
+          id: d.id,
+          branch: d.branchName,
+          date: new Date(d.reportDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+          omzet: `Rp ${Number(d.totalOmzet).toLocaleString('id-ID')}`,
+          cash: `Rp ${Number(d.cashAmount).toLocaleString('id-ID')}`,
+          edc: `Rp ${Number(d.edcAmount).toLocaleString('id-ID')}`,
+          qris: `Rp ${Number(d.qrisAmount).toLocaleString('id-ID')}`,
+          pettyCash: `Rp ${Number(d.pettyCashUsed).toLocaleString('id-ID')}`,
+          setoranBersih: `Rp ${Number(d.cashAmount - d.pettyCashUsed).toLocaleString('id-ID')}`,
+          status: d.status === 'PENDING' ? 'Menunggu' : d.status === 'APPROVED' ? 'Disetujui' : 'Ditolak'
+        })));
+        setTotalPages(res.metadata?.totalPages || 1);
+      }
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadData();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [currentPage, filterStatus, branchFilter]);
+
+  const handleApproveReject = async (id: string, status: string) => {
+    try {
+      await fetcher(`/accounting/eod-reports/${id}/approve`, {
+        method: "PUT",
+        body: JSON.stringify({ status })
+      });
+      loadData();
+      setIsReviewModalOpen(false);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to update status");
+    }
+  };
 
   const [selectedEOD, setSelectedEOD] = useState<any>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -43,13 +81,8 @@ export default function EODApprovalPage() {
     setTimeout(() => setSelectedEOD(null), 300);
   };
   
-  const filteredData = dummyData.filter(item => 
-    filterStatus === "pending" ? item.status === "Menunggu" : item.status !== "Menunggu"
-  );
-  
-  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
+  const paginatedData = eodData;
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
   const handleFilterChange = (status: string) => {
     setFilterStatus(status);
@@ -106,7 +139,14 @@ export default function EODApprovalPage() {
                 className="pl-9 pr-4 py-2 border-2 border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
-            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]">
+            <select 
+              value={branchFilter}
+              onChange={(e) => {
+                setBranchFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]"
+            >
               <option value="all">Semua Cabang</option>
               <option value="sudirman">Mirayya Sudirman</option>
               <option value="kemang">Mirayya Kemang</option>
@@ -157,10 +197,10 @@ export default function EODApprovalPage() {
                         </Button>
                         {item.status === 'Menunggu' && (
                           <>
-                            <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600" title="Setujui">
+                            <Button variant="outline" size="sm" onClick={() => handleApproveReject(item.id, 'APPROVED')} className="h-8 w-8 p-0 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600" title="Setujui">
                               <CheckCircle className="w-4 h-4 text-emerald-500" />
                             </Button>
-                            <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-rose-200 hover:bg-rose-50 hover:text-rose-600" title="Tolak">
+                            <Button variant="outline" size="sm" onClick={() => handleApproveReject(item.id, 'REJECTED')} className="h-8 w-8 p-0 border-rose-200 hover:bg-rose-50 hover:text-rose-600" title="Tolak">
                               <XCircle className="w-4 h-4 text-rose-500" />
                             </Button>
                           </>
@@ -176,7 +216,7 @@ export default function EODApprovalPage() {
           {/* Pagination Controls */}
           <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
             <div className="text-sm text-slate-500">
-              Menampilkan <span className="font-medium text-slate-700">{filteredData.length > 0 ? startIndex + 1 : 0}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, filteredData.length)}</span> dari <span className="font-medium text-slate-700">{filteredData.length}</span> data
+              Menampilkan <span className="font-medium text-slate-700">{eodData.length > 0 ? startIndex + 1 : 0}</span> - <span className="font-medium text-slate-700">{startIndex + eodData.length}</span> data
             </div>
             <div className="flex items-center gap-1.5">
               <Button 
@@ -308,10 +348,10 @@ export default function EODApprovalPage() {
 
               {/* Footer Actions */}
               <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row gap-3">
-                <Button className="flex-1 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold h-12 rounded-xl transition-all border-none cursor-pointer">
+                <Button onClick={() => handleApproveReject(selectedEOD.id, 'REJECTED')} className="flex-1 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold h-12 rounded-xl transition-all border-none cursor-pointer">
                   <XIcon className="w-5 h-5 mr-2" /> Tolak
                 </Button>
-                <Button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                <Button onClick={() => handleApproveReject(selectedEOD.id, 'APPROVED')} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
                   <Check className="w-5 h-5 mr-2" /> Setujui EOD
                 </Button>
               </div>

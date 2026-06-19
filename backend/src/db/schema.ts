@@ -35,6 +35,9 @@ export const users = pgTable("users", {
   roleId: uuid("role_id").references(() => roles.id),
   branchId: uuid("branch_id").references(() => branches.id),
   phone: varchar("phone", { length: 50 }),
+  employeeId: varchar("employee_id", { length: 50 }).unique(),
+  isDeleted: boolean("is_deleted").default(false),
+  updatedBy: text("updated_by"),
 });
 
 export const session = pgTable("session", {
@@ -81,6 +84,8 @@ export const attendance = pgTable("attendance", {
   timeOut: time("time_out"),
   selfieUrl: text("selfie_url"),
   locationGps: varchar("location_gps", { length: 255 }),
+  isDeleted: boolean("is_deleted").default(false),
+  updatedBy: text("updated_by"),
 });
 
 export const payroll = pgTable("payroll", {
@@ -92,6 +97,8 @@ export const payroll = pgTable("payroll", {
   deductions: decimal("deductions", { precision: 12, scale: 2 }).default("0"),
   netSalary: decimal("net_salary", { precision: 12, scale: 2 }).notNull(),
   slipPdfUrl: text("slip_pdf_url"),
+  isDeleted: boolean("is_deleted").default(false),
+  updatedBy: text("updated_by"),
 });
 
 export const budgets = pgTable("budgets", {
@@ -135,6 +142,8 @@ export const eodReports = pgTable("eod_reports", {
   submittedBy: text("submitted_by").references(() => users.id).notNull(),
   approvedBy: text("approved_by").references(() => users.id),
   status: varchar("status", { length: 50 }).default("PENDING"), // PENDING, APPROVED, REJECTED
+  isDeleted: boolean("is_deleted").default(false),
+  updatedBy: text("updated_by"),
 });
 
 export const pettyCashTransactions = pgTable("petty_cash_transactions", {
@@ -145,6 +154,8 @@ export const pettyCashTransactions = pgTable("petty_cash_transactions", {
   amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
   receiptPhotoUrl: text("receipt_photo_url"),
   recordedBy: text("recorded_by").references(() => users.id).notNull(),
+  isDeleted: boolean("is_deleted").default(false),
+  updatedBy: text("updated_by"),
 });
 
 export const bankReconciliations = pgTable("bank_reconciliations", {
@@ -165,4 +176,18 @@ export const revenueTargets = pgTable("revenue_targets", {
   targetRevenue: decimal("target_revenue", { precision: 15, scale: 2 }).notNull(),
   avgPeriodStart: date("avg_period_start"),
   avgPeriodEnd: date("avg_period_end"),
+});
+
+export const journalEntries = pgTable("journal_entries", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  entryDate: date("entry_date").notNull(),
+  description: text("description").notNull(),
+  debitAccount: varchar("debit_account", { length: 100 }).notNull(),
+  creditAccount: varchar("credit_account", { length: 100 }).notNull(),
+  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  branchId: uuid("branch_id").references(() => branches.id),
+  createdBy: text("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  isDeleted: boolean("is_deleted").default(false),
+  updatedBy: text("updated_by"),
 });

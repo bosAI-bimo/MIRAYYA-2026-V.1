@@ -36,26 +36,10 @@ const payrollHistoryData = [
   { id: "PH-005", period: "Januari 2026", date: "25 Jan 2026", totalEmployees: 50, totalAmount: "Rp 245.500.000", status: "Selesai" },
 ];
 
-const initialPayrollData = [
-  { id: "PR-001", name: "Siti Rahma", role: "HR Manager", branch: "Pusat", baseSalary: 8000000, allowance: 1000000, deduction: 150000, net: 8850000, status: "Generated", attendance: { hadir: 22, alpa: 0, cuti: 1, telat: 2 } },
-  { id: "PR-002", name: "Budi Santoso", role: "Accounting", branch: "Pusat", baseSalary: 7500000, allowance: 1000000, deduction: 0, net: 8500000, status: "Generated", attendance: { hadir: 23, alpa: 0, cuti: 0, telat: 0 } },
-  { id: "PR-003", name: "Anita Wijaya", role: "BA", branch: "Mirayya Sudirman", baseSalary: 4500000, allowance: 800000, deduction: 50000, net: 5250000, status: "Pending", attendance: { hadir: 20, alpa: 1, cuti: 2, telat: 1 } },
-  { id: "PR-004", name: "Rina Marlina", role: "Store Leader", branch: "Mirayya PIK", baseSalary: 5500000, allowance: 1200000, deduction: 0, net: 6700000, status: "Pending", attendance: { hadir: 23, alpa: 0, cuti: 0, telat: 0 } },
-  { id: "PR-005", name: "Dina Mariana", role: "BA", branch: "Mirayya Kelapa Gading", baseSalary: 4500000, allowance: 500000, deduction: 250000, net: 4750000, status: "Pending", attendance: { hadir: 19, alpa: 2, cuti: 1, telat: 5 } },
-  { id: "PR-006", name: "Agus Salim", role: "Store Leader", branch: "Mirayya Kemang", baseSalary: 5500000, allowance: 1200000, deduction: 100000, net: 6600000, status: "Generated", attendance: { hadir: 22, alpa: 0, cuti: 1, telat: 2 } },
-  { id: "PR-007", name: "Dewi Lestari", role: "BA", branch: "Mirayya PIK", baseSalary: 4500000, allowance: 700000, deduction: 0, net: 5200000, status: "Generated", attendance: { hadir: 23, alpa: 0, cuti: 0, telat: 1 } },
-  { id: "PR-008", name: "Fajar Siddiq", role: "Gudang", branch: "Pusat", baseSalary: 4000000, allowance: 500000, deduction: 50000, net: 4450000, status: "Pending", attendance: { hadir: 21, alpa: 0, cuti: 2, telat: 1 } },
-  { id: "PR-009", name: "Gita Savitri", role: "BA", branch: "Mirayya Kelapa Gading", baseSalary: 4500000, allowance: 800000, deduction: 0, net: 5300000, status: "Generated", attendance: { hadir: 23, alpa: 0, cuti: 0, telat: 0 } },
-  { id: "PR-010", name: "Hadi Kusuma", role: "Kasir", branch: "Mirayya Bintaro", baseSalary: 4200000, allowance: 600000, deduction: 100000, net: 4700000, status: "Pending", attendance: { hadir: 21, alpa: 1, cuti: 1, telat: 2 } },
-  { id: "PR-011", name: "Intan Nuraini", role: "BA", branch: "Mirayya Sudirman", baseSalary: 4500000, allowance: 500000, deduction: 0, net: 5000000, status: "Generated", attendance: { hadir: 21, alpa: 0, cuti: 2, telat: 0 } },
-  { id: "PR-012", name: "Joko Supriyanto", role: "Security", branch: "Mirayya PIK", baseSalary: 3800000, allowance: 400000, deduction: 0, net: 4200000, status: "Generated", attendance: { hadir: 23, alpa: 0, cuti: 0, telat: 0 } },
-  { id: "PR-013", name: "Kirana Larasati", role: "Store Leader", branch: "Mirayya Bintaro", baseSalary: 5500000, allowance: 1000000, deduction: 200000, net: 6300000, status: "Pending", attendance: { hadir: 20, alpa: 1, cuti: 1, telat: 4 } },
-  { id: "PR-014", name: "Sari Indah", role: "BA", branch: "Mirayya Kemang", baseSalary: 4500000, allowance: 0, deduction: 0, net: 4500000, status: "Pending", attendance: { hadir: 18, alpa: 2, cuti: 3, telat: 0 } },
-  { id: "PR-015", name: "Tono Mulyono", role: "Security", branch: "Mirayya Sudirman", baseSalary: 3800000, allowance: 400000, deduction: 50000, net: 4150000, status: "Generated", attendance: { hadir: 22, alpa: 0, cuti: 1, telat: 1 } },
-];
+// Mock data removed, fetching from backend instead.
 
 export default function PayrollPage() {
-  const [payrollData, setPayrollData] = useState(initialPayrollData);
+  const [payrollData, setPayrollData] = useState<any[]>([]);
   const [dbPayrollData, setDbPayrollData] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -64,13 +48,22 @@ export default function PayrollPage() {
     try {
       const data = await fetcher('/hr/payroll');
       setDbPayrollData(data || []);
-      // Here we could map dbPayrollData back to our UI list if we had user relations joined.
-      // Since it's a mock UI right now we'll just keep the UI but mark generated based on DB.
       if (data && data.length > 0) {
-        const generatedIds = data.map((p: any) => p.userId);
-        setPayrollData(prev => prev.map(p => 
-          generatedIds.includes(p.id) ? { ...p, status: 'Generated' } : p
-        ));
+        const formattedData = data.map((item: any) => ({
+          id: item.id,
+          name: item.userId || "Karyawan " + item.id.substring(0, 4),
+          role: "Staff",
+          branch: "Pusat",
+          baseSalary: Number(item.baseSalary) || 0,
+          allowance: Number(item.allowances) || 0,
+          deduction: Number(item.deductions) || 0,
+          net: Number(item.netSalary) || 0,
+          status: "Generated",
+          attendance: { hadir: 20, alpa: 0, cuti: 0, telat: 0 }
+        }));
+        setPayrollData(formattedData);
+      } else {
+        setPayrollData([]);
       }
     } catch(err) { console.error(err); }
   };

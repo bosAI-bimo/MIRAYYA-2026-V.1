@@ -13,16 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getNavigationForRole, type NavItem } from "@/config/navigation";
-import { type User, type UserRole, demoUsers } from "@/types/auth";
-
-// ──────────────────────────────────────────────
-// Konfigurasi: Ganti ini nanti dengan data dari auth session
-// ──────────────────────────────────────────────
-const CURRENT_ROLE: UserRole = "owner"; // Super Admin — akses semua dashboard
-
-function getCurrentUser(): User {
-  return demoUsers[CURRENT_ROLE];
-}
+import { useAuth } from "@/contexts/AuthContext";
 
 // ──────────────────────────────────────────────
 // Sub-komponen: Accordion menu item
@@ -162,8 +153,8 @@ export default function DashboardSidebar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true);
 
-  const user = getCurrentUser();
-  const navigation = getNavigationForRole(user.role);
+  const { user, logout } = useAuth();
+  const navigation = user ? getNavigationForRole(user.role) : [];
 
   const closeMobileSidebar = () => setIsSidebarOpen(false);
 
@@ -293,36 +284,35 @@ export default function DashboardSidebar() {
               isCollapsed ? "xl:justify-center xl:space-x-0 xl:px-0" : ""
             }`}
           >
-            <div className="w-10 h-10 shrink-0 rounded-full bg-pink-100 text-pink-700 flex items-center justify-center font-bold border border-pink-200 overflow-hidden text-sm">
-              {user.initials}
+            <div className="w-10 h-10 shrink-0 rounded-full bg-pink-100 text-pink-700 flex items-center justify-center font-bold border border-pink-200 overflow-hidden text-sm uppercase">
+              {user ? user.name.substring(0, 2) : "MR"}
             </div>
             <div className={`min-w-0 ${isCollapsed ? "xl:hidden" : ""}`}>
               <p className="text-sm font-medium text-slate-800 truncate">
-                {user.name}
+                {user ? user.name : "Guest"}
               </p>
-              <p className="text-xs text-slate-500 truncate">
-                {user.roleLabel}
+              <p className="text-xs text-slate-500 truncate capitalize">
+                {user ? user.role : "Guest"}
               </p>
             </div>
           </div>
-          <Link href="/login" className="w-full block">
-            <Button
-              variant="outline"
-              className={`w-full justify-start text-slate-600 border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 bg-white cursor-pointer transition-colors ${
-                isCollapsed ? "xl:justify-center xl:px-0" : ""
+          <Button
+            variant="outline"
+            onClick={() => logout()}
+            className={`w-full justify-start text-slate-600 border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 bg-white cursor-pointer transition-colors ${
+              isCollapsed ? "xl:justify-center xl:px-0" : ""
+            }`}
+            title={isCollapsed ? "Keluar" : undefined}
+          >
+            <LogOut
+              className={`w-4 h-4 mr-2 shrink-0 ${
+                isCollapsed ? "xl:mr-0" : ""
               }`}
-              title={isCollapsed ? "Keluar" : undefined}
-            >
-              <LogOut
-                className={`w-4 h-4 mr-2 shrink-0 ${
-                  isCollapsed ? "xl:mr-0" : ""
-                }`}
-              />
-              <span className={`${isCollapsed ? "xl:hidden" : ""}`}>
-                Keluar
-              </span>
-            </Button>
-          </Link>
+            />
+            <span className={`${isCollapsed ? "xl:hidden" : ""}`}>
+              Keluar
+            </span>
+          </Button>
         </div>
       </aside>
 

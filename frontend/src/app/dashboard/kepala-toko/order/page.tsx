@@ -100,8 +100,6 @@ function OrderPageContent() {
       await fetcher('/store/orders', {
         method: 'POST',
         body: JSON.stringify({
-          branchId: '11111111-1111-1111-1111-111111111111',
-          createdBy: '00000000-0000-0000-0000-000000000000',
           totalAmount: itemsToSubmit.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0),
           items: itemsToSubmit
         })

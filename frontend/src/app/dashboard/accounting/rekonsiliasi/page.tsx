@@ -55,7 +55,6 @@ export default function RekonsiliasiBankPage() {
       await fetcher('/accounting/bank-reconciliations', {
         method: 'POST',
         body: JSON.stringify({
-          branchId: '11111111-1111-1111-1111-111111111111',
           bankAccount: newRecon.account,
           reconcileDate: newRecon.date,
           bankStatementBalance: bankVal,

@@ -5,68 +5,84 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { UploadCloud, CheckCircle2, FileCheck, ChevronRight, Wallet, Receipt } from "lucide-react";
+import { UploadCloud, CheckCircle2, FileCheck, ChevronRight, Wallet, Receipt, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
 import { fetcher } from "@/lib/api";
 
+const eodSchema = z.object({
+  totalOmzet: z.string().min(1, "Total Omzet wajib diisi"),
+  cashAmount: z.string().min(1, "Tunai wajib diisi"),
+  edcAmount: z.string().min(1, "EDC wajib diisi"),
+  qrisAmount: z.string().min(1, "QRIS wajib diisi"),
+});
+
+const pettyCashSchema = z.object({
+  amount: z.string().min(1, "Nominal wajib diisi").refine(val => parseInt(val.replace(/[^0-9]/g, '')) > 0, "Nominal harus > 0"),
+  description: z.string().min(3, "Keterangan minimal 3 karakter"),
+});
+
+type EodFormValues = z.infer<typeof eodSchema>;
+type PettyCashFormValues = z.infer<typeof pettyCashSchema>;
+
 export default function EODPage() {
-  const [eodData, setEodData] = React.useState({
-    totalOmzet: '',
-    cashAmount: '',
-    edcAmount: '',
-    qrisAmount: ''
-  });
-  
-  const [pettyCash, setPettyCash] = React.useState({
-    amount: '',
-    description: ''
+  const eodForm = useForm<EodFormValues>({
+    resolver: zodResolver(eodSchema),
+    defaultValues: {
+      totalOmzet: "",
+      cashAmount: "",
+      edcAmount: "",
+      qrisAmount: ""
+    }
   });
 
-  const [isSubmittingEod, setIsSubmittingEod] = React.useState(false);
-  const [isSubmittingPc, setIsSubmittingPc] = React.useState(false);
+  const pettyCashForm = useForm<PettyCashFormValues>({
+    resolver: zodResolver(pettyCashSchema),
+    defaultValues: {
+      amount: "",
+      description: ""
+    }
+  });
 
-  const handleSubmitEod = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmitEod = async (data: EodFormValues) => {
     try {
-      setIsSubmittingEod(true);
       await fetcher('/store/eod-reports', {
         method: 'POST',
         body: JSON.stringify({
-          branchId: '11111111-1111-1111-1111-111111111111', // Will be replaced by real auth branch
           reportDate: new Date().toISOString(),
-          totalOmzet: parseFloat(eodData.totalOmzet) || 0,
-          cashAmount: parseFloat(eodData.cashAmount) || 0,
-          edcAmount: parseFloat(eodData.edcAmount) || 0,
-          qrisAmount: parseFloat(eodData.qrisAmount) || 0,
+          totalOmzet: parseFloat(data.totalOmzet.replace(/[^0-9]/g, '')) || 0,
+          cashAmount: parseFloat(data.cashAmount.replace(/[^0-9]/g, '')) || 0,
+          edcAmount: parseFloat(data.edcAmount.replace(/[^0-9]/g, '')) || 0,
+          qrisAmount: parseFloat(data.qrisAmount.replace(/[^0-9]/g, '')) || 0,
           pettyCashUsed: 0,
-          evidencePhotos: [],
-          submittedBy: '00000000-0000-0000-0000-000000000000'
+          evidencePhotos: []
         })
       });
-      alert('Laporan EOD berhasil dikirim!');
-      setEodData({ totalOmzet: '', cashAmount: '', edcAmount: '', qrisAmount: '' });
-    } catch(err: any) { alert("Error: " + err.message); }
-    finally { setIsSubmittingEod(false); }
+      toast.success('Laporan EOD berhasil dikirim!');
+      eodForm.reset();
+    } catch(err: any) { 
+      toast.error("Gagal mengirim EOD: " + err.message); 
+    }
   };
 
-  const handleSubmitPettyCash = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmitPettyCash = async (data: PettyCashFormValues) => {
     try {
-      setIsSubmittingPc(true);
       await fetcher('/store/petty-cash', {
         method: 'POST',
         body: JSON.stringify({
-          branchId: '11111111-1111-1111-1111-111111111111',
-          amount: parseFloat(pettyCash.amount) || 0,
-          description: pettyCash.description,
-          recordedBy: '00000000-0000-0000-0000-000000000000'
+          amount: parseFloat(data.amount.replace(/[^0-9]/g, '')) || 0,
+          description: data.description
         })
       });
-      alert('Penggunaan Petty Cash berhasil dicatat!');
-      setPettyCash({ amount: '', description: '' });
-    } catch(err: any) { alert("Error: " + err.message); }
-    finally { setIsSubmittingPc(false); }
+      toast.success('Penggunaan Petty Cash berhasil dicatat!');
+      pettyCashForm.reset();
+    } catch(err: any) { 
+      toast.error("Gagal mengirim Petty Cash: " + err.message); 
+    }
   };
 
   return (
@@ -111,7 +127,7 @@ export default function EODPage() {
         </TabsList>
 
         <TabsContent value="eod">
-          <form className="space-y-6">
+          <form onSubmit={eodForm.handleSubmit(onSubmitEod)} className="space-y-6">
             <Card className="border-2 shadow-sm border-slate-200">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-slate-800">Ringkasan Omzet Hari Ini</CardTitle>
@@ -123,8 +139,9 @@ export default function EODPage() {
                     <label className="text-sm font-medium text-slate-700">Total Omzet Keseluruhan</label>
                     <div className="relative">
                       <span className="absolute left-3 top-2.5 text-slate-500">Rp</span>
-                      <Input type="number" className="pl-10" placeholder="0" value={eodData.totalOmzet} onChange={e => setEodData({...eodData, totalOmzet: e.target.value})} />
+                      <Input type="text" className="pl-10" placeholder="0" {...eodForm.register("totalOmzet")} />
                     </div>
+                    {eodForm.formState.errors.totalOmzet && <p className="text-xs text-rose-500">{eodForm.formState.errors.totalOmzet.message}</p>}
                   </div>
                 </div>
 
@@ -135,22 +152,25 @@ export default function EODPage() {
                       <label className="text-sm font-medium text-slate-700">Tunai (Cash)</label>
                       <div className="relative">
                         <span className="absolute left-3 top-2.5 text-slate-500">Rp</span>
-                        <Input type="number" className="pl-10" placeholder="0" value={eodData.cashAmount} onChange={e => setEodData({...eodData, cashAmount: e.target.value})} />
+                        <Input type="text" className="pl-10" placeholder="0" {...eodForm.register("cashAmount")} />
                       </div>
+                      {eodForm.formState.errors.cashAmount && <p className="text-xs text-rose-500">{eodForm.formState.errors.cashAmount.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-700">Mesin EDC (Debit/Kredit)</label>
                       <div className="relative">
                         <span className="absolute left-3 top-2.5 text-slate-500">Rp</span>
-                        <Input type="number" className="pl-10" placeholder="0" value={eodData.edcAmount} onChange={e => setEodData({...eodData, edcAmount: e.target.value})} />
+                        <Input type="text" className="pl-10" placeholder="0" {...eodForm.register("edcAmount")} />
                       </div>
+                      {eodForm.formState.errors.edcAmount && <p className="text-xs text-rose-500">{eodForm.formState.errors.edcAmount.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-700">QRIS / Transfer</label>
                       <div className="relative">
                         <span className="absolute left-3 top-2.5 text-slate-500">Rp</span>
-                        <Input type="number" className="pl-10" placeholder="0" value={eodData.qrisAmount} onChange={e => setEodData({...eodData, qrisAmount: e.target.value})} />
+                        <Input type="text" className="pl-10" placeholder="0" {...eodForm.register("qrisAmount")} />
                       </div>
+                      {eodForm.formState.errors.qrisAmount && <p className="text-xs text-rose-500">{eodForm.formState.errors.qrisAmount.message}</p>}
                     </div>
                   </div>
                 </div>
@@ -170,9 +190,18 @@ export default function EODPage() {
                 </div>
               </CardContent>
               <CardFooter className="bg-slate-50 border-t border-slate-100 flex justify-end p-4 rounded-b-lg">
-                <Button className="bg-primary hover:bg-primary/90 text-white px-8" onClick={handleSubmitEod} disabled={isSubmittingEod}>
-                  <FileCheck className="w-4 h-4 mr-2" />
-                  {isSubmittingEod ? "Mengirim..." : "Kirim Laporan EOD"}
+                <Button type="submit" className="bg-primary hover:bg-primary/90 text-white px-8" disabled={eodForm.formState.isSubmitting}>
+                  {eodForm.formState.isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Mengirim...
+                    </>
+                  ) : (
+                    <>
+                      <FileCheck className="w-4 h-4 mr-2" />
+                      Kirim Laporan EOD
+                    </>
+                  )}
                 </Button>
               </CardFooter>
             </Card>
@@ -180,7 +209,7 @@ export default function EODPage() {
         </TabsContent>
 
         <TabsContent value="petty-cash">
-          <form className="space-y-6">
+          <form onSubmit={pettyCashForm.handleSubmit(onSubmitPettyCash)} className="space-y-6">
             <Card className="border-2 shadow-sm border-slate-200">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-slate-800">Penggunaan Kas Kecil (Petty Cash)</CardTitle>
@@ -192,12 +221,14 @@ export default function EODPage() {
                     <label className="text-sm font-medium text-slate-700">Nominal Terpakai</label>
                     <div className="relative">
                       <span className="absolute left-3 top-2.5 text-slate-500">Rp</span>
-                      <Input type="number" className="pl-10" placeholder="0" value={pettyCash.amount} onChange={e => setPettyCash({...pettyCash, amount: e.target.value})} />
+                      <Input type="text" className="pl-10" placeholder="0" {...pettyCashForm.register("amount")} />
                     </div>
+                    {pettyCashForm.formState.errors.amount && <p className="text-xs text-rose-500">{pettyCashForm.formState.errors.amount.message}</p>}
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-700">Keterangan</label>
-                    <Input type="text" placeholder="Contoh: Beli air mineral galon" value={pettyCash.description} onChange={e => setPettyCash({...pettyCash, description: e.target.value})} />
+                    <Input type="text" placeholder="Contoh: Beli air mineral galon" {...pettyCashForm.register("description")} />
+                    {pettyCashForm.formState.errors.description && <p className="text-xs text-rose-500">{pettyCashForm.formState.errors.description.message}</p>}
                   </div>
                 </div>
               </CardContent>
@@ -216,9 +247,18 @@ export default function EODPage() {
                 </div>
               </CardContent>
               <CardFooter className="bg-slate-50 border-t border-slate-100 flex justify-end p-4 rounded-b-lg">
-                <Button className="bg-primary hover:bg-primary/90 text-white px-8" onClick={handleSubmitPettyCash} disabled={isSubmittingPc}>
-                  <FileCheck className="w-4 h-4 mr-2" />
-                  {isSubmittingPc ? "Mengirim..." : "Kirim Laporan Petty Cash"}
+                <Button type="submit" className="bg-primary hover:bg-primary/90 text-white px-8" disabled={pettyCashForm.formState.isSubmitting}>
+                  {pettyCashForm.formState.isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Mengirim...
+                    </>
+                  ) : (
+                    <>
+                      <FileCheck className="w-4 h-4 mr-2" />
+                      Kirim Laporan Petty Cash
+                    </>
+                  )}
                 </Button>
               </CardFooter>
             </Card>

@@ -1,25 +1,27 @@
 import { Router } from "express";
 import { db } from "../db";
 import { users, attendance, branches, roles, payroll } from "../db/schema";
-import { eq, sql, desc, and, gte, lte } from "drizzle-orm";
-import { requireAuth } from "../middlewares/authMiddleware";
+import { eq, sql, desc, and, gte, lte, ilike } from "drizzle-orm";
+import { requireAuth, requireRole } from "../middlewares/authMiddleware";
 
 const router = Router();
 
-// Temporarily disabling auth for easy testing from frontend
-// router.use(requireAuth);
+router.use(requireAuth);
+router.use(requireRole("hr", "admin", "owner"));
 
 router.get("/dashboard-stats", async (req, res) => {
   try {
     // 1. Total Karyawan
-    const totalEmployeesResult = await db.select({ count: sql<number>`count(*)` }).from(users);
+    const totalEmployeesResult = await db.select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(eq(users.isDeleted, false));
     const totalEmployees = totalEmployeesResult[0]?.count || 0;
 
     // 2. Hadir Hari Ini (assuming today is 2026-06-16 based on metadata or just using current date)
     const today = new Date().toISOString().split('T')[0];
     const presentTodayResult = await db.select({ count: sql<number>`count(*)` })
       .from(attendance)
-      .where(eq(attendance.attendanceDate, today));
+      .where(and(eq(attendance.attendanceDate, today), eq(attendance.isDeleted, false)));
     const presentToday = presentTodayResult[0]?.count || 0;
 
     // 3. Absen / Cuti
@@ -38,7 +40,7 @@ router.get("/dashboard-stats", async (req, res) => {
     .innerJoin(users, eq(attendance.userId, users.id))
     .leftJoin(branches, eq(users.branchId, branches.id))
     .leftJoin(roles, eq(users.roleId, roles.id))
-    .where(eq(attendance.attendanceDate, today))
+    .where(and(eq(attendance.attendanceDate, today), eq(attendance.isDeleted, false)))
     .orderBy(desc(attendance.timeIn))
     .limit(5);
 
@@ -62,6 +64,30 @@ router.get("/dashboard-stats", async (req, res) => {
 
 router.get("/employees", async (req, res) => {
   try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = req.query.search as string;
+    const branchId = req.query.branchId as string;
+    
+    const offset = (page - 1) * limit;
+    
+    let conditions = [eq(users.isDeleted, false)];
+    if (search) {
+       conditions.push(ilike(users.name, `%${search}%`));
+    }
+    if (branchId && branchId !== 'all') {
+       conditions.push(eq(users.branchId, branchId));
+    }
+    
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    // Count total rows
+    const totalQuery = await db.select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(whereClause);
+      
+    const total = Number(totalQuery[0]?.count) || 0;
+
     const allUsers = await db.select({
       id: users.id,
       name: users.name,
@@ -75,9 +101,20 @@ router.get("/employees", async (req, res) => {
     })
     .from(users)
     .leftJoin(roles, eq(users.roleId, roles.id))
-    .leftJoin(branches, eq(users.branchId, branches.id));
+    .leftJoin(branches, eq(users.branchId, branches.id))
+    .where(whereClause)
+    .limit(limit)
+    .offset(offset);
     
-    res.json(allUsers);
+    res.json({
+      data: allUsers,
+      metadata: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
@@ -116,6 +153,7 @@ router.get("/attendance-log", async (req, res) => {
     .from(attendance)
     .innerJoin(users, eq(attendance.userId, users.id))
     .leftJoin(branches, eq(users.branchId, branches.id))
+    .where(eq(attendance.isDeleted, false))
     .orderBy(desc(attendance.attendanceDate), desc(attendance.timeIn));
 
     res.json(logs);
@@ -128,7 +166,7 @@ router.get("/attendance-log", async (req, res) => {
 
 router.get("/attendance", async (req, res) => {
   try {
-    const allAttendance = await db.select().from(attendance);
+    const allAttendance = await db.select().from(attendance).where(eq(attendance.isDeleted, false));
     res.json(allAttendance);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -137,7 +175,8 @@ router.get("/attendance", async (req, res) => {
 
 router.post("/attendance", async (req, res) => {
   try {
-    const { userId, attendanceDate, timeIn, timeOut, selfieUrl, locationGps } = req.body;
+    const { attendanceDate, timeIn, timeOut, selfieUrl, locationGps } = req.body;
+    const userId = req.body.userId || (req as any).user?.id;
     const newAttendance = await db.insert(attendance)
       .values({ userId, attendanceDate, timeIn, timeOut, selfieUrl, locationGps })
       .returning();
@@ -165,7 +204,9 @@ router.put("/attendance/:id", async (req, res) => {
 router.delete("/attendance/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedAttendance = await db.delete(attendance)
+    const userId = (req as any).user?.id || "system";
+    const deletedAttendance = await db.update(attendance)
+      .set({ isDeleted: true, updatedBy: userId })
       .where(eq(attendance.id, id as any))
       .returning();
     if (deletedAttendance.length === 0) return res.status(404).json({ message: "Attendance not found" });
@@ -179,7 +220,7 @@ router.delete("/attendance/:id", async (req, res) => {
 
 router.get("/payroll", async (req, res) => {
   try {
-    const allPayroll = await db.select().from(payroll);
+    const allPayroll = await db.select().from(payroll).where(eq(payroll.isDeleted, false));
     res.json(allPayroll);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -216,7 +257,9 @@ router.put("/payroll/:id", async (req, res) => {
 router.delete("/payroll/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedPayroll = await db.delete(payroll)
+    const userId = (req as any).user?.id || "system";
+    const deletedPayroll = await db.update(payroll)
+      .set({ isDeleted: true, updatedBy: userId })
       .where(eq(payroll.id, id as any))
       .returning();
     if (deletedPayroll.length === 0) return res.status(404).json({ message: "Payroll not found" });
