@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Wallet, ShoppingCart, FileCheck, CheckCircle2, AlertCircle, ChevronRight, Package, ClipboardList, TrendingDown, Clock, ArrowRight, Receipt, Activity, Banknote, Store, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { fetcher } from "@/lib/api";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export default function KepalaTokoDashboard() {
   const [data, setData] = useState<any>(null);
@@ -84,9 +85,7 @@ export default function KepalaTokoDashboard() {
 
       {/* KPI Cards Grid - 6 metrics in Owner Dashboard Style */}
       {loading ? (
-        <div className="flex h-32 items-center justify-center w-full">
-          <Loader2 className="w-8 h-8 animate-spin text-pink-600" />
-        </div>
+        <LoadingScreen />
       ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-8">
         

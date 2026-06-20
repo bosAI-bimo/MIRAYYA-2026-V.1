@@ -119,7 +119,7 @@ router.get("/dashboard-stats", async (req, res) => {
 
 router.get("/budgets", async (req, res) => {
   try {
-    const allBudgets = await db.select().from(budgets);
+    const allBudgets = await db.select().from(budgets).where(eq(budgets.isDeleted, false));
     res.json(allBudgets);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -156,7 +156,8 @@ router.put("/budgets/:id", async (req, res) => {
 router.delete("/budgets/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedBudget = await db.delete(budgets)
+    const deletedBudget = await db.update(budgets)
+      .set({ isDeleted: true, updatedBy: (req as any).user?.id })
       .where(eq(budgets.id, id as any))
       .returning();
     if (deletedBudget.length === 0) return res.status(404).json({ message: "Budget not found" });
@@ -170,7 +171,7 @@ router.delete("/budgets/:id", async (req, res) => {
 
 router.get("/revenue-targets", async (req, res) => {
   try {
-    const allTargets = await db.select().from(revenueTargets);
+    const allTargets = await db.select().from(revenueTargets).where(eq(revenueTargets.isDeleted, false));
     res.json(allTargets);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -207,7 +208,8 @@ router.put("/revenue-targets/:id", async (req, res) => {
 router.delete("/revenue-targets/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedTarget = await db.delete(revenueTargets)
+    const deletedTarget = await db.update(revenueTargets)
+      .set({ isDeleted: true, updatedBy: (req as any).user?.id })
       .where(eq(revenueTargets.id, id as any))
       .returning();
     if (deletedTarget.length === 0) return res.status(404).json({ message: "Revenue Target not found" });
@@ -221,7 +223,7 @@ router.delete("/revenue-targets/:id", async (req, res) => {
 
 router.get("/bank-reconciliations", async (req, res) => {
   try {
-    const allReconciliations = await db.select().from(bankReconciliations);
+    const allReconciliations = await db.select().from(bankReconciliations).where(eq(bankReconciliations.isDeleted, false));
     res.json(allReconciliations);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -265,7 +267,8 @@ router.put("/bank-reconciliations/:id", async (req, res) => {
 router.delete("/bank-reconciliations/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedRecon = await db.delete(bankReconciliations)
+    const deletedRecon = await db.update(bankReconciliations)
+      .set({ isDeleted: true, updatedBy: (req as any).user?.id })
       .where(eq(bankReconciliations.id, id as any))
       .returning();
     if (deletedRecon.length === 0) return res.status(404).json({ message: "Bank Reconciliation not found" });
@@ -358,15 +361,35 @@ router.put("/eod-reports/:id/approve", async (req, res) => {
 router.get("/profit-loss", async (req, res) => {
   try {
     const { month, branchId } = req.query;
-    // Dummy logic for now
+    if (!month) return res.status(400).json({ error: "Month is required (YYYY-MM)" });
+
+    let eodCond = [eq(eodReports.status, "APPROVED"), eq(eodReports.isDeleted, false), sql`to_char(${eodReports.reportDate}, 'YYYY-MM') = ${month}`];
+    let pettyCond = [eq(pettyCashTransactions.isDeleted, false), sql`to_char(${pettyCashTransactions.transactionDate}, 'YYYY-MM') = ${month}`];
+    
+    if (branchId && branchId !== 'all') {
+      eodCond.push(eq(eodReports.branchId, branchId as string));
+      pettyCond.push(eq(pettyCashTransactions.branchId, branchId as string));
+    }
+
+    const revenueResult = await db.select({ total: sql<number>`sum(${eodReports.totalOmzet})` }).from(eodReports).where(and(...eodCond));
+    const revenue = Number(revenueResult[0]?.total || 0);
+
+    const expenseResult = await db.select({ total: sql<number>`sum(${pettyCashTransactions.amount})` }).from(pettyCashTransactions).where(and(...pettyCond));
+    const operatingExpenses = Number(expenseResult[0]?.total || 0);
+
+    // Simplification for Phase 1: COGS is 40% of revenue (can be refined later)
+    const cogs = revenue * 0.4;
+    const grossProfit = revenue - cogs;
+    const netProfit = grossProfit - operatingExpenses;
+
     res.json({
       month,
       branchId,
-      revenue: 50000000,
-      cogs: 20000000,
-      grossProfit: 30000000,
-      operatingExpenses: 10000000,
-      netProfit: 20000000
+      revenue,
+      cogs,
+      grossProfit,
+      operatingExpenses,
+      netProfit
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -376,15 +399,35 @@ router.get("/profit-loss", async (req, res) => {
 router.get("/cash-flow", async (req, res) => {
   try {
     const { month, branchId } = req.query;
-    // Dummy logic for now
+    if (!month) return res.status(400).json({ error: "Month is required (YYYY-MM)" });
+
+    let eodCond = [eq(eodReports.status, "APPROVED"), eq(eodReports.isDeleted, false), sql`to_char(${eodReports.reportDate}, 'YYYY-MM') = ${month}`];
+    let pettyCond = [eq(pettyCashTransactions.isDeleted, false), sql`to_char(${pettyCashTransactions.transactionDate}, 'YYYY-MM') = ${month}`];
+    
+    if (branchId && branchId !== 'all') {
+      eodCond.push(eq(eodReports.branchId, branchId as string));
+      pettyCond.push(eq(pettyCashTransactions.branchId, branchId as string));
+    }
+
+    const revenueResult = await db.select({ total: sql<number>`sum(${eodReports.totalOmzet})` }).from(eodReports).where(and(...eodCond));
+    const operatingIn = Number(revenueResult[0]?.total || 0);
+
+    const expenseResult = await db.select({ total: sql<number>`sum(${pettyCashTransactions.amount})` }).from(pettyCashTransactions).where(and(...pettyCond));
+    const operatingOut = Number(expenseResult[0]?.total || 0) + (operatingIn * 0.4);
+
+    const operatingActivities = operatingIn - operatingOut;
+    const investingActivities = 0; 
+    const financingActivities = 0; 
+    const netCashFlow = operatingActivities + investingActivities + financingActivities;
+
     res.json({
       month,
       branchId,
-      operatingActivities: 15000000,
-      investingActivities: -5000000,
-      financingActivities: 0,
-      netCashFlow: 10000000,
-      endingBalance: 45000000
+      operatingActivities,
+      investingActivities,
+      financingActivities,
+      netCashFlow,
+      endingBalance: netCashFlow 
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -419,6 +462,36 @@ router.post("/journal-entries", async (req, res) => {
       .values({ entryDate, description, debitAccount, creditAccount, amount, branchId, createdBy })
       .returning();
     res.status(201).json(newEntry[0]);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put("/journal-entries/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { entryDate, description, debitAccount, creditAccount, amount } = req.body;
+    const updatedBy = (req as any).user?.id;
+    const updatedEntry = await db.update(journalEntries)
+      .set({ entryDate, description, debitAccount, creditAccount, amount, updatedBy })
+      .where(eq(journalEntries.id, id as any))
+      .returning();
+    if (updatedEntry.length === 0) return res.status(404).json({ message: "Journal Entry not found" });
+    res.json(updatedEntry[0]);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete("/journal-entries/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedEntry = await db.update(journalEntries)
+      .set({ isDeleted: true, updatedBy: (req as any).user?.id })
+      .where(eq(journalEntries.id, id as any))
+      .returning();
+    if (deletedEntry.length === 0) return res.status(404).json({ message: "Journal Entry not found" });
+    res.json({ message: "Journal Entry deleted" });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../db";
-import { eodReports, orders, attendance, branches, users } from "../db/schema";
-import { sql, eq, desc } from "drizzle-orm";
+import { eodReports, orders, attendance, branches, users, pettyCashTransactions } from "../db/schema";
+import { sql, eq, and, desc } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/authMiddleware";
 
 const router = Router();
@@ -11,57 +11,127 @@ router.use(requireRole("owner"));
 
 router.get("/dashboard-stats", async (req, res) => {
   try {
-    // We fetch real data, but if it's 0 or empty, we return empty arrays as intended.
+    const today = new Date().toISOString().split('T')[0];
+    const currentMonth = today.substring(0, 7);
 
-    // 1. Total Omzet
+    // 1. Total Omzet Bulan Ini
     const omzetResult = await db.select({ total: sql<number>`sum(${eodReports.totalOmzet})` })
       .from(eodReports)
-      .where(eq(eodReports.status, "APPROVED"));
-    const totalOmzet = omzetResult[0]?.total || 0;
+      .where(and(
+        eq(eodReports.status, "APPROVED"),
+        eq(eodReports.isDeleted, false),
+        sql`to_char(${eodReports.reportDate}, 'YYYY-MM') = ${currentMonth}`
+      ));
+    const totalOmzet = Number(omzetResult[0]?.total || 0);
 
-    // 2. Laba Bersih Estimasi (Simplified: 15% of omzet as placeholder logic, or 0)
-    const labaBersih = totalOmzet * 0.15;
+    // Total Cost (Petty Cash + Journal approx)
+    const costResult = await db.select({ total: sql<number>`sum(${pettyCashTransactions.amount})` })
+      .from(pettyCashTransactions)
+      .where(and(
+        eq(pettyCashTransactions.isDeleted, false),
+        sql`to_char(${pettyCashTransactions.transactionDate}, 'YYYY-MM') = ${currentMonth}`
+      ));
+    const totalCost = Number(costResult[0]?.total || 0) + (totalOmzet * 0.4); // Add COGS approx
 
-    // 3. Pencapaian Target (Using 0% if no data)
-    const targetAchievement = totalOmzet > 0 ? 100 : 0; 
+    // 2. Laba Bersih
+    const labaBersih = totalOmzet - totalCost;
 
-    // 4. Total Transaksi (Empty in schema, so 0)
-    const totalTransaksi = 0;
+    // 3. Pencapaian Target (Using 1M as dummy overall target)
+    const overallTarget = 100000000;
+    const targetAchievement = Math.min(Math.round((totalOmzet / overallTarget) * 100), 100);
 
-    // 5. Total Karyawan
-    const empResult = await db.select({ count: sql<number>`count(*)` }).from(users);
-    const totalKaryawan = empResult[0]?.count || 0;
+    // 4. Total Karyawan
+    const empResult = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.isDeleted, false));
+    const totalKaryawan = Number(empResult[0]?.count || 0);
 
-    // 6. Tingkat Kehadiran
-    const today = new Date().toISOString().split('T')[0];
+    // 5. Tingkat Kehadiran Hari Ini
     const presentTodayResult = await db.select({ count: sql<number>`count(*)` })
       .from(attendance)
-      .where(eq(attendance.attendanceDate, today));
-    const hadirHariIni = presentTodayResult[0]?.count || 0;
+      .where(and(eq(attendance.attendanceDate, today), eq(attendance.isDeleted, false)));
+    const hadirHariIni = Number(presentTodayResult[0]?.count || 0);
     const tingkatKehadiran = totalKaryawan > 0 ? Math.round((hadirHariIni / totalKaryawan) * 100) : 0;
 
-    // 7. PO Pending
+    // 6. PO Pending
     const pendingPoResult = await db.select({ count: sql<number>`count(*)` })
       .from(orders)
       .where(eq(orders.status, "PENDING"));
-    const pendingPo = pendingPoResult[0]?.count || 0;
+    const pendingPo = Number(pendingPoResult[0]?.count || 0);
 
-    // Return empty arrays for lists to strip dummy data
+    // --- AGGREGATIONS ---
+
+    // Omzet Data per Cabang
+    const branchesData = await db.select({
+      id: branches.id,
+      name: branches.name
+    }).from(branches);
+
+    const omzetData = [];
+    const branchProfitability = [];
+
+    for (const b of branchesData) {
+      // Omzet branch
+      const bOmzetRes = await db.select({ total: sql<number>`sum(${eodReports.totalOmzet})` })
+        .from(eodReports)
+        .where(and(
+          eq(eodReports.branchId, b.id),
+          eq(eodReports.status, "APPROVED"),
+          eq(eodReports.isDeleted, false),
+          sql`to_char(${eodReports.reportDate}, 'YYYY-MM') = ${currentMonth}`
+        ));
+      const bOmzet = Number(bOmzetRes[0]?.total || 0);
+
+      // Cost branch
+      const bCostRes = await db.select({ total: sql<number>`sum(${pettyCashTransactions.amount})` })
+        .from(pettyCashTransactions)
+        .where(and(
+          eq(pettyCashTransactions.branchId, b.id),
+          eq(pettyCashTransactions.isDeleted, false),
+          sql`to_char(${pettyCashTransactions.transactionDate}, 'YYYY-MM') = ${currentMonth}`
+        ));
+      const bCost = Number(bCostRes[0]?.total || 0) + (bOmzet * 0.4);
+
+      const bProfit = bOmzet - bCost;
+      const bMargin = bOmzet > 0 ? Math.round((bProfit / bOmzet) * 100) : 0;
+      
+      let status = 'Good';
+      if (bMargin < 5) status = 'Critical';
+      else if (bMargin < 15) status = 'Warning';
+
+      omzetData.push({
+        name: b.name,
+        omzet: bOmzet,
+        target: 20000000 // Dummy branch target
+      });
+
+      branchProfitability.push({
+        branch: b.name,
+        revenue: bOmzet,
+        cost: bCost,
+        profit: bProfit,
+        margin: bMargin,
+        status
+      });
+    }
+
+    // Sort profitability descending
+    branchProfitability.sort((a, b) => b.profit - a.profit);
+
+    // Dummy arrays for UI features not yet implemented
     res.json({
       totalOmzet,
       labaBersih,
       targetAchievement,
-      totalTransaksi,
+      totalTransaksi: 0,
       totalKaryawan,
       tingkatKehadiran,
       pendingPo,
-      stokKritis: 0, // Not tracked in DB schema directly yet
-      omzetData: [],
-      profitTrend: [],
-      cashFlowStatus: { in: 0, out: 0, net: 0 },
+      stokKritis: 0, 
+      omzetData,
+      profitTrend: [], // Pending historical query implementation
+      cashFlowStatus: { in: totalOmzet, out: totalCost, net: labaBersih },
       costBreakdown: [],
       paymentMethods: [],
-      branchProfitability: [],
+      branchProfitability,
       rfmSegmentDistribution: [],
       rfmScatterData: [],
       rfmCustomers: [],

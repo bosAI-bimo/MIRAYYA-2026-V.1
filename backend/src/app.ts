@@ -7,6 +7,7 @@ import accountingRoutes from "./routes/accounting.routes";
 import storeRoutes from "./routes/store.routes";
 import ownerRoutes from "./routes/owner.routes";
 import adminRoutes from "./routes/admin.routes";
+import employeeRoutes from "./routes/employee.routes";
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use("/api/accounting", accountingRoutes);
 app.use("/api/store", storeRoutes);
 app.use("/api/owner", ownerRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/employee", employeeRoutes);
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });

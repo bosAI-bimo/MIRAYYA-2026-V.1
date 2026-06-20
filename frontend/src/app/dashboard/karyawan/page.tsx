@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarCheck, Clock, MapPin, ReceiptText, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { fetcher } from "@/lib/api";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export default function KaryawanDashboard() {
   const [data, setData] = useState<any>(null);
@@ -66,9 +67,7 @@ export default function KaryawanDashboard() {
       </div>
 
       {loading ? (
-        <div className="flex h-32 items-center justify-center w-full">
-          <Loader2 className="w-8 h-8 animate-spin text-pink-600" />
-        </div>
+        <LoadingScreen />
       ) : (
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Status Kehadiran Hari Ini */}

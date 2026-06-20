@@ -1,20 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Camera, MapPin, Clock, Filter, Search, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Eye, Plus } from "lucide-react";
+import { Camera, MapPin, Clock, Filter, Search, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Eye, Plus, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { fetcher } from "@/lib/api";
-
-
+import Webcam from "react-webcam";
+import { toast } from "sonner";
 
 export default function AbsensiKaryawan() {
   const [isCheckingIn, setIsCheckingIn] = useState(false);
-  const [checkInStatus, setCheckInStatus] = useState<"idle" | "capturing" | "success">("idle");
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [showWebcam, setShowWebcam] = useState(false);
+  const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [locationError, setLocationError] = useState("");
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [historyData, setHistoryData] = useState<any[]>([]);
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
@@ -22,11 +26,11 @@ export default function AbsensiKaryawan() {
   const [isLemburModalOpen, setIsLemburModalOpen] = useState(false);
   const itemsPerPage = 5;
 
+  const webcamRef = useRef<Webcam>(null);
+
   const fetchHistory = async () => {
     try {
-      const data = await fetcher('/hr/attendance-log');
-      // For Karyawan dashboard, we should filter by their userId, 
-      // but we will show all or a mocked subset for now since auth isn't fully wired.
+      const data = await fetcher('/employee/attendance/my-records');
       setHistoryData(data || []);
     } catch(err) { console.error(err); }
   };
@@ -39,39 +43,90 @@ export default function AbsensiKaryawan() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = historyData.slice(startIndex, startIndex + itemsPerPage);
 
-  const handleCheckIn = async () => {
-    setIsCheckingIn(true);
-    setCheckInStatus("capturing");
-    
+  const getLocation = () => {
+    return new Promise<{lat: number, lng: number}>((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocation tidak didukung oleh browser Anda"));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          reject(new Error("Gagal mendapatkan lokasi. Pastikan izin lokasi diberikan."));
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    });
+  };
+
+  const startCheckIn = async () => {
     try {
-      // Simulate capturing photo and GPS delay
-      await new Promise(r => setTimeout(r, 1000));
+      setLocationError("");
+      const loc = await getLocation();
+      setLocation(loc);
+      setShowWebcam(true);
+    } catch (err: any) {
+      setLocationError(err.message);
+      toast.error(err.message);
+    }
+  };
 
-      const now = new Date();
-      const dateStr = now.toISOString().split('T')[0];
-      const timeStr = now.toTimeString().split(' ')[0].substring(0, 5);
+  const confirmCheckIn = async () => {
+    if (!webcamRef.current || !location) return;
+    const imageSrc = webcamRef.current.getScreenshot();
+    
+    if (!imageSrc) {
+      toast.error("Gagal mengambil foto");
+      return;
+    }
 
-      await fetcher('/hr/attendance', {
+    setIsCheckingIn(true);
+    try {
+      await fetcher('/employee/attendance/check-in', {
         method: 'POST',
         body: JSON.stringify({
-          attendanceDate: dateStr,
-          timeIn: timeStr,
-          locationGps: '-6.200000, 106.816666'
+          selfieBase64: imageSrc,
+          latitude: location.lat,
+          longitude: location.lng,
         })
       });
 
-      setCheckInStatus("success");
-      fetchHistory(); // refresh data
-      setTimeout(() => {
-        setIsCheckingIn(false);
-        setCheckInStatus("idle");
-      }, 2000);
+      toast.success("Check-In Berhasil!");
+      setShowWebcam(false);
+      fetchHistory();
     } catch(err: any) {
-      alert("Gagal Check-In: " + err.message);
+      toast.error(err.message || "Gagal melakukan check-in");
+    } finally {
       setIsCheckingIn(false);
-      setCheckInStatus("idle");
     }
   };
+
+  const handleCheckOut = async () => {
+    if(!confirm("Anda yakin ingin Check-Out sekarang?")) return;
+    setIsCheckingOut(true);
+    try {
+      await fetcher('/employee/attendance/check-out', {
+        method: 'POST'
+      });
+      toast.success("Check-Out Berhasil!");
+      fetchHistory();
+    } catch(err: any) {
+      toast.error(err.message || "Gagal melakukan check-out");
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
+
+  // Determine if user has checked in today
+  const todayDateStr = new Date().toISOString().split('T')[0];
+  const todayRecord = historyData.find(r => r.attendanceDate === todayDateStr);
+  const hasCheckedInToday = !!todayRecord;
+  const hasCheckedOutToday = todayRecord && !!todayRecord.timeOut;
 
   return (
     <div className="space-y-6">
@@ -109,34 +164,75 @@ export default function AbsensiKaryawan() {
             <CardDescription>Pastikan wajah Anda terlihat jelas dan lokasi aktif</CardDescription>
           </CardHeader>
           <CardContent>
-            {isCheckingIn && checkInStatus === "capturing" ? (
-              <div className="flex flex-col items-center justify-center p-8 bg-slate-100 rounded-lg border-2 border-dashed border-slate-300">
-                <div className="w-16 h-16 rounded-full border-4 border-primary border-t-transparent animate-spin mb-4"></div>
-                <p className="text-slate-600 font-medium text-center">
-                  Mengambil lokasi GPS dan foto selfie...
-                </p>
-              </div>
-            ) : isCheckingIn && checkInStatus === "success" ? (
+            {showWebcam ? (
+               <div className="flex flex-col items-center gap-4">
+                 <div className="relative w-full max-w-sm rounded-lg overflow-hidden border-2 border-primary">
+                    {/* @ts-expect-error React 19 JSX issue with Webcam */}
+                    <Webcam
+                      audio={false}
+                      ref={webcamRef}
+                      screenshotFormat="image/jpeg"
+                      width="100%"
+                      videoConstraints={{ facingMode: "user" }}
+                    />
+                 </div>
+                 <p className="text-sm text-slate-500">
+                   Lokasi: {location?.lat.toFixed(5)}, {location?.lng.toFixed(5)}
+                 </p>
+                 <div className="flex gap-2">
+                   <Button variant="outline" onClick={() => setShowWebcam(false)} disabled={isCheckingIn}>Batal</Button>
+                   <Button onClick={confirmCheckIn} disabled={isCheckingIn}>
+                     {isCheckingIn ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
+                     Ambil Foto & Check-In
+                   </Button>
+                 </div>
+               </div>
+            ) : hasCheckedInToday && !hasCheckedOutToday ? (
               <div className="flex flex-col items-center justify-center p-8 bg-emerald-50 rounded-lg border-2 border-emerald-200">
                 <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                 </div>
                 <p className="text-emerald-700 font-medium text-center text-lg">
-                  Check-In Berhasil!
+                  Anda sudah Check-In!
                 </p>
-                <p className="text-emerald-600 text-sm mt-1">08:00 WIB • Mirayya Pusat</p>
+                <p className="text-emerald-600 text-sm mt-1">{todayRecord.timeIn} WIB</p>
+                <div className="mt-6 w-full">
+                  <Button 
+                    className="w-full h-14 rounded-xl flex items-center justify-center gap-3 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white"
+                    onClick={handleCheckOut}
+                    disabled={isCheckingOut}
+                  >
+                    {isCheckingOut ? <Loader2 className="w-5 h-5 animate-spin" /> : <Clock className="w-5 h-5" />}
+                    <span className="font-semibold text-lg">Check-Out Sekarang</span>
+                  </Button>
+                </div>
+              </div>
+            ) : hasCheckedOutToday ? (
+              <div className="flex flex-col items-center justify-center p-8 bg-slate-100 rounded-lg border-2 border-slate-200">
+                <div className="w-16 h-16 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mb-4">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <p className="text-slate-700 font-medium text-center text-lg">
+                  Sif Anda Hari Ini Telah Selesai
+                </p>
+                <p className="text-slate-500 text-sm mt-1">Check-Out: {todayRecord.timeOut} WIB</p>
               </div>
             ) : (
               <div className="space-y-6">
+                {locationError && (
+                  <div className="p-3 bg-rose-50 text-rose-600 rounded-md text-sm">
+                    {locationError}
+                  </div>
+                )}
                 <div className="flex items-center space-x-3 text-slate-600 bg-slate-50 p-3 rounded-md border border-slate-100">
                   <MapPin className="w-5 h-5 text-primary" />
-                  <span className="text-sm">Lokasi saat ini: <strong className="text-slate-800">Mirayya Pusat (Akurasi: 5m)</strong></span>
+                  <span className="text-sm">Siap untuk mulai? Akses kamera dan GPS dibutuhkan.</span>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <Button 
                     className="h-32 rounded-2xl flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-primary to-primary/80 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-white"
-                    onClick={handleCheckIn}
+                    onClick={startCheckIn}
                   >
                     <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
                       <Camera className="w-6 h-6" />
@@ -198,11 +294,6 @@ export default function AbsensiKaryawan() {
                 className="flex h-9 w-full rounded-[calc(var(--radius)-2px)] border border-border bg-background pl-9 pr-3 py-2 text-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
               />
             </div>
-            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full sm:w-auto min-w-[130px]">
-              <option value="this_month">Bulan Ini</option>
-              <option value="last_month">Bulan Lalu</option>
-              <option value="this_year">Tahun Ini</option>
-            </select>
           </div>
         </CardHeader>
         <CardContent>
@@ -213,7 +304,6 @@ export default function AbsensiKaryawan() {
                   <th className="px-4 py-3 font-semibold rounded-tl-md">Tanggal</th>
                   <th className="px-4 py-3 font-semibold">Check-In</th>
                   <th className="px-4 py-3 font-semibold">Check-Out</th>
-                  <th className="px-4 py-3 font-semibold">Durasi</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
                   <th className="px-4 py-3 font-semibold rounded-tr-md text-center">Aksi</th>
                 </tr>
@@ -221,13 +311,12 @@ export default function AbsensiKaryawan() {
               <tbody>
                 {paginatedData.map((row, index) => (
                   <tr key={index} className="border-b border-slate-100 hover:bg-slate-50 last:border-0">
-                    <td className="px-4 py-3 font-medium text-slate-800">{row.attendanceDate || row.date}</td>
-                    <td className="px-4 py-3 text-slate-600">{row.timeIn || row.in || '-'}</td>
-                    <td className="px-4 py-3 text-slate-600">{row.timeOut || row.out || '-'}</td>
-                    <td className="px-4 py-3 text-slate-600">{row.duration || '-'}</td>
+                    <td className="px-4 py-3 font-medium text-slate-800">{row.attendanceDate}</td>
+                    <td className="px-4 py-3 text-slate-600">{row.timeIn || '-'}</td>
+                    <td className="px-4 py-3 text-slate-600">{row.timeOut || '-'}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        (row.status === 'Tepat Waktu' || row.timeIn) ? 'bg-emerald-100 text-emerald-700' : 
+                        row.status === 'Tepat Waktu' ? 'bg-emerald-100 text-emerald-700' : 
                         row.status === 'Terlambat' ? 'bg-rose-100 text-rose-700' : 
                         'bg-slate-100 text-slate-700'
                       }`}>
@@ -241,13 +330,7 @@ export default function AbsensiKaryawan() {
                         className="h-8 w-8 text-slate-500 hover:text-primary hover:bg-primary/10" 
                         title="Lihat Detail"
                         onClick={() => {
-                          setSelectedRecord({
-                            date: row.attendanceDate || row.date,
-                            in: row.timeIn || row.in || '-',
-                            out: row.timeOut || row.out || '-',
-                            duration: row.duration || '-',
-                            status: row.status || 'Hadir'
-                          });
+                          setSelectedRecord(row);
                           setIsDetailModalOpen(true);
                         }}
                       >
@@ -256,59 +339,40 @@ export default function AbsensiKaryawan() {
                     </td>
                   </tr>
                 ))}
+                {paginatedData.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-slate-500">Belum ada riwayat absensi.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
           
           {/* Pagination Controls */}
+          {historyData.length > 0 && (
           <div className="flex items-center justify-between px-4 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-md mt-4">
             <div className="text-sm text-slate-500">
               Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, historyData.length)}</span> dari <span className="font-medium text-slate-700">{historyData.length}</span> data
             </div>
             <div className="flex items-center gap-1.5">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(1)} 
-                disabled={currentPage === 1}
-                className="h-8 w-8 p-0"
-              >
+              <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className="h-8 w-8 p-0">
                 <ChevronsLeft className="h-4 w-4" />
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
-                disabled={currentPage === 1}
-                className="h-8 w-8 p-0"
-              >
+              <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="h-8 w-8 p-0">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              
               <div className="flex items-center justify-center text-sm font-medium px-3 text-slate-600">
                 Halaman {currentPage} dari {totalPages}
               </div>
-
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
-                disabled={currentPage === totalPages}
-                className="h-8 w-8 p-0"
-              >
+              <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="h-8 w-8 p-0">
                 <ChevronRight className="h-4 w-4" />
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(totalPages)} 
-                disabled={currentPage === totalPages}
-                className="h-8 w-8 p-0"
-              >
+              <Button variant="outline" size="sm" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} className="h-8 w-8 p-0">
                 <ChevronsRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
+          )}
         </CardContent>
       </Card>
 
@@ -318,29 +382,34 @@ export default function AbsensiKaryawan() {
           <DialogHeader>
             <DialogTitle>Detail Absensi</DialogTitle>
             <DialogDescription>
-              Informasi lengkap kehadiran Anda pada tanggal tersebut.
+              Informasi lengkap kehadiran Anda.
             </DialogDescription>
           </DialogHeader>
           
           {selectedRecord && (
             <div className="grid gap-4 py-4">
+              {selectedRecord.selfieUrl && (
+                <div className="flex justify-center mb-4">
+                   <img src={selectedRecord.selfieUrl} alt="Selfie" className="w-32 h-32 object-cover rounded-full border-4 border-primary/20" />
+                </div>
+              )}
               <div className="flex flex-col gap-2">
                 <span className="text-sm font-medium text-slate-500">Tanggal</span>
-                <span className="text-base font-semibold text-slate-800">{selectedRecord.date}</span>
+                <span className="text-base font-semibold text-slate-800">{selectedRecord.attendanceDate}</span>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
                   <span className="text-sm font-medium text-slate-500">Check-In</span>
-                  <span className="text-base text-slate-800">{selectedRecord.in}</span>
+                  <span className="text-base text-slate-800">{selectedRecord.timeIn || '-'}</span>
                 </div>
                 <div className="flex flex-col gap-2">
                   <span className="text-sm font-medium text-slate-500">Check-Out</span>
-                  <span className="text-base text-slate-800">{selectedRecord.out}</span>
+                  <span className="text-base text-slate-800">{selectedRecord.timeOut || '-'}</span>
                 </div>
               </div>
               <div className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-slate-500">Durasi Kerja</span>
-                <span className="text-base text-slate-800">{selectedRecord.duration}</span>
+                <span className="text-sm font-medium text-slate-500">Lokasi GPS</span>
+                <span className="text-sm text-slate-800 break-all">{selectedRecord.locationGps}</span>
               </div>
               <div className="flex flex-col gap-2">
                 <span className="text-sm font-medium text-slate-500">Status</span>
@@ -358,7 +427,7 @@ export default function AbsensiKaryawan() {
           )}
         </DialogContent>
       </Dialog>
-
+      
       {/* Modal Pengajuan Lembur */}
       <Dialog open={isLemburModalOpen} onOpenChange={setIsLemburModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
@@ -368,37 +437,11 @@ export default function AbsensiKaryawan() {
               Isi form di bawah ini untuk mengajukan jadwal lembur.
             </DialogDescription>
           </DialogHeader>
-          
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="tanggal-lembur">Tanggal Lembur</Label>
-              <Input id="tanggal-lembur" type="date" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="jam-mulai">Jam Mulai</Label>
-                <Input id="jam-mulai" type="time" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="jam-selesai">Jam Selesai</Label>
-                <Input id="jam-selesai" type="time" />
-              </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="keterangan">Keterangan / Alasan</Label>
-              <textarea 
-                id="keterangan" 
-                className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="Jelaskan alasan lembur dan pekerjaan yang dilakukan..."
-              />
-            </div>
+             <p className="text-sm text-slate-500 text-center py-4">Fitur ini akan segera tersedia</p>
           </div>
           <div className="flex justify-end gap-3 mt-4">
-            <Button variant="outline" onClick={() => setIsLemburModalOpen(false)}>Batal</Button>
-            <Button onClick={() => {
-              // Simulasi submit
-              setIsLemburModalOpen(false);
-            }}>Kirim Pengajuan</Button>
+            <Button variant="outline" onClick={() => setIsLemburModalOpen(false)}>Tutup</Button>
           </div>
         </DialogContent>
       </Dialog>

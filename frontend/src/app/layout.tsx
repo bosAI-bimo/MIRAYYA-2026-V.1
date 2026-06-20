@@ -1,17 +1,31 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "sonner";
+import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#db2777",
+};
+
 export const metadata: Metadata = {
   title: "Mirraya ERP",
   description: "ERP Mirraya Cosmetics (Olsera POS Integrated)",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Mirraya ERP",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({
@@ -28,6 +42,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
           <Toaster position="top-center" richColors />
+          <PWAInstallPrompt />
         </AuthProvider>
       </body>
     </html>

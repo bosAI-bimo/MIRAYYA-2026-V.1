@@ -20,6 +20,8 @@ router.get("/branches", async (req, res) => {
       name: branches.name,
       address: branches.address,
       phone: branches.phone,
+      latitude: branches.latitude,
+      longitude: branches.longitude,
       employees: sql<number>`count(${users.id})::int`,
       status: sql<string>`'Aktif'`
     })
@@ -35,8 +37,29 @@ router.get("/branches", async (req, res) => {
 
 router.post("/branches", async (req, res) => {
   try {
-    const { name, address, phone } = req.body;
-    const newBranch = await db.insert(branches).values({ name, address, phone }).returning();
+    const { name, address, phone, latitude, longitude } = req.body;
+    
+    const latStr = latitude ? latitude.toString() : null;
+    const lngStr = longitude ? longitude.toString() : null;
+    
+    if (latStr) {
+      const latNum = parseFloat(latStr);
+      if (isNaN(latNum) || latNum < -90 || latNum > 90) {
+        return res.status(400).json({ error: "Latitude must be between -90 and 90" });
+      }
+    }
+    if (lngStr) {
+      const lngNum = parseFloat(lngStr);
+      if (isNaN(lngNum) || lngNum < -180 || lngNum > 180) {
+        return res.status(400).json({ error: "Longitude must be between -180 and 180" });
+      }
+    }
+
+    const newBranch = await db.insert(branches).values({ 
+      name, address, phone, 
+      latitude: latStr, 
+      longitude: lngStr 
+    }).returning();
     res.status(201).json(newBranch[0]);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -46,9 +69,30 @@ router.post("/branches", async (req, res) => {
 router.put("/branches/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, address, phone } = req.body;
+    const { name, address, phone, latitude, longitude } = req.body;
+
+    const latStr = latitude ? latitude.toString() : null;
+    const lngStr = longitude ? longitude.toString() : null;
+    
+    if (latStr) {
+      const latNum = parseFloat(latStr);
+      if (isNaN(latNum) || latNum < -90 || latNum > 90) {
+        return res.status(400).json({ error: "Latitude must be between -90 and 90" });
+      }
+    }
+    if (lngStr) {
+      const lngNum = parseFloat(lngStr);
+      if (isNaN(lngNum) || lngNum < -180 || lngNum > 180) {
+        return res.status(400).json({ error: "Longitude must be between -180 and 180" });
+      }
+    }
+
     const updatedBranch = await db.update(branches)
-      .set({ name, address, phone })
+      .set({ 
+        name, address, phone,
+        latitude: latStr, 
+        longitude: lngStr 
+      })
       .where(eq(branches.id, id))
       .returning();
     if (updatedBranch.length === 0) return res.status(404).json({ message: "Branch not found" });

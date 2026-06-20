@@ -251,7 +251,8 @@ export default function BuatJurnalPage() {
                 </div>
               ))}
             </div>
-          </form>
+          </div>
+        </form>
         </CardContent>
         
         {/* Footer with Balance & Submit */}

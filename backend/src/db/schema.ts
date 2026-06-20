@@ -22,6 +22,8 @@ export const branches = pgTable("branches", {
   name: varchar("name", { length: 255 }).notNull(),
   address: text("address"),
   phone: varchar("phone", { length: 50 }),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }),
 });
 
 export const users = pgTable("users", {
@@ -83,6 +85,10 @@ export const attendance = pgTable("attendance", {
   timeIn: time("time_in"),
   timeOut: time("time_out"),
   selfieUrl: text("selfie_url"),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }),
+  status: varchar("status", { length: 50 }), // e.g. "Tepat Waktu", "Terlambat"
+  notes: text("notes"),
   locationGps: varchar("location_gps", { length: 255 }),
   isDeleted: boolean("is_deleted").default(false),
   updatedBy: text("updated_by"),
@@ -107,6 +113,8 @@ export const budgets = pgTable("budgets", {
   month: varchar("month", { length: 7 }).notNull(), // YYYY-MM
   amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
   approvedBy: text("approved_by").references(() => users.id),
+  isDeleted: boolean("is_deleted").default(false),
+  updatedBy: text("updated_by"),
 });
 
 export const orders = pgTable("orders", {
@@ -167,6 +175,8 @@ export const bankReconciliations = pgTable("bank_reconciliations", {
   posSalesBalance: decimal("pos_sales_balance", { precision: 15, scale: 2 }).notNull(),
   difference: decimal("difference", { precision: 15, scale: 2 }).notNull(),
   notes: text("notes"),
+  isDeleted: boolean("is_deleted").default(false),
+  updatedBy: text("updated_by"),
 });
 
 export const revenueTargets = pgTable("revenue_targets", {
@@ -176,6 +186,8 @@ export const revenueTargets = pgTable("revenue_targets", {
   targetRevenue: decimal("target_revenue", { precision: 15, scale: 2 }).notNull(),
   avgPeriodStart: date("avg_period_start"),
   avgPeriodEnd: date("avg_period_end"),
+  isDeleted: boolean("is_deleted").default(false),
+  updatedBy: text("updated_by"),
 });
 
 export const journalEntries = pgTable("journal_entries", {

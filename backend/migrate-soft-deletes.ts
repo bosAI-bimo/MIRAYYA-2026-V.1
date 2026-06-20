@@ -9,6 +9,9 @@ async function run() {
     "eod_reports",
     "petty_cash_transactions",
     "journal_entries",
+    "budgets",
+    "revenue_targets",
+    "bank_reconciliations"
   ];
 
   for (const table of tables) {

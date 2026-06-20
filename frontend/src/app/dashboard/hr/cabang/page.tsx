@@ -14,7 +14,7 @@ export default function CabangPage() {
   const [branches, setBranches] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [newBranch, setNewBranch] = React.useState({ name: '', phone: '', address: '', status: 'Aktif' });
+  const [newBranch, setNewBranch] = React.useState({ name: '', phone: '', address: '', status: 'Aktif', latitude: '', longitude: '' });
 
   const fetchBranches = async () => {
     try {
@@ -34,10 +34,16 @@ export default function CabangPage() {
       setIsSubmitting(true);
       await fetcher('/admin/branches', {
         method: 'POST',
-        body: JSON.stringify({ name: newBranch.name, address: newBranch.address, phone: newBranch.phone })
+        body: JSON.stringify({ 
+          name: newBranch.name, 
+          address: newBranch.address, 
+          phone: newBranch.phone,
+          latitude: newBranch.latitude ? parseFloat(newBranch.latitude) : null,
+          longitude: newBranch.longitude ? parseFloat(newBranch.longitude) : null
+        })
       });
       setIsAddModalOpen(false);
-      setNewBranch({ name: '', phone: '', address: '', status: 'Aktif' });
+      setNewBranch({ name: '', phone: '', address: '', status: 'Aktif', latitude: '', longitude: '' });
       await fetchBranches();
     } catch (err: any) { alert("Error: " + err.message); }
     finally { setIsSubmitting(false); }
@@ -49,7 +55,13 @@ export default function CabangPage() {
       setIsSubmitting(true);
       await fetcher(`/admin/branches/${selectedCabang.id}`, {
         method: 'PUT',
-        body: JSON.stringify({ name: selectedCabang.name, address: selectedCabang.address, phone: selectedCabang.phone })
+        body: JSON.stringify({ 
+          name: selectedCabang.name, 
+          address: selectedCabang.address, 
+          phone: selectedCabang.phone,
+          latitude: selectedCabang.latitude ? parseFloat(selectedCabang.latitude) : null,
+          longitude: selectedCabang.longitude ? parseFloat(selectedCabang.longitude) : null
+        })
       });
       setIsEditModalOpen(false);
       await fetchBranches();
@@ -372,6 +384,16 @@ export default function CabangPage() {
                     value={newBranch.address} onChange={e => setNewBranch({...newBranch, address: e.target.value})}
                   ></textarea>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Latitude</label>
+                    <Input value={newBranch.latitude} onChange={e => setNewBranch({...newBranch, latitude: e.target.value})} placeholder="-6.200000" className="border-slate-200 focus-visible:ring-primary" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Longitude</label>
+                    <Input value={newBranch.longitude} onChange={e => setNewBranch({...newBranch, longitude: e.target.value})} placeholder="106.816666" className="border-slate-200 focus-visible:ring-primary" />
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Status</label>
                   <select value={newBranch.status} onChange={e => setNewBranch({...newBranch, status: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white">
@@ -445,6 +467,16 @@ export default function CabangPage() {
                     className="w-full min-h-[100px] px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white"
                     value={selectedCabang.address} onChange={e => setSelectedCabang({...selectedCabang, address: e.target.value})}
                   ></textarea>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Latitude</label>
+                    <Input value={selectedCabang.latitude || ''} onChange={e => setSelectedCabang({...selectedCabang, latitude: e.target.value})} placeholder="-6.200000" className="border-slate-200 focus-visible:ring-primary" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Longitude</label>
+                    <Input value={selectedCabang.longitude || ''} onChange={e => setSelectedCabang({...selectedCabang, longitude: e.target.value})} placeholder="106.816666" className="border-slate-200 focus-visible:ring-primary" />
+                  </div>
                 </div>
               </div>
 

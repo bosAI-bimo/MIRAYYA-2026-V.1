@@ -46,6 +46,7 @@ import {
 } from 'recharts';
 import { Button } from "@/components/ui/button";
 import { fetcher } from "@/lib/api";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 // --- MOCK DATA ---
 
@@ -150,9 +151,7 @@ export default function OwnerDashboardPage() {
 
       {/* 8 KPI Cards (2 rows x 4) */}
       {loading ? (
-        <div className="flex h-32 items-center justify-center w-full">
-          <Loader2 className="w-8 h-8 animate-spin text-pink-600" />
-        </div>
+        <LoadingScreen />
       ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {/* Row 1 */}

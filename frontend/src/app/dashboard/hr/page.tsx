@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Users, UserCheck, AlertCircle, FileText, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { fetcher } from "@/lib/api";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 type Checkin = {
   name: string;
@@ -53,11 +54,7 @@ export default function HRDashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-pink-600" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (error) {
