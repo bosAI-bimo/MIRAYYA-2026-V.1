@@ -303,23 +303,23 @@ export default function AccountingDashboard() {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                       <span className="text-slate-600 font-medium">Pendapatan Penjualan (Olsera)</span>
-                      <span className="font-bold text-slate-900">Rp 450.200.000</span>
+                      <span className="font-bold text-slate-900">Rp {(stats?.totalOmzet || 0).toLocaleString('id-ID')}</span>
                     </div>
                     <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                       <span className="text-slate-600 font-medium">Harga Pokok Penjualan (HPP)</span>
-                      <span className="font-bold text-slate-900">- Rp 210.500.000</span>
+                      <span className="font-bold text-slate-900">- Rp {((stats?.totalOmzet || 0) * 0.4).toLocaleString('id-ID')}</span>
                     </div>
                     <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                       <span className="text-slate-800 font-bold">Laba Kotor</span>
-                      <span className="font-extrabold text-slate-900">Rp 239.700.000</span>
+                      <span className="font-extrabold text-slate-900">Rp {((stats?.totalOmzet || 0) * 0.6).toLocaleString('id-ID')}</span>
                     </div>
                     <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                       <span className="text-slate-600 font-medium">Biaya Operasional (Payroll, Petty Cash, dll)</span>
-                      <span className="font-bold text-slate-900">- Rp 115.200.000</span>
+                      <span className="font-bold text-slate-900">- Rp {((stats?.totalOmzet || 0) * 0.6 - (stats?.labaBersih || 0)).toLocaleString('id-ID')}</span>
                     </div>
                     <div className="flex justify-between items-center pt-2 bg-emerald-50 p-4 rounded-xl border border-emerald-100">
                       <span className="text-emerald-800 font-bold text-lg">Laba Bersih</span>
-                      <span className="font-extrabold text-emerald-600 text-xl">Rp 124.500.000</span>
+                      <span className="font-extrabold text-emerald-600 text-xl">Rp {(stats?.labaBersih || 0).toLocaleString('id-ID')}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -341,14 +341,14 @@ export default function AccountingDashboard() {
                         <ArrowDownRight className="w-5 h-5 mr-1" />
                         <span className="font-bold text-sm">Kas Masuk</span>
                       </div>
-                      <div className="text-xl font-extrabold text-emerald-700">Rp 500.000.000</div>
+                      <div className="text-xl font-extrabold text-emerald-700">Rp {(stats?.totalOmzet || 0).toLocaleString('id-ID')}</div>
                     </div>
                     <div className="bg-rose-50 border border-rose-100 p-4 rounded-xl">
                       <div className="flex items-center text-rose-600 mb-2">
                         <ArrowUpRight className="w-5 h-5 mr-1" />
                         <span className="font-bold text-sm">Kas Keluar</span>
                       </div>
-                      <div className="text-xl font-extrabold text-rose-700">Rp 415.000.000</div>
+                      <div className="text-xl font-extrabold text-rose-700">Rp {((stats?.totalOmzet || 0) - (stats?.arusKasNet || 0)).toLocaleString('id-ID')}</div>
                     </div>
                   </div>
                   <div className="space-y-4">

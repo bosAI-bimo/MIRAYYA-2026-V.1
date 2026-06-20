@@ -27,6 +27,7 @@ router.get("/branches", async (req, res) => {
     })
     .from(branches)
     .leftJoin(users, eq(branches.id, users.branchId))
+    .where(eq(branches.isDeleted, false))
     .groupBy(branches.id);
     
     res.json(allBranches);
@@ -105,7 +106,11 @@ router.put("/branches/:id", async (req, res) => {
 router.delete("/branches/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedBranch = await db.delete(branches).where(eq(branches.id, id)).returning();
+    const currentUserId = (req as any).user?.id || "system";
+    const deletedBranch = await db.update(branches)
+      .set({ isDeleted: true, updatedBy: currentUserId })
+      .where(eq(branches.id, id))
+      .returning();
     if (deletedBranch.length === 0) return res.status(404).json({ message: "Branch not found" });
     res.json({ message: "Branch deleted successfully" });
   } catch (error: any) {

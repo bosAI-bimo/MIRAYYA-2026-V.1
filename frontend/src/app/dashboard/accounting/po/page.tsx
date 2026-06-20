@@ -6,34 +6,34 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Search, Eye, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, FileText, Download, Printer, Check, X as XIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-
-const poData = [
-  { id: "PO-2606-042", branch: "Mirayya Kelapa Gading", date: "11 Jun 2026", items: 45, total: "Rp 4.500.000", status: "Menunggu", details: [
-    { name: "Wardah Lightening Serum", qty: 20, price: "Rp 75.000", category: "Fast Moving" },
-    { name: "Make Over Powerstay", qty: 10, price: "Rp 150.000", category: "Fast Moving" },
-    { name: "Emina Sun Battle", qty: 15, price: "Rp 50.000", category: "Fast Moving" }
-  ]},
-  { id: "PO-2606-043", branch: "Mirayya Sudirman", date: "11 Jun 2026", items: 20, total: "Rp 2.100.000", status: "Menunggu", details: [
-    { name: "Somethinc Niacinamide", qty: 10, price: "Rp 120.000", category: "Fast Moving" },
-    { name: "Avoskin PHTE", qty: 10, price: "Rp 90.000", category: "Slow Moving" }
-  ]},
-  { id: "PO-2606-040", branch: "Mirayya PIK", date: "10 Jun 2026", items: 120, total: "Rp 15.500.000", status: "Disetujui" },
-  { id: "PO-2606-039", branch: "Mirayya Kemang", date: "09 Jun 2026", items: 15, total: "Rp 1.800.000", status: "Disetujui" },
-  { id: "PO-2606-038", branch: "Mirayya Bintaro", date: "08 Jun 2026", items: 5, total: "Rp 850.000", status: "Ditolak" },
-  { id: "PO-2606-037", branch: "Pusat", date: "07 Jun 2026", items: 250, total: "Rp 45.000.000", status: "Disetujui" },
-  { id: "PO-2606-036", branch: "Mirayya Kelapa Gading", date: "06 Jun 2026", items: 10, total: "Rp 1.200.000", status: "Disetujui" },
-  { id: "PO-2606-035", branch: "Mirayya Sudirman", date: "05 Jun 2026", items: 30, total: "Rp 3.500.000", status: "Menunggu" },
-  { id: "PO-2606-034", branch: "Mirayya PIK", date: "04 Jun 2026", items: 50, total: "Rp 5.200.000", status: "Ditolak" },
-  { id: "PO-2606-033", branch: "Mirayya Kemang", date: "03 Jun 2026", items: 25, total: "Rp 2.800.000", status: "Disetujui" },
-  { id: "PO-2606-032", branch: "Pusat", date: "02 Jun 2026", items: 500, total: "Rp 120.000.000", status: "Disetujui" },
-  { id: "PO-2606-031", branch: "Mirayya Bintaro", date: "01 Jun 2026", items: 8, total: "Rp 950.000", status: "Disetujui" },
-  { id: "PO-2605-030", branch: "Mirayya Kelapa Gading", date: "31 May 2026", items: 40, total: "Rp 4.000.000", status: "Disetujui" },
-  { id: "PO-2605-029", branch: "Mirayya Sudirman", date: "30 May 2026", items: 15, total: "Rp 1.500.000", status: "Disetujui" },
-  { id: "PO-2605-028", branch: "Mirayya PIK", date: "29 May 2026", items: 60, total: "Rp 6.800.000", status: "Ditolak" },
-];
+import { fetcher } from "@/lib/api";
+import { toast } from "sonner";
 
 export default function POApprovalPage() {
+  const [poData, setPoData] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+
+  React.useEffect(() => {
+    fetchPOs();
+  }, []);
+
+  const fetchPOs = async () => {
+    try {
+      const data = await fetcher('/store/orders');
+      const formattedData = (data || []).map((item: any) => ({
+        id: item.id,
+        branch: item.branchId || "Cabang",
+        date: item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
+        items: "-",
+        total: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.totalAmount || 0),
+        status: item.status === 'PENDING' ? 'Menunggu' : item.status === 'APPROVED' ? 'Disetujui' : 'Ditolak',
+        details: []
+      }));
+      setPoData(formattedData);
+    } catch (err) {
+      console.error(err);
+    }
+  };
   const [filterStatus, setFilterStatus] = useState("pending");
   const itemsPerPage = 5;
 
@@ -48,6 +48,20 @@ export default function POApprovalPage() {
   const closePOModal = () => {
     setIsPOModalOpen(false);
     setTimeout(() => setSelectedPO(null), 300);
+  };
+
+  const handleUpdateStatus = async (id: string, newStatus: string) => {
+    try {
+      await fetcher(`/store/orders/${id}/approve`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: newStatus })
+      });
+      toast.success(`PO berhasil ${newStatus === 'APPROVED' ? 'disetujui' : 'ditolak'}`);
+      closePOModal();
+      fetchPOs();
+    } catch (err: any) {
+      toast.error(err.message || "Gagal mengubah status PO");
+    }
   };
 
   const filteredData = poData.filter(item => 
@@ -165,10 +179,10 @@ export default function POApprovalPage() {
                         </Button>
                         {item.status === 'Menunggu' && (
                           <>
-                            <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600" title="Setujui">
+                            <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(item.id, 'APPROVED')} className="h-8 w-8 p-0 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600" title="Setujui">
                               <CheckCircle className="w-4 h-4 text-emerald-500" />
                             </Button>
-                            <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-rose-200 hover:bg-rose-50 hover:text-rose-600" title="Tolak">
+                            <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(item.id, 'REJECTED')} className="h-8 w-8 p-0 border-rose-200 hover:bg-rose-50 hover:text-rose-600" title="Tolak">
                               <XCircle className="w-4 h-4 text-rose-500" />
                             </Button>
                           </>
@@ -332,10 +346,10 @@ export default function POApprovalPage() {
               {/* Footer Actions */}
               {selectedPO.status === 'Menunggu' && (
                 <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row gap-3">
-                  <Button className="flex-1 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold h-12 rounded-xl transition-all border-none cursor-pointer">
+                  <Button onClick={() => handleUpdateStatus(selectedPO.id, 'REJECTED')} className="flex-1 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold h-12 rounded-xl transition-all border-none cursor-pointer">
                     <XIcon className="w-5 h-5 mr-2" /> Tolak
                   </Button>
-                  <Button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                  <Button onClick={() => handleUpdateStatus(selectedPO.id, 'APPROVED')} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
                     <Check className="w-5 h-5 mr-2" /> Setujui PO
                   </Button>
                 </div>

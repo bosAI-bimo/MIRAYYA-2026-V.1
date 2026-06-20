@@ -10,6 +10,7 @@ import { z } from "zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { fetcher } from "@/lib/api";
 
 const journalEntrySchema = z.object({
   akun: z.string().min(1, "Nama akun wajib diisi"),
@@ -66,8 +67,20 @@ export default function BuatJurnalPage() {
 
   const onSubmit = async (data: JournalFormValues) => {
     try {
-      // Simulate API Call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const debitEntry = data.entries.find(e => Number(e.debit) > 0);
+      const creditEntry = data.entries.find(e => Number(e.kredit) > 0);
+      const amount = Number(debitEntry?.debit) || Number(creditEntry?.kredit) || 0;
+
+      await fetcher('/accounting/journal-entries', {
+        method: 'POST',
+        body: JSON.stringify({
+          entryDate: data.date,
+          description: data.description,
+          debitAccount: debitEntry?.akun || "Debit Account",
+          creditAccount: creditEntry?.akun || "Credit Account",
+          amount: amount
+        })
+      });
       toast.success("Jurnal penyesuaian berhasil disimpan!");
       router.push("/dashboard/accounting/laporan/jurnal-penyesuaian");
     } catch (err: any) {

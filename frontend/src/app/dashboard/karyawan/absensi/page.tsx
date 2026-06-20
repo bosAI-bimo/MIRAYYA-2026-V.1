@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Camera, MapPin, Clock, Filter, Search, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Eye, Plus, Loader2 } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
+import { format } from "date-fns";
+import { Camera, MapPin, Clock, Filter, Search, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Eye, Plus, Loader2, X as XIcon } from "lucide-react";
 import Link from "next/link";
 import { fetcher } from "@/lib/api";
 import Webcam from "react-webcam";
@@ -24,6 +26,7 @@ export default function AbsensiKaryawan() {
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isLemburModalOpen, setIsLemburModalOpen] = useState(false);
+  const [searchDate, setSearchDate] = useState<Date | undefined>(undefined);
   const itemsPerPage = 5;
 
   const webcamRef = useRef<Webcam>(null);
@@ -39,9 +42,19 @@ export default function AbsensiKaryawan() {
     fetchHistory();
   }, []);
 
-  const totalPages = Math.max(1, Math.ceil(historyData.length / itemsPerPage));
+  const filteredHistoryData = historyData.filter(row => {
+    if (!searchDate) return true;
+    try {
+      const formattedSearch = format(searchDate, "yyyy-MM-dd");
+      return row.attendanceDate === formattedSearch;
+    } catch (e) {
+      return true;
+    }
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredHistoryData.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = historyData.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedData = filteredHistoryData.slice(startIndex, startIndex + itemsPerPage);
 
   const getLocation = () => {
     return new Promise<{lat: number, lng: number}>((resolve, reject) => {
@@ -286,13 +299,18 @@ export default function AbsensiKaryawan() {
             <CardDescription>Data kehadiran Anda bulan ini</CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Cari tanggal..." 
-                className="flex h-9 w-full rounded-[calc(var(--radius)-2px)] border border-border bg-background pl-9 pr-3 py-2 text-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            <div className="flex items-center gap-2 w-full sm:w-64">
+              <DatePicker 
+                date={searchDate} 
+                setDate={(date) => { setSearchDate(date); setCurrentPage(1); }} 
+                placeholder="Pilih tanggal..."
+                className="w-full"
               />
+              {searchDate && (
+                <Button variant="ghost" size="icon" onClick={() => { setSearchDate(undefined); setCurrentPage(1); }} className="h-10 w-10 shrink-0 text-slate-500 hover:text-rose-500 bg-slate-50 border border-slate-200">
+                  <XIcon className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -349,10 +367,10 @@ export default function AbsensiKaryawan() {
           </div>
           
           {/* Pagination Controls */}
-          {historyData.length > 0 && (
+          {filteredHistoryData.length > 0 && (
           <div className="flex items-center justify-between px-4 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-md mt-4">
             <div className="text-sm text-slate-500">
-              Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, historyData.length)}</span> dari <span className="font-medium text-slate-700">{historyData.length}</span> data
+              Menampilkan <span className="font-medium text-slate-700">{startIndex + 1}</span> - <span className="font-medium text-slate-700">{Math.min(startIndex + itemsPerPage, filteredHistoryData.length)}</span> dari <span className="font-medium text-slate-700">{filteredHistoryData.length}</span> data
             </div>
             <div className="flex items-center gap-1.5">
               <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className="h-8 w-8 p-0">

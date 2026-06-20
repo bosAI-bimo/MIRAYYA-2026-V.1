@@ -18,6 +18,7 @@ import {
   FileCheck,
   CalendarCheck,
   Receipt,
+  Settings,
   type LucideIcon,
 } from 'lucide-react';
 import { type UserRole } from '@/types/auth';
@@ -186,28 +187,39 @@ export const navigationConfig: NavItem[] = [
   },
 
   // ═══════════════════════════════════════
-  // MODUL KARYAWAN / BA
+  // MODUL KARYAWAN
   // ═══════════════════════════════════════
   {
     title: 'Portal Karyawan',
     href: '/dashboard/karyawan',
     icon: CalendarCheck,
-    allowedRoles: ['owner', 'ba'],
+    allowedRoles: ['owner', 'karyawan'],
     sectionLabel: 'KARYAWAN',
     children: [
       {
         title: 'Absensi',
         href: '/dashboard/karyawan/absensi',
         icon: CalendarCheck,
-        allowedRoles: ['owner', 'ba'],
+        allowedRoles: ['owner', 'karyawan'],
       },
       {
         title: 'Slip Gaji',
         href: '/dashboard/karyawan/slip-gaji',
         icon: Receipt,
-        allowedRoles: ['owner', 'ba'],
+        allowedRoles: ['owner', 'karyawan'],
       },
     ],
+  },
+
+  // ═══════════════════════════════════════
+  // MODUL PENGATURAN
+  // ═══════════════════════════════════════
+  {
+    title: 'Pengaturan Global',
+    href: '/dashboard/settings',
+    icon: Settings,
+    allowedRoles: ['owner'],
+    sectionLabel: 'SISTEM',
   },
 ];
 

@@ -3,8 +3,8 @@
 // hr          = HR Manager
 // accounting  = Staff Accounting
 // kepala-toko = Kepala Toko / Store Leader
-// ba          = Beauty Advisor / Karyawan
-export type UserRole = 'owner' | 'hr' | 'accounting' | 'kepala-toko' | 'ba';
+// karyawan    = Karyawan biasa / Beauty Advisor
+export type UserRole = 'owner' | 'hr' | 'accounting' | 'kepala-toko' | 'karyawan';
 
 export interface User {
   id: string;
@@ -51,13 +51,13 @@ export const demoUsers: Record<UserRole, User> = {
     initials: 'AS',
     roleLabel: 'Kepala Toko',
   },
-  ba: {
+  karyawan: {
     id: '5',
     name: 'Jane Doe',
     email: 'jane@mirayya.com',
-    role: 'ba',
+    role: 'karyawan',
     branch: 'Mirayya Sudirman',
     initials: 'JD',
-    roleLabel: 'Beauty Advisor',
+    roleLabel: 'Karyawan',
   },
 };

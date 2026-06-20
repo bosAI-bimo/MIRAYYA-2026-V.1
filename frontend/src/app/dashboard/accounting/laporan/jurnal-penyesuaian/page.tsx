@@ -21,17 +21,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-// Mock data for Jurnal Penyesuaian
-const initialJurnalData = [
-  { id: "JP-001", tanggal: "2026-06-15", akun: "Beban Penyusutan Peralatan", ref: "5-100", debit: 2500000, kredit: 0, keterangan: "Penyusutan peralatan pertengahan bulan" },
-  { id: "JP-001", tanggal: "2026-06-15", akun: "Akumulasi Penyusutan Peralatan", ref: "1-201", debit: 0, kredit: 2500000, keterangan: "Penyusutan peralatan pertengahan bulan" },
-  
-  { id: "JP-002", tanggal: "2026-06-25", akun: "Beban Perlengkapan", ref: "5-200", debit: 1200000, kredit: 0, keterangan: "Pemakaian perlengkapan kantor" },
-  { id: "JP-002", tanggal: "2026-06-25", akun: "Perlengkapan Kantor", ref: "1-104", debit: 0, kredit: 1200000, keterangan: "Pemakaian perlengkapan kantor" },
-
-  { id: "JP-003", tanggal: "2026-06-30", akun: "Beban Sewa", ref: "5-300", debit: 5000000, kredit: 0, keterangan: "Alokasi sewa gedung bulan Juni" },
-  { id: "JP-003", tanggal: "2026-06-30", akun: "Sewa Dibayar Dimuka", ref: "1-105", debit: 0, kredit: 5000000, keterangan: "Alokasi sewa gedung bulan Juni" },
-];
+// Mock data structure format, populated via fetcher
+import { fetcher } from "@/lib/api";
 
 // Helper to format date
 const formatDate = (dateString: string) => {
@@ -50,6 +41,40 @@ export default function JurnalPenyesuaianPage() {
   
   // Detail Modal state
   const [selectedJurnalId, setSelectedJurnalId] = useState<string | null>(null);
+  
+  const [initialJurnalData, setInitialJurnalData] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    const fetchJournals = async () => {
+      try {
+        const data = await fetcher('/accounting/journal-entries');
+        if (data && data.length > 0) {
+          const formatted = data.flatMap((item: any) => [
+            {
+              id: item.id.substring(0, 8), // Short UUID for display grouping
+              tanggal: item.entryDate,
+              akun: item.debitAccount,
+              ref: "-",
+              debit: Number(item.amount),
+              kredit: 0,
+              keterangan: item.description
+            },
+            {
+              id: item.id.substring(0, 8),
+              tanggal: item.entryDate,
+              akun: item.creditAccount,
+              ref: "-",
+              debit: 0,
+              kredit: Number(item.amount),
+              keterangan: item.description
+            }
+          ]);
+          setInitialJurnalData(formatted);
+        }
+      } catch (e) { console.error(e); }
+    };
+    fetchJournals();
+  }, []);
 
   // Apply filters
   const filteredData = initialJurnalData.filter(item => {

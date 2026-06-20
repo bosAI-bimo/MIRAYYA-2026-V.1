@@ -25,6 +25,7 @@ import {
 } from "recharts";
 
 // Mock data for the chart
+// Mock data for the chart
 const cashflowData = [
   { name: "Jan", Masuk: 380000000, Keluar: 250000000 },
   { name: "Feb", Masuk: 320000000, Keluar: 200000000 },
@@ -34,9 +35,42 @@ const cashflowData = [
   { name: "Jun", Masuk: 430000000, Keluar: 290000000 },
 ];
 
+import { fetcher } from "@/lib/api";
+
+const formatRupiah = (number: number) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(number || 0);
+};
+
 export default function ArusKasPage() {
   const [branch, setBranch] = useState("all");
   const [period, setPeriod] = useState("this_month");
+  
+  const [data, setData] = useState({
+    operatingActivities: 0,
+    investingActivities: 0,
+    financingActivities: 0,
+    netCashFlow: 0,
+    endingBalance: 0
+  });
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      let monthStr = '2026-06';
+      if (period === 'last_month') monthStr = '2026-05';
+      if (period === 'this_year') monthStr = '2026-06';
+      try {
+        const res = await fetcher(`/accounting/cash-flow?month=${monthStr}&branchId=${branch}`);
+        if (res) setData(res);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchData();
+  }, [branch, period]);
 
   return (
     <div className="space-y-6">
@@ -100,14 +134,14 @@ export default function ArusKasPage() {
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-500 font-medium mb-1">Total Kas Masuk</p>
-                <p className="text-2xl font-bold text-slate-800">Rp 430.000.000</p>
+                <p className="text-sm text-slate-500 font-medium mb-1">Arus Kas Operasi</p>
+                <p className="text-2xl font-bold text-slate-800">{formatRupiah(data.operatingActivities)}</p>
               </div>
               <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
                 <TrendingUp className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-xs text-emerald-600 mt-2 font-medium">+7.5% dari bulan lalu</p>
+            <p className="text-xs text-emerald-600 mt-2 font-medium">Berdasarkan Penerimaan & Pengeluaran Kas</p>
           </CardContent>
         </Card>
 
@@ -115,14 +149,14 @@ export default function ArusKasPage() {
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-slate-500 font-medium mb-1">Total Kas Keluar</p>
-                <p className="text-2xl font-bold text-rose-600">Rp 290.000.000</p>
+                <p className="text-sm text-slate-500 font-medium mb-1">Aktivitas Investasi & Pendanaan</p>
+                <p className="text-2xl font-bold text-rose-600">{formatRupiah(data.investingActivities + data.financingActivities)}</p>
               </div>
               <div className="p-2 bg-rose-100 rounded-lg text-rose-600">
                 <TrendingDown className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-xs text-rose-600 mt-2 font-medium">+11.5% dari bulan lalu</p>
+            <p className="text-xs text-rose-600 mt-2 font-medium">Pengeluaran Aset / Pendanaan</p>
           </CardContent>
         </Card>
 
@@ -130,14 +164,14 @@ export default function ArusKasPage() {
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm text-primary font-medium mb-1">Arus Kas Bersih</p>
-                <p className="text-2xl font-bold text-primary">Rp 140.000.000</p>
+                <p className="text-sm text-primary font-medium mb-1">Kenaikan Arus Kas Bersih</p>
+                <p className="text-2xl font-bold text-primary">{formatRupiah(data.netCashFlow)}</p>
               </div>
               <div className="p-2 bg-primary/20 rounded-lg text-primary">
                 <Wallet className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-xs text-primary mt-2 font-medium">+5% dari bulan lalu</p>
+            <p className="text-xs text-primary mt-2 font-medium">Estimasi Saldo Akhir</p>
           </CardContent>
         </Card>
       </div>
@@ -200,61 +234,45 @@ export default function ArusKasPage() {
                     <TableCell className="font-semibold text-slate-800" colSpan={2}>ARUS KAS DARI AKTIVITAS OPERASI</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="pl-6 text-slate-600">Penerimaan Kas dari Pelanggan</TableCell>
-                    <TableCell className="text-right font-medium text-emerald-600">Rp 430.000.000</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="pl-6 text-slate-600">Pembayaran Kas ke Pemasok</TableCell>
-                    <TableCell className="text-right font-medium text-rose-600">(Rp 180.000.000)</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="pl-6 text-slate-600">Pembayaran Kas untuk Beban Operasional</TableCell>
-                    <TableCell className="text-right font-medium text-rose-600">(Rp 90.000.000)</TableCell>
+                    <TableCell className="pl-6 text-slate-600">Penerimaan/Pengeluaran Operasional Bersih</TableCell>
+                    <TableCell className="text-right font-medium text-emerald-600">{formatRupiah(data.operatingActivities)}</TableCell>
                   </TableRow>
                   <TableRow className="bg-primary/5 hover:bg-primary/5 border-t-2 border-primary/20">
                     <TableCell className="font-bold text-slate-800">Kas Bersih dari Aktivitas Operasi</TableCell>
-                    <TableCell className="text-right font-bold text-primary">Rp 160.000.000</TableCell>
+                    <TableCell className="text-right font-bold text-primary">{formatRupiah(data.operatingActivities)}</TableCell>
                   </TableRow>
 
                   <TableRow className="bg-slate-50 hover:bg-slate-50 mt-4">
                     <TableCell className="font-semibold text-slate-800" colSpan={2}>ARUS KAS DARI AKTIVITAS INVESTASI</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="pl-6 text-slate-600">Pembelian Aset Tetap</TableCell>
-                    <TableCell className="text-right font-medium text-rose-600">(Rp 20.000.000)</TableCell>
+                    <TableCell className="pl-6 text-slate-600">Investasi</TableCell>
+                    <TableCell className="text-right font-medium text-rose-600">{formatRupiah(data.investingActivities)}</TableCell>
                   </TableRow>
                   <TableRow className="bg-primary/5 hover:bg-primary/5 border-t-2 border-primary/20">
                     <TableCell className="font-bold text-slate-800">Kas Bersih dari Aktivitas Investasi</TableCell>
-                    <TableCell className="text-right font-bold text-rose-600">(Rp 20.000.000)</TableCell>
+                    <TableCell className="text-right font-bold text-rose-600">{formatRupiah(data.investingActivities)}</TableCell>
                   </TableRow>
 
                   <TableRow className="bg-slate-50 hover:bg-slate-50 mt-4">
                     <TableCell className="font-semibold text-slate-800" colSpan={2}>ARUS KAS DARI AKTIVITAS PENDANAAN</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="pl-6 text-slate-600">Penerimaan Pinjaman / Modal</TableCell>
-                    <TableCell className="text-right font-medium text-emerald-600">Rp 0</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="pl-6 text-slate-600">Pembayaran Dividen / Prive</TableCell>
-                    <TableCell className="text-right font-medium text-rose-600">Rp 0</TableCell>
+                    <TableCell className="pl-6 text-slate-600">Pendanaan</TableCell>
+                    <TableCell className="text-right font-medium text-emerald-600">{formatRupiah(data.financingActivities)}</TableCell>
                   </TableRow>
                   <TableRow className="bg-primary/5 hover:bg-primary/5 border-t-2 border-primary/20">
                     <TableCell className="font-bold text-slate-800">Kas Bersih dari Aktivitas Pendanaan</TableCell>
-                    <TableCell className="text-right font-bold text-slate-800">Rp 0</TableCell>
+                    <TableCell className="text-right font-bold text-slate-800">{formatRupiah(data.financingActivities)}</TableCell>
                   </TableRow>
 
                   <TableRow className="bg-primary hover:bg-primary/90 text-white border-t-4 border-white">
                     <TableCell className="font-bold">KENAIKAN (PENURUNAN) BERSIH KAS</TableCell>
-                    <TableCell className="text-right font-bold">Rp 140.000.000</TableCell>
-                  </TableRow>
-                  <TableRow className="bg-slate-100 hover:bg-slate-100">
-                    <TableCell className="font-semibold text-slate-700">Saldo Kas Awal Periode</TableCell>
-                    <TableCell className="text-right font-medium text-slate-700">Rp 520.000.000</TableCell>
+                    <TableCell className="text-right font-bold">{formatRupiah(data.netCashFlow)}</TableCell>
                   </TableRow>
                   <TableRow className="bg-emerald-100 hover:bg-emerald-100">
-                    <TableCell className="font-bold text-emerald-800">SALDO KAS AKHIR PERIODE</TableCell>
-                    <TableCell className="text-right font-bold text-emerald-800">Rp 660.000.000</TableCell>
+                    <TableCell className="font-bold text-emerald-800">SALDO KAS AKHIR PERIODE (Estimasi)</TableCell>
+                    <TableCell className="text-right font-bold text-emerald-800">{formatRupiah(data.endingBalance)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>

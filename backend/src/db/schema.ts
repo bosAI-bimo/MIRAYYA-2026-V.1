@@ -24,6 +24,8 @@ export const branches = pgTable("branches", {
   phone: varchar("phone", { length: 50 }),
   latitude: decimal("latitude", { precision: 10, scale: 8 }),
   longitude: decimal("longitude", { precision: 11, scale: 8 }),
+  isDeleted: boolean("is_deleted").default(false),
+  updatedBy: text("updated_by"),
 });
 
 export const users = pgTable("users", {

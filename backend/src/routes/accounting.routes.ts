@@ -3,6 +3,8 @@ import { db } from "../db";
 import { eodReports, pettyCashTransactions, branches, budgets, revenueTargets, bankReconciliations, users } from "../db/schema";
 import { eq, sql, and } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/authMiddleware";
+import { validateRequest } from "../middlewares/validateRequest";
+import { accountingSchema } from "../validators/schema";
 
 const router = Router();
 
@@ -447,7 +449,7 @@ router.get("/journal-entries", async (req, res) => {
   }
 });
 
-router.post("/journal-entries", async (req, res) => {
+router.post("/journal-entries", validateRequest(accountingSchema.createJournal), async (req, res) => {
   try {
     const { entryDate, description, debitAccount, creditAccount, amount } = req.body;
     let branchId = req.body.branchId || (req as any).user?.branchId;

@@ -97,7 +97,7 @@ export default function KepalaTokoDashboard() {
               <div className="p-2 bg-blue-50 rounded-lg text-blue-600"><Store className="w-4 h-4" /></div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">Rp 8.500.000</div>
+              <div className="text-2xl font-bold text-slate-800">{formatRupiah(data?.sisaAnggaranPo || 8500000)}</div>
               <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
                 <div className="h-full bg-blue-500 rounded-full" style={{ width: '45%' }}></div>
               </div>
@@ -116,7 +116,7 @@ export default function KepalaTokoDashboard() {
               <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600"><Wallet className="w-4 h-4" /></div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">Rp 1.250.000</div>
+              <div className="text-2xl font-bold text-slate-800">{formatRupiah(data?.pettyCashSisa || 0)}</div>
               <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
                 <div className="h-full bg-emerald-500 rounded-full" style={{ width: '65%' }}></div>
               </div>
@@ -135,9 +135,9 @@ export default function KepalaTokoDashboard() {
               <div className="p-2 bg-purple-50 rounded-lg text-purple-600"><Banknote className="w-4 h-4" /></div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">Rp 4.250.000</div>
+              <div className="text-2xl font-bold text-slate-800">{formatRupiah(data?.omzetHariIni || 0)}</div>
               <p className="text-xs text-purple-600 flex items-center mt-1 font-medium">
-                14 Transaksi
+                {data?.transaksiHariIni || 0} Transaksi
               </p>
             </CardContent>
           </Card>
@@ -167,9 +167,9 @@ export default function KepalaTokoDashboard() {
               <div className="p-2 bg-amber-100 rounded-lg text-amber-600"><TrendingDown className="w-4 h-4" /></div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-amber-600">12 Item</div>
+              <div className="text-2xl font-bold text-amber-600">{data?.stokKritis || 0} Item</div>
               <p className="text-xs text-amber-600 flex items-center mt-1 font-medium">
-                <AlertCircle className="w-3 h-3 mr-1" /> 3 Produk Kritis
+                <AlertCircle className="w-3 h-3 mr-1" /> {(data?.stokKritis || 0) > 0 ? `${data.stokKritis} Produk Kritis` : 'Aman'}
               </p>
             </CardContent>
           </Card>
@@ -183,7 +183,7 @@ export default function KepalaTokoDashboard() {
               <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600"><ShoppingCart className="w-4 h-4" /></div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-800">2 Dokumen</div>
+              <div className="text-2xl font-bold text-slate-800">{data?.poMenunggu || 0} Dokumen</div>
               <p className="text-xs text-indigo-600 flex items-center mt-1 font-medium">
                 <Activity className="w-3 h-3 mr-1" /> Menunggu Approval
               </p>

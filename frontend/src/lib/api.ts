@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export const fetcher = async (url: string, options: RequestInit = {}) => {
@@ -21,8 +23,12 @@ export const fetcher = async (url: string, options: RequestInit = {}) => {
 
     return res.json();
   } catch (error: any) {
-    if (error.status !== 401) {
+    if (error.status === 401) {
+      // Optional: Redirect to login or handled by middleware
+      toast.error("Sesi telah habis. Silakan login kembali.");
+    } else {
       console.error(`API Error on ${url}:`, error);
+      toast.error(error.message || "Terjadi kesalahan pada sistem.");
     }
     throw error;
   }

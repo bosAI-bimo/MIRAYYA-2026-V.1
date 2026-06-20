@@ -122,14 +122,48 @@ router.get("/employees", async (req, res) => {
 
 router.get("/employee-dashboard", async (req, res) => {
   try {
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const currentMonthPrefix = new Date().toISOString().substring(0, 7); // 'YYYY-MM'
+    
+    const userAttendance = await db.select()
+      .from(attendance)
+      .where(and(
+        eq(attendance.userId, userId),
+        eq(attendance.isDeleted, false),
+        sql`to_char(${attendance.attendanceDate}, 'YYYY-MM') = ${currentMonthPrefix}`
+      ))
+      .orderBy(desc(attendance.attendanceDate), desc(attendance.timeIn));
+
+    let tepatWaktu = 0;
+    let terlambat = 0;
+
+    userAttendance.forEach(a => {
+        if (a.timeIn && a.timeIn > '09:00:00') terlambat++;
+        else tepatWaktu++;
+    });
+
+    const riwayatAbsensi = userAttendance.slice(0, 5).map(a => {
+      const isLate = a.timeIn && a.timeIn > '09:00:00';
+      return {
+        date: new Date(a.attendanceDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        in: a.timeIn ? a.timeIn.substring(0, 5) : '-',
+        out: a.timeOut ? a.timeOut.substring(0, 5) : '-',
+        location: a.locationGps ? 'Lokasi Valid (GPS)' : 'Toko Pusat',
+        status: isLate ? 'Terlambat' : 'Tepat Waktu'
+      };
+    });
+
     res.json({
-      totalKehadiran: 0,
-      tepatWaktu: 0,
-      terlambat: 0,
-      absen: 0,
-      riwayatAbsensi: []
+      totalKehadiran: userAttendance.length,
+      tepatWaktu,
+      terlambat,
+      absen: 0, // Placeholder
+      riwayatAbsensi
     });
   } catch (error) {
+    console.error("Employee Dashboard Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });

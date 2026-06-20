@@ -326,11 +326,9 @@ export default function KaryawanPage() {
               className="px-4 py-2 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[160px] shadow-sm transition-all"
             >
               <option value="all">Semua Cabang</option>
-              <option value="sudirman">Mirayya Sudirman</option>
-              <option value="kemang">Mirayya Kemang</option>
-              <option value="pik">Mirayya PIK</option>
-              <option value="kelapa_gading">Mirayya Kelapa Gading</option>
-              <option value="bintaro">Mirayya Bintaro</option>
+              {branches.map(b => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
             </select>
             <select className="px-4 py-2 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
               <option value="this_month">Bulan Ini</option>

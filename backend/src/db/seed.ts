@@ -11,8 +11,8 @@ async function main() {
     { name: 'owner' },
     { name: 'hr' },
     { name: 'accounting' },
-    { name: 'store_leader' },
-    { name: 'ba' }
+    { name: 'kepala-toko' },
+    { name: 'karyawan' }
   ];
   
   await db.insert(roles).values(defaultRoles).onConflictDoNothing();
@@ -44,8 +44,8 @@ async function main() {
     { email: 'owner@mirayya.com', name: 'Super Owner', password: 'Password123', role: 'owner', branch: null },
     { email: 'hr@mirayya.com', name: 'HR Manager', password: 'Password123', role: 'hr', branch: null },
     { email: 'acc@mirayya.com', name: 'Head Accounting', password: 'Password123', role: 'accounting', branch: null },
-    { email: 'store@mirayya.com', name: 'Kepala Toko Sokaraja', password: 'Password123', role: 'store_leader', branch: 'Sokaraja' },
-    { email: 'ba@mirayya.com', name: 'BA Sokanandi', password: 'Password123', role: 'ba', branch: 'Sokanandi' },
+    { email: 'store@mirayya.com', name: 'Kepala Toko Sokaraja', password: 'Password123', role: 'kepala-toko', branch: 'Sokaraja' },
+    { email: 'karyawan@mirayya.com', name: 'Karyawan Sokanandi', password: 'Password123', role: 'karyawan', branch: 'Sokanandi' },
   ];
 
   for (const u of demoUsers) {

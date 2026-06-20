@@ -28,15 +28,7 @@ const formatRupiah = (number: number) => {
   }).format(number);
 };
 
-const payrollHistoryData = [
-  { id: "PH-001", period: "Mei 2026", date: "25 Mei 2026", totalEmployees: 58, totalAmount: "Rp 282.500.000", status: "Selesai" },
-  { id: "PH-002", period: "April 2026", date: "25 Apr 2026", totalEmployees: 57, totalAmount: "Rp 278.000.000", status: "Selesai" },
-  { id: "PH-003", period: "Maret 2026", date: "25 Mar 2026", totalEmployees: 55, totalAmount: "Rp 265.500.000", status: "Selesai" },
-  { id: "PH-004", period: "Februari 2026", date: "25 Feb 2026", totalEmployees: 52, totalAmount: "Rp 250.000.000", status: "Selesai" },
-  { id: "PH-005", period: "Januari 2026", date: "25 Jan 2026", totalEmployees: 50, totalAmount: "Rp 245.500.000", status: "Selesai" },
-];
 
-// Mock data removed, fetching from backend instead.
 
 export default function PayrollPage() {
   const [payrollData, setPayrollData] = useState<any[]>([]);
@@ -44,27 +36,81 @@ export default function PayrollPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
+  const [payrollHistoryData, setPayrollHistoryData] = useState<any[]>([]);
+
   const fetchPayroll = async () => {
     try {
+      // Fetch employees for current month generation
+      const empRes = await fetcher('/hr/employees?limit=100');
+      const employees = empRes.data || [];
+      
+      // Fetch actual generated payrolls
       const data = await fetcher('/hr/payroll');
       setDbPayrollData(data || []);
+      
+      const generatedMap = new Map();
       if (data && data.length > 0) {
-        const formattedData = data.map((item: any) => ({
-          id: item.id,
-          name: item.userId || "Karyawan " + item.id.substring(0, 4),
-          role: "Staff",
-          branch: "Pusat",
-          baseSalary: Number(item.baseSalary) || 0,
-          allowance: Number(item.allowances) || 0,
-          deduction: Number(item.deductions) || 0,
-          net: Number(item.netSalary) || 0,
-          status: "Generated",
-          attendance: { hadir: 20, alpa: 0, cuti: 0, telat: 0 }
+        data.forEach((item: any) => {
+          generatedMap.set(item.userId, item);
+        });
+
+        const historyMap: Record<string, any> = {};
+        data.forEach((item: any) => {
+          const p = item.period || 'Unknown Period';
+          if (!historyMap[p]) {
+            historyMap[p] = {
+              id: `PH-${p}`,
+              period: p,
+              date: item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID') : '25 Jun 2026',
+              totalEmployees: 0,
+              totalAmount: 0,
+              status: "Selesai"
+            };
+          }
+          historyMap[p].totalEmployees += 1;
+          historyMap[p].totalAmount += Number(item.netSalary);
+        });
+        
+        const historyList = Object.values(historyMap).map((h: any) => ({
+          ...h,
+          totalAmount: formatRupiah(h.totalAmount)
         }));
-        setPayrollData(formattedData);
-      } else {
-        setPayrollData([]);
+        setPayrollHistoryData(historyList);
       }
+
+      // Merge employees with generated payroll
+      const formattedData = employees.map((emp: any) => {
+        const generated = generatedMap.get(emp.id);
+        if (generated) {
+          return {
+            id: emp.id,
+            payrollId: generated.id,
+            name: emp.name,
+            role: emp.role || "Staff",
+            branch: emp.branch || "Pusat",
+            baseSalary: Number(generated.baseSalary) || 0,
+            allowance: Number(generated.allowances) || 0,
+            deduction: Number(generated.deductions) || 0,
+            net: Number(generated.netSalary) || 0,
+            status: "Generated",
+            attendance: { hadir: 20, alpa: 0, cuti: 0, telat: 0 }
+          };
+        } else {
+          return {
+            id: emp.id,
+            name: emp.name,
+            role: emp.role || "Staff",
+            branch: emp.branch || "Pusat",
+            baseSalary: 3000000, // Default assumption
+            allowance: 500000,
+            deduction: 0,
+            net: 3500000,
+            status: "Pending",
+            attendance: { hadir: 20, alpa: 0, cuti: 0, telat: 0 }
+          };
+        }
+      });
+      setPayrollData(formattedData);
     } catch(err) { console.error(err); }
   };
 
@@ -120,8 +166,8 @@ export default function PayrollPage() {
       await fetcher('/hr/payroll', {
         method: 'POST',
         body: JSON.stringify({
-          userId: selectedEmployee.id, // we use mock id for now
-          period: '2026-06-01', // Example period
+          userId: selectedEmployee.id,
+          period: '2026-06',
           baseSalary: editForm.baseSalary,
           allowances: editForm.allowance,
           deductions: editForm.deduction,

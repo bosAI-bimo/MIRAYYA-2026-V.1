@@ -25,6 +25,7 @@ import {
 } from "recharts";
 
 // Mock data for the chart
+// Mock data for the chart
 const monthlyData = [
   { name: "Jan", Pendapatan: 400000000, HPP: 200000000, Beban: 100000000 },
   { name: "Feb", Pendapatan: 300000000, HPP: 150000000, Beban: 90000000 },
@@ -34,9 +35,42 @@ const monthlyData = [
   { name: "Jun", Pendapatan: 450200000, HPP: 210000000, Beban: 115700000 },
 ];
 
+import { fetcher } from "@/lib/api";
+
+const formatRupiah = (number: number) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(number || 0);
+};
+
 export default function LabaRugiPage() {
   const [branch, setBranch] = useState("all");
   const [period, setPeriod] = useState("this_month");
+  
+  const [data, setData] = useState({
+    revenue: 0,
+    cogs: 0,
+    grossProfit: 0,
+    operatingExpenses: 0,
+    netProfit: 0
+  });
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      let monthStr = '2026-06';
+      if (period === 'last_month') monthStr = '2026-05';
+      if (period === 'this_year') monthStr = '2026-06'; // Simplification
+      try {
+        const res = await fetcher(`/accounting/profit-loss?month=${monthStr}&branchId=${branch}`);
+        if (res) setData(res);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchData();
+  }, [branch, period]);
 
   return (
     <div className="space-y-6">
@@ -101,13 +135,13 @@ export default function LabaRugiPage() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm text-slate-500 font-medium mb-1">Pendapatan Kotor</p>
-                <p className="text-2xl font-bold text-slate-800">Rp 450.200.000</p>
+                <p className="text-2xl font-bold text-slate-800">{formatRupiah(data.revenue)}</p>
               </div>
               <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
                 <TrendingUp className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-xs text-emerald-600 mt-2 font-medium">+8% dari bulan lalu</p>
+            <p className="text-xs text-emerald-600 mt-2 font-medium">Berdasarkan EOD Approved</p>
           </CardContent>
         </Card>
 
@@ -116,13 +150,13 @@ export default function LabaRugiPage() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm text-slate-500 font-medium mb-1">Total HPP</p>
-                <p className="text-2xl font-bold text-rose-600">Rp 210.000.000</p>
+                <p className="text-2xl font-bold text-rose-600">{formatRupiah(data.cogs)}</p>
               </div>
               <div className="p-2 bg-rose-100 rounded-lg text-rose-600">
                 <TrendingDown className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-xs text-rose-600 mt-2 font-medium">+5% dari bulan lalu</p>
+            <p className="text-xs text-rose-600 mt-2 font-medium">Estimasi 40% dari Revenue</p>
           </CardContent>
         </Card>
 
@@ -131,13 +165,13 @@ export default function LabaRugiPage() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm text-slate-500 font-medium mb-1">Beban Operasional</p>
-                <p className="text-2xl font-bold text-rose-600">Rp 115.700.000</p>
+                <p className="text-2xl font-bold text-rose-600">{formatRupiah(data.operatingExpenses)}</p>
               </div>
               <div className="p-2 bg-slate-100 rounded-lg text-slate-600">
                 <DollarSign className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-xs text-slate-500 mt-2 font-medium">+10% dari bulan lalu</p>
+            <p className="text-xs text-slate-500 mt-2 font-medium">Berdasarkan Petty Cash</p>
           </CardContent>
         </Card>
 
@@ -146,13 +180,13 @@ export default function LabaRugiPage() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm text-primary font-medium mb-1">Laba Bersih</p>
-                <p className="text-2xl font-bold text-primary">Rp 124.500.000</p>
+                <p className="text-2xl font-bold text-primary">{formatRupiah(data.netProfit)}</p>
               </div>
               <div className="p-2 bg-primary/20 rounded-lg text-primary">
                 <TrendingUp className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-xs text-primary mt-2 font-medium">+12% dari bulan lalu</p>
+            <p className="text-xs text-primary mt-2 font-medium">Gross Profit - Opex</p>
           </CardContent>
         </Card>
       </div>
@@ -217,65 +251,45 @@ export default function LabaRugiPage() {
                   </TableRow>
                   <TableRow>
                     <TableCell className="pl-6 text-slate-600">Pendapatan Penjualan</TableCell>
-                    <TableCell className="text-right font-medium">Rp 450.200.000</TableCell>
+                    <TableCell className="text-right font-medium">{formatRupiah(data.revenue)}</TableCell>
                   </TableRow>
                   <TableRow className="bg-emerald-50/50 hover:bg-emerald-50/50 border-t-2 border-emerald-100">
                     <TableCell className="font-bold text-emerald-800">Total Pendapatan Kotor</TableCell>
-                    <TableCell className="text-right font-bold text-emerald-800">Rp 450.200.000</TableCell>
+                    <TableCell className="text-right font-bold text-emerald-800">{formatRupiah(data.revenue)}</TableCell>
                   </TableRow>
 
                   <TableRow className="bg-slate-50 hover:bg-slate-50">
                     <TableCell className="font-semibold text-slate-800" colSpan={2}>HARGA POKOK PENJUALAN (HPP)</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="pl-6 text-slate-600">Biaya Bahan Baku</TableCell>
-                    <TableCell className="text-right font-medium">Rp 150.000.000</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="pl-6 text-slate-600">Biaya Tenaga Kerja Langsung</TableCell>
-                    <TableCell className="text-right font-medium">Rp 40.000.000</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="pl-6 text-slate-600">Biaya Overhead Pabrik</TableCell>
-                    <TableCell className="text-right font-medium">Rp 20.000.000</TableCell>
+                    <TableCell className="pl-6 text-slate-600">Biaya Bahan Baku dll (Estimasi Total)</TableCell>
+                    <TableCell className="text-right font-medium">{formatRupiah(data.cogs)}</TableCell>
                   </TableRow>
                   <TableRow className="bg-rose-50/50 hover:bg-rose-50/50 border-t-2 border-rose-100">
                     <TableCell className="font-bold text-rose-800">Total HPP</TableCell>
-                    <TableCell className="text-right font-bold text-rose-800">(Rp 210.000.000)</TableCell>
+                    <TableCell className="text-right font-bold text-rose-800">({formatRupiah(data.cogs)})</TableCell>
                   </TableRow>
 
                   <TableRow className="bg-primary/5 hover:bg-primary/5 border-t-2 border-primary/20">
                     <TableCell className="font-bold text-primary">LABA KOTOR</TableCell>
-                    <TableCell className="text-right font-bold text-primary">Rp 240.200.000</TableCell>
+                    <TableCell className="text-right font-bold text-primary">{formatRupiah(data.grossProfit)}</TableCell>
                   </TableRow>
 
                   <TableRow className="bg-slate-50 hover:bg-slate-50">
                     <TableCell className="font-semibold text-slate-800" colSpan={2}>BEBAN OPERASIONAL</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="pl-6 text-slate-600">Beban Gaji & Tunjangan</TableCell>
-                    <TableCell className="text-right font-medium">Rp 65.000.000</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="pl-6 text-slate-600">Beban Pemasaran</TableCell>
-                    <TableCell className="text-right font-medium">Rp 25.000.000</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="pl-6 text-slate-600">Beban Utilitas & Sewa</TableCell>
-                    <TableCell className="text-right font-medium">Rp 15.000.000</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="pl-6 text-slate-600">Beban Penyusutan</TableCell>
-                    <TableCell className="text-right font-medium">Rp 10.700.000</TableCell>
+                    <TableCell className="pl-6 text-slate-600">Total Pengeluaran Kas (Petty Cash)</TableCell>
+                    <TableCell className="text-right font-medium">{formatRupiah(data.operatingExpenses)}</TableCell>
                   </TableRow>
                   <TableRow className="bg-rose-50/50 hover:bg-rose-50/50 border-t-2 border-rose-100">
                     <TableCell className="font-bold text-rose-800">Total Beban Operasional</TableCell>
-                    <TableCell className="text-right font-bold text-rose-800">(Rp 115.700.000)</TableCell>
+                    <TableCell className="text-right font-bold text-rose-800">({formatRupiah(data.operatingExpenses)})</TableCell>
                   </TableRow>
 
                   <TableRow className="bg-primary hover:bg-primary/90 text-white border-t-2 border-primary/50">
                     <TableCell className="font-bold">LABA BERSIH</TableCell>
-                    <TableCell className="text-right font-bold">Rp 124.500.000</TableCell>
+                    <TableCell className="text-right font-bold">{formatRupiah(data.netProfit)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>

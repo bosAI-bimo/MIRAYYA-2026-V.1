@@ -12,11 +12,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { BranchSelector } from "@/components/ui/branch-selector";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Mock fetcher function for demo
-const fetcher = async (url: string) => {
-  return [];
-};
+import { fetcher } from "@/lib/api";
 
 const transactionSchema = z.object({
   date: z.string().min(1, { message: "Tanggal wajib diisi" }),
@@ -42,6 +40,7 @@ export default function PettyCashPage() {
         // Map database fields to UI fields
         const formattedData = (data || []).map((item: any) => ({
           id: item.id,
+          rawDate: item.transactionDate,
           date: item.transactionDate ? new Date(item.transactionDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
           branch: item.branchId || "Pusat",
           desc: item.description,
@@ -118,11 +117,35 @@ export default function PettyCashPage() {
   });
 
   const onSubmitTransaction = async (data: TransactionFormValues) => {
-    // Simulate API Call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    toast.success("Transaksi berhasil ditambahkan!");
-    closeAddTransactionModal();
-    form.reset();
+    try {
+      const amountNumber = parseInt(data.amount.replace(/[^0-9]/g, ''), 10);
+      await fetcher('/store/petty-cash', {
+        method: 'POST',
+        body: JSON.stringify({
+          branchId: data.branch,
+          description: data.description,
+          amount: amountNumber,
+        })
+      });
+      toast.success("Transaksi berhasil ditambahkan!");
+      closeAddTransactionModal();
+      form.reset();
+      
+      // Refresh data
+      const response = await fetcher('/store/petty-cash');
+      const formattedData = (response || []).map((item: any) => ({
+        id: item.id,
+        rawDate: item.transactionDate,
+        date: item.transactionDate ? new Date(item.transactionDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
+        branch: item.branchId || "Pusat",
+        desc: item.description,
+        by: item.recordedBy || "System",
+        amount: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.amount)
+      }));
+      setPettyCashData(formattedData);
+    } catch (err: any) {
+      toast.error(err.message || "Gagal menyimpan transaksi");
+    }
   };
 
   const amountValue = form.watch("amount");
@@ -139,16 +162,37 @@ export default function PettyCashPage() {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(amount);
   };
 
-  // We filter the paginated data based on branch
+  // We filter the paginated data based on branch and month
   const filteredData = pettyCashData.filter(item => {
-    if (selectedBranch === "all") return true;
-    if (selectedBranch === "pusat" && item.branch === "Pusat") return true;
-    if (selectedBranch === "sudirman" && item.branch === "Mirayya Sudirman") return true;
-    if (selectedBranch === "kemang" && item.branch === "Mirayya Kemang") return true;
-    if (selectedBranch === "pik" && item.branch === "Mirayya PIK") return true;
-    if (selectedBranch === "kelapa_gading" && item.branch === "Mirayya Kelapa Gading") return true;
-    if (selectedBranch === "bintaro" && item.branch === "Mirayya Bintaro") return true;
-    return false;
+    // 1. Branch Filter
+    let branchMatch = false;
+    if (selectedBranch === "all") branchMatch = true;
+    else if (selectedBranch === "pusat" && item.branch === "Pusat") branchMatch = true;
+    else if (selectedBranch === "sudirman" && item.branch === "Mirayya Sudirman") branchMatch = true;
+    else if (selectedBranch === "kemang" && item.branch === "Mirayya Kemang") branchMatch = true;
+    else if (selectedBranch === "pik" && item.branch === "Mirayya PIK") branchMatch = true;
+    else if (selectedBranch === "kelapa_gading" && item.branch === "Mirayya Kelapa Gading") branchMatch = true;
+    else if (selectedBranch === "bintaro" && item.branch === "Mirayya Bintaro") branchMatch = true;
+
+    if (!branchMatch) return false;
+
+    // 2. Month Filter
+    if (!item.rawDate) return true; // If no date, include it just in case
+    
+    const itemDateObj = new Date(item.rawDate);
+    const now = new Date();
+    
+    if (selectedMonth === "this_month") {
+      return itemDateObj.getMonth() === now.getMonth() && itemDateObj.getFullYear() === now.getFullYear();
+    } else if (selectedMonth === "last_month") {
+      const lastMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+      const yearOfLastMonth = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+      return itemDateObj.getMonth() === lastMonth && itemDateObj.getFullYear() === yearOfLastMonth;
+    } else if (selectedMonth === "this_year") {
+      return itemDateObj.getFullYear() === now.getFullYear();
+    }
+    
+    return true;
   });
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -255,26 +299,31 @@ export default function PettyCashPage() {
                 className="pl-9 pr-4 py-2 border-2 border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
-            <select 
-              value={selectedBranch}
-              onChange={(e) => { setSelectedBranch(e.target.value); setCurrentPage(1); }}
-              className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]">
-              <option value="all">Semua Cabang</option>
-              <option value="pusat">Pusat</option>
-              <option value="sudirman">Mirayya Sudirman</option>
-              <option value="kemang">Mirayya Kemang</option>
-              <option value="pik">Mirayya PIK</option>
-              <option value="kelapa_gading">Mirayya Kelapa Gading</option>
-              <option value="bintaro">Mirayya Bintaro</option>
-            </select>
-            <select 
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[130px]">
-              <option value="this_month">Bulan Ini</option>
-              <option value="last_month">Bulan Lalu</option>
-              <option value="this_year">Tahun Ini</option>
-            </select>
+            <Select value={selectedBranch} onValueChange={(val) => { setSelectedBranch(val ?? "all"); setCurrentPage(1); }}>
+              <SelectTrigger className="w-full md:w-[160px] bg-white border-2 border-slate-200 focus:ring-2 focus:ring-primary/50">
+                <SelectValue placeholder="Pilih Cabang" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Cabang</SelectItem>
+                <SelectItem value="pusat">Pusat</SelectItem>
+                <SelectItem value="sudirman">Mirayya Sudirman</SelectItem>
+                <SelectItem value="kemang">Mirayya Kemang</SelectItem>
+                <SelectItem value="pik">Mirayya PIK</SelectItem>
+                <SelectItem value="kelapa_gading">Mirayya Kelapa Gading</SelectItem>
+                <SelectItem value="bintaro">Mirayya Bintaro</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedMonth} onValueChange={(val) => { setSelectedMonth(val ?? "this_month"); setCurrentPage(1); }}>
+              <SelectTrigger className="w-full md:w-[140px] bg-white border-2 border-slate-200 focus:ring-2 focus:ring-primary/50">
+                <SelectValue placeholder="Pilih Waktu" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="this_month">Bulan Ini</SelectItem>
+                <SelectItem value="last_month">Bulan Lalu</SelectItem>
+                <SelectItem value="this_year">Tahun Ini</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
         <CardContent className="p-0">
