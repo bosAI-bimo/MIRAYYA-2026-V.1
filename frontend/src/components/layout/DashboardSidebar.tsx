@@ -158,6 +158,11 @@ export default function DashboardSidebar() {
 
   const closeMobileSidebar = () => setIsSidebarOpen(false);
 
+  const handleNavigate = () => {
+    setIsSidebarOpen(false);
+    setIsCollapsed(true);
+  };
+
   // Group navigasi berdasarkan sectionLabel
   let currentSection = "";
 
@@ -269,7 +274,7 @@ export default function DashboardSidebar() {
                     item={item}
                     pathname={pathname}
                     isCollapsed={isCollapsed}
-                    onNavigate={closeMobileSidebar}
+                    onNavigate={handleNavigate}
                   />
                 </React.Fragment>
               );

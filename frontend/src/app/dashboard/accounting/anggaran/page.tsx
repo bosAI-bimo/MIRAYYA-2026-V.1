@@ -99,8 +99,7 @@ export default function BudgetPage() {
         body: JSON.stringify({
           branchId: formData.branchId,
           month: formData.month,
-          amount: parseFloat(formData.amount.replace(/\D/g, "")),
-          approvedBy: "System"
+          amount: parseFloat(formData.amount.replace(/\D/g, ""))
         })
       });
       toast.success("Anggaran berhasil ditambahkan!");
