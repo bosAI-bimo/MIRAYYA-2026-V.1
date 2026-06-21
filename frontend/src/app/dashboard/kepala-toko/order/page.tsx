@@ -28,6 +28,7 @@ function OrderPageContent() {
   const [orderItems, setOrderItems] = useState<{code: string, qty: number}[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notes, setNotes] = useState("");
+  const [orderDate, setOrderDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     fetcher('/store/inventory').then(data => setInventoryData(data || []));
@@ -100,6 +101,7 @@ function OrderPageContent() {
       await fetcher('/store/orders', {
         method: 'POST',
         body: JSON.stringify({
+          orderDate: orderDate,
           totalAmount: itemsToSubmit.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0),
           items: itemsToSubmit
         })
@@ -138,8 +140,21 @@ function OrderPageContent() {
         <div className="lg:col-span-2 space-y-6">
           <Card className="border-2 shadow-sm border-slate-200">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-slate-800">Daftar Item Pesanan</CardTitle>
-              <CardDescription>Tambahkan produk yang ingin dipesan untuk stok cabang.</CardDescription>
+              <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+                <div>
+                  <CardTitle className="text-lg font-semibold text-slate-800">Daftar Item Pesanan</CardTitle>
+                  <CardDescription>Tambahkan produk yang ingin dipesan untuk stok cabang.</CardDescription>
+                </div>
+                <div className="w-full md:w-auto">
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Tanggal Pengajuan</label>
+                  <input 
+                    type="date" 
+                    value={orderDate}
+                    onChange={(e) => setOrderDate(e.target.value)}
+                    className="w-full md:w-40 px-3 py-1.5 border border-slate-200 rounded-md text-sm font-medium focus:outline-none focus:ring-1 focus:ring-pink-500" 
+                  />
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

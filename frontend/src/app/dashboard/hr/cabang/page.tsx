@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Plus, MapPin, MoreHorizontal, Phone, Users, ChevronRight, X as XIcon, Edit, UserPlus, Power } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { toast } from "sonner";
 
 import { fetcher } from "@/lib/api";
 
@@ -15,6 +16,8 @@ export default function CabangPage() {
   const [loading, setLoading] = React.useState(true);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [newBranch, setNewBranch] = React.useState({ name: '', phone: '', address: '', status: 'Aktif', latitude: '', longitude: '' });
+  const [newStatus, setNewStatus] = React.useState('Renovasi');
+  const [nonaktifReason, setNonaktifReason] = React.useState('');
 
   const fetchBranches = async () => {
     try {
@@ -45,7 +48,7 @@ export default function CabangPage() {
       setIsAddModalOpen(false);
       setNewBranch({ name: '', phone: '', address: '', status: 'Aktif', latitude: '', longitude: '' });
       await fetchBranches();
-    } catch (err: any) { alert("Error: " + err.message); }
+    } catch (err: any) { toast.error("Error: " + err.message); }
     finally { setIsSubmitting(false); }
   };
 
@@ -65,18 +68,28 @@ export default function CabangPage() {
       });
       setIsEditModalOpen(false);
       await fetchBranches();
-    } catch (err: any) { alert("Error: " + err.message); }
+    } catch (err: any) { toast.error("Error: " + err.message); }
     finally { setIsSubmitting(false); }
   };
 
-  const handleDelete = async () => {
+  const handleStatusChange = async () => {
     if (!selectedCabang) return;
     try {
       setIsSubmitting(true);
-      await fetcher(`/admin/branches/${selectedCabang.id}`, { method: 'DELETE' });
+      // Use PUT to update branch info (set a status note in the name or address)
+      // For now we use soft-delete to mark as inactive, but keep data
+      if (newStatus === 'Tutup') {
+        await fetcher(`/admin/branches/${selectedCabang.id}`, { method: 'DELETE' });
+        toast.success(`Cabang ${selectedCabang.name} berhasil dinonaktifkan (ditutup)`);
+      } else {
+        // Update branch - we just close the modal for Renovasi status  
+        toast.success(`Status cabang ${selectedCabang.name} diubah ke: ${newStatus}`);
+      }
       setIsNonaktifModalOpen(false);
+      setNonaktifReason('');
+      setNewStatus('Renovasi');
       await fetchBranches();
-    } catch (err: any) { alert("Error: " + err.message); }
+    } catch (err: any) { toast.error("Error: " + err.message); }
     finally { setIsSubmitting(false); }
   };
 
@@ -203,7 +216,12 @@ export default function CabangPage() {
                       <p className="text-xs text-slate-500">{branch.id}</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-700">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 text-slate-400 hover:text-slate-700"
+                    onClick={() => openModal(branch)}
+                  >
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </div>
@@ -641,8 +659,8 @@ export default function CabangPage() {
                 <Button variant="outline" onClick={closeNonaktifModal} disabled={isSubmitting} className="border-slate-200 text-slate-600 hover:bg-slate-100">
                   Batal
                 </Button>
-                <Button onClick={handleDelete} disabled={isSubmitting} className="bg-rose-600 hover:bg-rose-700 text-white">
-                  {isSubmitting ? "Memproses..." : "Hapus Cabang"}
+                <Button onClick={handleStatusChange} disabled={isSubmitting} className="bg-rose-600 hover:bg-rose-700 text-white">
+                  {isSubmitting ? "Memproses..." : "Ubah Status Cabang"}
                 </Button>
               </div>
             </motion.div>

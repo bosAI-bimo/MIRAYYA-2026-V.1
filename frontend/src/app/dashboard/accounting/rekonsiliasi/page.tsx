@@ -436,7 +436,7 @@ export default function RekonsiliasiBankPage() {
                   Tutup
                 </Button>
                 {selectedDetail.status === 'mismatch' && (
-                  <Link href="/dashboard/accounting/laporan/jurnal-penyesuaian/buat" className="flex-1 w-full">
+                  <Link href={`/dashboard/accounting/laporan/jurnal-penyesuaian/buat?amount=${Math.abs(selectedDetail.rawDiff)}&account=${encodeURIComponent(selectedDetail.account)}&desc=${encodeURIComponent(`Penyesuaian rekonsiliasi ${selectedDetail.account} tgl ${selectedDetail.date}`)}`} className="flex-1 w-full">
                     <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
                       Buat Jurnal Penyesuaian
                     </Button>

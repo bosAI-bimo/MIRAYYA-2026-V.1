@@ -1,10 +1,14 @@
-// Definisi Role sesuai PRD (prd.md section 2 & 4)
 // owner       = Pemilik bisnis, akses penuh
 // hr          = HR Manager
 // accounting  = Staff Accounting
 // kepala-toko = Kepala Toko / Store Leader
 // karyawan    = Karyawan biasa / Beauty Advisor
-export type UserRole = 'owner' | 'hr' | 'accounting' | 'kepala-toko' | 'karyawan';
+// Tambahan role baru:
+// HQ_Admin         = Admin Pusat
+// Regional_Manager = Manager Regional
+// Staff_Gudang     = Staff Gudang
+// Kasir            = Kasir cabang
+export type UserRole = 'owner' | 'hr' | 'accounting' | 'kepala-toko' | 'karyawan' | 'HQ_Admin' | 'Regional_Manager' | 'Staff_Gudang' | 'Kasir';
 
 export interface User {
   id: string;
@@ -12,6 +16,7 @@ export interface User {
   email: string;
   role: UserRole;
   branch?: string; // Nama cabang (nullable, owner tidak terikat cabang)
+  branchId?: string; // ID cabang (UUID)
   initials: string; // Untuk avatar (misal: "OW", "AC", "HR")
   roleLabel: string; // Label tampilan (misal: "Business Owner", "Accounting")
 }

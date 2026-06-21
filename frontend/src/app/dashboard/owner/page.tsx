@@ -40,6 +40,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GlobalFilter } from "@/components/ui/global-filter";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis, LineChart, Line
@@ -51,16 +52,31 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 // --- MOCK DATA ---
 
 export default function OwnerDashboardPage() {
-  const [data, setData] = useState<any>(null);
+  const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const loadDashboardData = async (branchId?: string, period?: string) => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (branchId && branchId !== 'all') params.set('branchId', branchId);
+      if (period) params.set('period', period);
+      const queryStr = params.toString() ? `?${params.toString()}` : '';
+      const data = await fetcher(`/accounting/dashboard-stats${queryStr}`);
+      // In a real app we'd fetch owner-specific stats, but for now we reuse accounting stats
+      setStats(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetcher('/owner/dashboard-stats')
-      .then(setData)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    loadDashboardData();
   }, []);
 
+  const data = stats;
   const omzetData = data?.omzetData || [];
   const profitTrend = data?.profitTrend || [];
   const cashFlowStatus = data?.cashFlowStatus || { in: 0, out: 0, net: 0 };
@@ -132,20 +148,11 @@ export default function OwnerDashboardPage() {
           <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">Owner Command Center</h1>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-          <select className="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[160px] shadow-sm transition-all">
-            <option value="all">Semua Cabang (Konsolidasi)</option>
-            <option value="sudirman">Mirayya Pusat (Sudirman)</option>
-            <option value="kemang">Mirayya Kemang</option>
-            <option value="pik">Mirayya PIK</option>
-            <option value="kelapa_gading">Mirayya Kelapa Gading</option>
-            <option value="bintaro">Mirayya Bintaro</option>
-            <option value="baru">Mirayya Baru</option>
-          </select>
-          <select className="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
-            <option value="this_month">Bulan Ini</option>
-            <option value="last_month">Bulan Lalu</option>
-            <option value="this_year">Tahun Ini</option>
-          </select>
+          <GlobalFilter 
+            onFilterChange={(branchId, dateRange) => {
+              loadDashboardData(branchId, dateRange);
+            }} 
+          />
         </div>
       </div>
 
@@ -520,7 +527,9 @@ export default function OwnerDashboardPage() {
                 <AlertTriangle className="w-8 h-8 text-amber-500 mb-2" />
                 <h4 className="font-bold text-amber-800 text-sm">Rekonsiliasi Bank</h4>
                 <p className="text-xs text-amber-700 mt-1">Ada 2 selisih belum diselesaikan di Cabang Barat</p>
-                <Button variant="link" className="text-amber-600 font-bold p-0 mt-1 h-auto text-xs">Lihat Detail</Button>
+                <Link href="/dashboard/accounting/rekonsiliasi" passHref>
+                  <Button variant="link" className="text-amber-600 font-bold p-0 mt-1 h-auto text-xs">Lihat Detail</Button>
+                </Link>
               </Card>
             </div>
 
@@ -840,7 +849,9 @@ export default function OwnerDashboardPage() {
                       </div>
                     </div>
                   ))}
-                  <Button className="w-full mt-2 bg-rose-600 hover:bg-rose-700 text-white shadow-sm">Review PO Otomatis</Button>
+                  <Link href="/dashboard/accounting/po" passHref className="w-full">
+                    <Button className="w-full mt-2 bg-rose-600 hover:bg-rose-700 text-white shadow-sm">Review PO Otomatis</Button>
+                  </Link>
                 </CardContent>
               </Card>
             </div>

@@ -18,7 +18,9 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 const budgetSchema = z.object({
   branchId: z.string().min(1, "Cabang wajib dipilih"),
   month: z.string().min(1, "Bulan wajib diisi"),
-  amount: z.string().min(1, "Anggaran wajib diisi").refine(val => parseInt(val.replace(/\D/g, "")) > 0, "Anggaran harus > 0"),
+  pettyCashBudget: z.string().min(1, "Wajib diisi").refine(val => parseInt(val.replace(/\D/g, "")) >= 0, "Harus >= 0"),
+  shoppingBudget: z.string().min(1, "Wajib diisi").refine(val => parseInt(val.replace(/\D/g, "")) >= 0, "Harus >= 0"),
+  targetAchievement: z.string().min(1, "Wajib diisi").refine(val => parseInt(val.replace(/\D/g, "")) >= 0, "Harus >= 0"),
 });
 type BudgetFormValues = z.infer<typeof budgetSchema>;
 
@@ -37,12 +39,12 @@ export default function BudgetPage() {
 
   const addForm = useForm<BudgetFormValues>({
     resolver: zodResolver(budgetSchema),
-    defaultValues: { branchId: "", month: "2026-06", amount: "" }
+    defaultValues: { branchId: "", month: "2026-06", pettyCashBudget: "", shoppingBudget: "", targetAchievement: "" }
   });
 
   const editForm = useForm<BudgetFormValues>({
     resolver: zodResolver(budgetSchema),
-    defaultValues: { branchId: "", month: "", amount: "" }
+    defaultValues: { branchId: "", month: "", pettyCashBudget: "", shoppingBudget: "", targetAchievement: "" }
   });
 
   const formatRupiah = (number: number) => {
@@ -60,23 +62,20 @@ export default function BudgetPage() {
       
       const formattedBudgets = (budgetsRes || []).map((b: any) => {
         const branchObj = branchesRes?.find((br: any) => br.id === b.branchId);
-        const budgetValue = parseFloat(b.amount);
-        const usedValue = 0; // Backend doesnt track used yet in this simple structure
-        const percentage = budgetValue > 0 ? Math.round((usedValue / budgetValue) * 100) : 0;
-        let status = "safe";
-        if (percentage >= 90) status = "danger";
-        else if (percentage >= 75) status = "warning";
+        const pettyCashBudget = parseFloat(b.pettyCashBudget || "0");
+        const shoppingBudget = parseFloat(b.shoppingBudget || "0");
+        const targetAchievement = parseFloat(b.targetAchievement || "0");
 
         return {
           id: b.id,
           branchId: b.branchId,
           branch: branchObj?.name || "Cabang Tidak Diketahui",
-          budget: formatRupiah(budgetValue),
-          budgetValue: budgetValue,
-          used: formatRupiah(usedValue),
-          sisa: formatRupiah(budgetValue - usedValue),
-          percentage,
-          status,
+          pettyCash: formatRupiah(pettyCashBudget),
+          shopping: formatRupiah(shoppingBudget),
+          target: formatRupiah(targetAchievement),
+          pettyCashValue: pettyCashBudget,
+          shoppingValue: shoppingBudget,
+          targetValue: targetAchievement,
           month: b.month
         };
       });
@@ -99,7 +98,9 @@ export default function BudgetPage() {
         body: JSON.stringify({
           branchId: formData.branchId,
           month: formData.month,
-          amount: parseFloat(formData.amount.replace(/\D/g, ""))
+          pettyCashBudget: parseFloat(formData.pettyCashBudget.replace(/\D/g, "")),
+          shoppingBudget: parseFloat(formData.shoppingBudget.replace(/\D/g, "")),
+          targetAchievement: parseFloat(formData.targetAchievement.replace(/\D/g, ""))
         })
       });
       toast.success("Anggaran berhasil ditambahkan!");
@@ -116,7 +117,9 @@ export default function BudgetPage() {
     editForm.reset({
       branchId: item.branchId,
       month: item.month,
-      amount: item.budgetValue.toString()
+      pettyCashBudget: item.pettyCashValue.toString(),
+      shoppingBudget: item.shoppingValue.toString(),
+      targetAchievement: item.targetValue.toString()
     });
     setIsEditDialogOpen(true);
   };
@@ -129,7 +132,9 @@ export default function BudgetPage() {
         body: JSON.stringify({
           branchId: formData.branchId,
           month: formData.month,
-          amount: parseFloat(formData.amount.replace(/\D/g, ""))
+          pettyCashBudget: parseFloat(formData.pettyCashBudget.replace(/\D/g, "")),
+          shoppingBudget: parseFloat(formData.shoppingBudget.replace(/\D/g, "")),
+          targetAchievement: parseFloat(formData.targetAchievement.replace(/\D/g, ""))
         })
       });
       toast.success("Anggaran berhasil diperbarui!");
@@ -232,10 +237,9 @@ export default function BudgetPage() {
                 <tr>
                   <th className="px-6 py-4 font-medium">Bulan</th>
                   <th className="px-6 py-4 font-medium">Cabang</th>
-                  <th className="px-6 py-4 font-medium">Total Anggaran</th>
-                  <th className="px-6 py-4 font-medium">Terpakai</th>
-                  <th className="px-6 py-4 font-medium">Sisa Anggaran</th>
-                  <th className="px-6 py-4 font-medium">Status Pemakaian</th>
+                  <th className="px-6 py-4 font-medium">Target Pencapaian</th>
+                  <th className="px-6 py-4 font-medium">Anggaran Belanja</th>
+                  <th className="px-6 py-4 font-medium">Anggaran Petty Cash</th>
                   <th className="px-6 py-4 font-medium text-right">Aksi</th>
                 </tr>
               </thead>
@@ -244,26 +248,9 @@ export default function BudgetPage() {
                   <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-600">{item.month}</td>
                     <td className="px-6 py-4 font-medium text-slate-800">{item.branch}</td>
-                    <td className="px-6 py-4 text-slate-600 font-medium">{item.budget}</td>
-                    <td className="px-6 py-4 text-slate-600">{item.used}</td>
-                    <td className="px-6 py-4 text-slate-600 font-medium">{item.sisa}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-24 bg-slate-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full ${
-                              item.status === 'danger' ? 'bg-rose-500' : 
-                              item.status === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'
-                            }`}
-                            style={{ width: `${item.percentage}%` }}
-                          ></div>
-                        </div>
-                        <span className={`text-xs font-medium ${
-                          item.status === 'danger' ? 'text-rose-600' : 
-                          item.status === 'warning' ? 'text-amber-600' : 'text-emerald-600'
-                        }`}>{item.percentage}%</span>
-                      </div>
-                    </td>
+                    <td className="px-6 py-4 text-emerald-600 font-bold">{item.target}</td>
+                    <td className="px-6 py-4 text-slate-600">{item.shopping}</td>
+                    <td className="px-6 py-4 text-slate-600">{item.pettyCash}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         <Button 
@@ -359,9 +346,19 @@ export default function BudgetPage() {
                     {addForm.formState.errors.month && <p className="text-xs text-rose-500">{addForm.formState.errors.month.message}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="amount" className="text-slate-600 font-medium">Total Anggaran (Rp)</Label>
-                    <Input id="amount" type="text" placeholder="Contoh: 15000000" {...addForm.register("amount")} className="w-full border-2 border-slate-200" />
-                    {addForm.formState.errors.amount && <p className="text-xs text-rose-500">{addForm.formState.errors.amount.message}</p>}
+                    <Label htmlFor="pettyCashBudget" className="text-slate-600 font-medium">Anggaran Petty Cash (Rp)</Label>
+                    <Input id="pettyCashBudget" type="text" placeholder="Contoh: 5000000" {...addForm.register("pettyCashBudget")} className="w-full border-2 border-slate-200" />
+                    {addForm.formState.errors.pettyCashBudget && <p className="text-xs text-rose-500">{addForm.formState.errors.pettyCashBudget.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="shoppingBudget" className="text-slate-600 font-medium">Anggaran Belanja (Rp)</Label>
+                    <Input id="shoppingBudget" type="text" placeholder="Contoh: 15000000" {...addForm.register("shoppingBudget")} className="w-full border-2 border-slate-200" />
+                    {addForm.formState.errors.shoppingBudget && <p className="text-xs text-rose-500">{addForm.formState.errors.shoppingBudget.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="targetAchievement" className="text-slate-600 font-medium">Target Pencapaian (Rp)</Label>
+                    <Input id="targetAchievement" type="text" placeholder="Contoh: 50000000" {...addForm.register("targetAchievement")} className="w-full border-2 border-slate-200" />
+                    {addForm.formState.errors.targetAchievement && <p className="text-xs text-rose-500">{addForm.formState.errors.targetAchievement.message}</p>}
                   </div>
                 </div>
                 <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row gap-3">
@@ -411,9 +408,19 @@ export default function BudgetPage() {
                     {editForm.formState.errors.month && <p className="text-xs text-rose-500">{editForm.formState.errors.month.message}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit-amount" className="text-slate-600 font-medium">Total Anggaran (Rp)</Label>
-                    <Input id="edit-amount" type="text" placeholder="Contoh: 15000000" {...editForm.register("amount")} className="w-full border-2 border-slate-200" />
-                    {editForm.formState.errors.amount && <p className="text-xs text-rose-500">{editForm.formState.errors.amount.message}</p>}
+                    <Label htmlFor="edit-pettyCashBudget" className="text-slate-600 font-medium">Anggaran Petty Cash (Rp)</Label>
+                    <Input id="edit-pettyCashBudget" type="text" placeholder="Contoh: 5000000" {...editForm.register("pettyCashBudget")} className="w-full border-2 border-slate-200" />
+                    {editForm.formState.errors.pettyCashBudget && <p className="text-xs text-rose-500">{editForm.formState.errors.pettyCashBudget.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-shoppingBudget" className="text-slate-600 font-medium">Anggaran Belanja (Rp)</Label>
+                    <Input id="edit-shoppingBudget" type="text" placeholder="Contoh: 15000000" {...editForm.register("shoppingBudget")} className="w-full border-2 border-slate-200" />
+                    {editForm.formState.errors.shoppingBudget && <p className="text-xs text-rose-500">{editForm.formState.errors.shoppingBudget.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-targetAchievement" className="text-slate-600 font-medium">Target Pencapaian (Rp)</Label>
+                    <Input id="edit-targetAchievement" type="text" placeholder="Contoh: 50000000" {...editForm.register("targetAchievement")} className="w-full border-2 border-slate-200" />
+                    {editForm.formState.errors.targetAchievement && <p className="text-xs text-rose-500">{editForm.formState.errors.targetAchievement.message}</p>}
                   </div>
                 </div>
                 <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row gap-3">

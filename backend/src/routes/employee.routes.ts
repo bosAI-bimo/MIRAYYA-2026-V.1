@@ -154,4 +154,34 @@ router.post("/attendance/check-out", async (req, res) => {
   }
 });
 
+router.post("/overtime", async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const { date, startTime, endTime, reason } = req.body;
+
+    if (!date || !startTime || !endTime || !reason) {
+      return res.status(400).json({ error: "Date, start time, end time, and reason are required." });
+    }
+
+    // Insert overtime request
+    // Note: We need to import overtimeRequests from schema
+    const { overtimeRequests } = await import("../db/schema");
+    const newRequest = await db.insert(overtimeRequests)
+      .values({
+        userId,
+        date,
+        startTime,
+        endTime,
+        reason,
+        status: "PENDING"
+      })
+      .returning();
+
+    res.status(201).json(newRequest[0]);
+  } catch (error: any) {
+    console.error("Overtime error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;

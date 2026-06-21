@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Download, ChevronRight, BarChart3, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import Link from "next/link";
+import { GlobalFilter } from "@/components/ui/global-filter";
+import { downloadFile } from "@/lib/export";
 import {
   Table,
   TableBody,
@@ -60,8 +62,10 @@ export default function LabaRugiPage() {
   React.useEffect(() => {
     const fetchData = async () => {
       let monthStr = '2026-06';
-      if (period === 'last_month') monthStr = '2026-05';
-      if (period === 'this_year') monthStr = '2026-06'; // Simplification
+      if (period === 'last_month') {
+        monthStr = '2026-05';
+      }
+
       try {
         const res = await fetcher(`/accounting/profit-loss?month=${monthStr}&branchId=${branch}`);
         if (res) setData(res);
@@ -71,6 +75,13 @@ export default function LabaRugiPage() {
     };
     fetchData();
   }, [branch, period]);
+
+  const handleExport = async () => {
+    let monthStr = '2026-06';
+    if (period === 'last_month') monthStr = '2026-05';
+    const url = `http://localhost:5000/api/accounting/export/profit-loss?month=${monthStr}&branchId=${branch}`;
+    await downloadFile(url, `Laporan-Laba-Rugi-${monthStr}.csv`);
+  };
 
   return (
     <div className="space-y-6">
@@ -100,30 +111,15 @@ export default function LabaRugiPage() {
           <p className="text-slate-500">Analisis komprehensif pendapatan, HPP, dan beban operasional.</p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto mt-4 md:mt-0">
-          <select 
-            value={branch}
-            onChange={(e) => setBranch(e.target.value)}
-            className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer min-w-[140px] w-full sm:w-auto"
-          >
-            <option value="all">Semua Cabang</option>
-            <option value="sudirman">Mirayya Sudirman</option>
-            <option value="kemang">Mirayya Kemang</option>
-            <option value="pik">Mirayya PIK</option>
-            <option value="kelapa_gading">Mirayya Kelapa Gading</option>
-            <option value="bintaro">Mirayya Bintaro</option>
-          </select>
-          <select 
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer min-w-[130px]"
-          >
-            <option value="this_month">Bulan Ini (Juni 2026)</option>
-            <option value="last_month">Bulan Lalu (Mei 2026)</option>
-            <option value="this_year">Tahun Ini (2026)</option>
-          </select>
-          <Button className="bg-primary hover:bg-primary/90 text-white">
+          <GlobalFilter 
+            onFilterChange={(newBranch, newPeriod) => {
+              setBranch(newBranch);
+              setPeriod(newPeriod);
+            }} 
+          />
+          <Button onClick={handleExport} className="bg-primary hover:bg-primary/90 text-white">
             <Download className="w-4 h-4 mr-2" />
-            Ekspor PDF/Excel
+            Ekspor CSV
           </Button>
         </div>
       </div>

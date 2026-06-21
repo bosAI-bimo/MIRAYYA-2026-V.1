@@ -27,6 +27,14 @@ export default function AbsensiKaryawan() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isLemburModalOpen, setIsLemburModalOpen] = useState(false);
   const [searchDate, setSearchDate] = useState<Date | undefined>(undefined);
+  
+  // Overtime Form State
+  const [lemburDate, setLemburDate] = useState("");
+  const [lemburStartTime, setLemburStartTime] = useState("");
+  const [lemburEndTime, setLemburEndTime] = useState("");
+  const [lemburReason, setLemburReason] = useState("");
+  const [isSubmittingLembur, setIsSubmittingLembur] = useState(false);
+
   const itemsPerPage = 5;
 
   const webcamRef = useRef<Webcam>(null);
@@ -132,6 +140,36 @@ export default function AbsensiKaryawan() {
       toast.error(err.message || "Gagal melakukan check-out");
     } finally {
       setIsCheckingOut(false);
+    }
+  };
+
+  const submitLembur = async () => {
+    if (!lemburDate || !lemburStartTime || !lemburEndTime || !lemburReason) {
+      toast.error("Semua field wajib diisi");
+      return;
+    }
+    
+    setIsSubmittingLembur(true);
+    try {
+      await fetcher('/employee/overtime', {
+        method: 'POST',
+        body: JSON.stringify({
+          date: lemburDate,
+          startTime: lemburStartTime,
+          endTime: lemburEndTime,
+          reason: lemburReason
+        })
+      });
+      toast.success("Pengajuan lembur berhasil dikirim!");
+      setIsLemburModalOpen(false);
+      setLemburDate("");
+      setLemburStartTime("");
+      setLemburEndTime("");
+      setLemburReason("");
+    } catch (err: any) {
+      toast.error("Gagal mengajukan lembur: " + err.message);
+    } finally {
+      setIsSubmittingLembur(false);
     }
   };
 
@@ -456,10 +494,56 @@ export default function AbsensiKaryawan() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-             <p className="text-sm text-slate-500 text-center py-4">Fitur ini akan segera tersedia</p>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">Tanggal Lembur</Label>
+              <Input 
+                type="date" 
+                value={lemburDate}
+                onChange={(e) => setLemburDate(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-700">Jam Mulai</Label>
+                <Input 
+                  type="time" 
+                  value={lemburStartTime}
+                  onChange={(e) => setLemburStartTime(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-700">Jam Selesai</Label>
+                <Input 
+                  type="time" 
+                  value={lemburEndTime}
+                  onChange={(e) => setLemburEndTime(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700">Alasan / Keterangan</Label>
+              <Input 
+                type="text" 
+                placeholder="Contoh: Stok opname akhir bulan" 
+                value={lemburReason}
+                onChange={(e) => setLemburReason(e.target.value)}
+              />
+            </div>
           </div>
-          <div className="flex justify-end gap-3 mt-4">
-            <Button variant="outline" onClick={() => setIsLemburModalOpen(false)}>Tutup</Button>
+          <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
+            <Button variant="outline" onClick={() => setIsLemburModalOpen(false)}>Batal</Button>
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-white" 
+              onClick={submitLembur}
+              disabled={isSubmittingLembur}
+            >
+              {isSubmittingLembur ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Mengirim...
+                </>
+              ) : "Kirim Pengajuan"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

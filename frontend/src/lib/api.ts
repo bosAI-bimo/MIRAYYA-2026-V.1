@@ -33,3 +33,37 @@ export const fetcher = async (url: string, options: RequestInit = {}) => {
     throw error;
   }
 };
+
+/**
+ * Download a file from the API (CSV, PDF, etc.)
+ * Uses fetch + Blob to trigger native browser download.
+ */
+export const downloadFile = async (url: string, filename: string) => {
+  try {
+    const res = await fetch(`${API_BASE_URL}${url}`, {
+      cache: "no-store",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || errorData.message || "Gagal mengunduh file");
+    }
+
+    const blob = await res.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+    toast.success(`Berhasil mengunduh ${filename}`);
+  } catch (error: any) {
+    console.error(`Download Error on ${url}:`, error);
+    toast.error(error.message || "Gagal mengunduh file.");
+    throw error;
+  }
+};
+

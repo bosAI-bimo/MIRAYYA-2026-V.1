@@ -16,7 +16,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Search, Download, Calculator, CheckCircle2, FileText, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Eye, Calendar, Clock, Edit, Save, AlertCircle, Users, Check, X } from "lucide-react";
+import { toast } from "sonner";
+import { Search, Download, Calculator, CheckCircle2, FileText, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Eye, Calendar, Clock, Edit, Save, AlertCircle, Users, Check, X, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { fetcher } from "@/lib/api";
 
@@ -37,6 +38,11 @@ export default function PayrollPage() {
   const itemsPerPage = 5;
 
   const [payrollHistoryData, setPayrollHistoryData] = useState<any[]>([]);
+
+  // Pengaturan Payroll
+  const [payrollPeriod, setPayrollPeriod] = useState("2026-06");
+  const [payrollDate, setPayrollDate] = useState("2026-06-25");
+  const [isCalculating, setIsCalculating] = useState(false);
 
   const fetchPayroll = async () => {
     try {
@@ -111,7 +117,10 @@ export default function PayrollPage() {
         }
       });
       setPayrollData(formattedData);
-    } catch(err) { console.error(err); }
+    } catch(err: any) { 
+      console.error(err);
+      toast.error("Gagal memuat data payroll: " + err.message);
+    }
   };
 
   React.useEffect(() => {
@@ -191,10 +200,47 @@ export default function PayrollPage() {
       });
       setPayrollData(updatedData);
       setIsEditModalOpen(false);
-      alert('Slip gaji berhasil di-generate!');
+      toast.success('Slip gaji berhasil di-generate!');
       fetchPayroll();
-    } catch(err: any) { alert("Error: " + err.message); }
+    } catch(err: any) { toast.error("Error: " + err.message); }
     finally { setIsSubmitting(false); }
+  };
+
+  const handleHitungUlang = async () => {
+    try {
+      setIsCalculating(true);
+      // Simulate fetching latest attendance and calculating payroll
+      let updatedCount = 0;
+      for (const emp of payrollData) {
+        if (emp.status === "Pending") {
+          const net = emp.baseSalary + emp.allowance - emp.deduction;
+          await fetcher('/hr/payroll', {
+            method: 'POST',
+            body: JSON.stringify({
+              userId: emp.id,
+              period: payrollPeriod,
+              baseSalary: emp.baseSalary,
+              allowances: emp.allowance,
+              deductions: emp.deduction,
+              netSalary: net,
+              slipPdfUrl: null
+            })
+          });
+          updatedCount++;
+        }
+      }
+      
+      if (updatedCount > 0) {
+        toast.success(`Berhasil menghitung ulang ${updatedCount} karyawan!`);
+        fetchPayroll();
+      } else {
+        toast.info("Semua gaji karyawan sudah terhitung untuk periode ini.");
+      }
+    } catch(err: any) {
+      toast.error("Gagal menghitung ulang: " + err.message);
+    } finally {
+      setIsCalculating(false);
+    }
   };
 
   const totalEstimated = payrollData.reduce((acc, curr) => acc + curr.net, 0);
@@ -225,8 +271,12 @@ export default function PayrollPage() {
             <Download className="w-4 h-4 mr-2" />
             Ekspor Rekap
           </Button>
-          <Button className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto">
-            <Calculator className="w-4 h-4 mr-2" />
+          <Button 
+            disabled={isCalculating}
+            onClick={handleHitungUlang} 
+            className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto"
+          >
+            {isCalculating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Calculator className="w-4 h-4 mr-2" />}
             Hitung Ulang
           </Button>
         </div>
@@ -240,6 +290,7 @@ export default function PayrollPage() {
           <CardContent>
             <div className="text-2xl font-bold text-slate-800">{formatRupiah(totalEstimated)}</div>
             <p className="text-xs text-slate-500 mt-1">Periode Juni 2026</p>
+            <p className="text-xs text-slate-500 mt-1">Periode {payrollPeriod}</p>
           </CardContent>
         </Card>
         
@@ -255,11 +306,29 @@ export default function PayrollPage() {
         
         <Card className="border-2 shadow-sm border-slate-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Jadwal Penggajian</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">Pengaturan Payroll</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-800">25 Jun 2026</div>
-            <p className="text-xs text-amber-600 font-medium mt-1">14 hari lagi</p>
+            <div className="flex flex-col gap-3 mt-1">
+              <div>
+                <Label className="text-xs text-slate-500 mb-1 block">Periode</Label>
+                <input 
+                  type="month" 
+                  value={payrollPeriod}
+                  onChange={(e) => setPayrollPeriod(e.target.value)}
+                  className="w-full px-3 py-1.5 border border-slate-200 rounded-md text-sm font-medium focus:outline-none focus:ring-1 focus:ring-pink-500" 
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-slate-500 mb-1 block">Tanggal Gajian</Label>
+                <input 
+                  type="date" 
+                  value={payrollDate}
+                  onChange={(e) => setPayrollDate(e.target.value)}
+                  className="w-full px-3 py-1.5 border border-slate-200 rounded-md text-sm font-medium focus:outline-none focus:ring-1 focus:ring-pink-500" 
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

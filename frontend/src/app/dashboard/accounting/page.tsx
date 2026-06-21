@@ -14,23 +14,37 @@ import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fetcher } from "@/lib/api";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import { GlobalFilter } from "@/components/ui/global-filter";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function AccountingDashboard() {
+  const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isApproving, setIsApproving] = useState(false);
+  const [filterBranch, setFilterBranch] = useState("all");
+  const [filterPeriod, setFilterPeriod] = useState("this_month");
+  const [rekonForm, setRekonForm] = useState({ branchId: "", date: "", file: null as File | null });
+
+  const loadDashboardData = async (branchId?: string, period?: string) => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (branchId && branchId !== 'all') params.set('branchId', branchId);
+      if (period) params.set('period', period);
+      const queryStr = params.toString() ? `?${params.toString()}` : '';
+      const data = await fetcher(`/accounting/dashboard-stats${queryStr}`);
+      setStats(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const data = await fetcher("/accounting/dashboard-stats");
-        setStats(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
+    loadDashboardData();
   }, []);
 
   const [activeTab, setActiveTab] = useState("overview");
@@ -118,19 +132,13 @@ export default function AccountingDashboard() {
           <p className="text-slate-500 font-medium">Ringkasan finansial, arus kas, persetujuan, dan target operasional cabang.</p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-          <select className="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[160px] shadow-sm transition-all">
-            <option value="all">Konsolidasi (Semua Cabang)</option>
-            <option value="sudirman">Mirayya Sudirman</option>
-            <option value="kemang">Mirayya Kemang</option>
-            <option value="pik">Mirayya PIK</option>
-            <option value="kelapa_gading">Mirayya Kelapa Gading</option>
-            <option value="bintaro">Mirayya Bintaro</option>
-          </select>
-          <select className="px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer w-full sm:w-auto min-w-[140px] shadow-sm transition-all">
-            <option value="this_month">Juni 2026</option>
-            <option value="last_month">Mei 2026</option>
-            <option value="this_year">Tahun 2026</option>
-          </select>
+          <GlobalFilter 
+            onFilterChange={(branchId, dateRange) => {
+              setFilterBranch(branchId);
+              setFilterPeriod(dateRange);
+              loadDashboardData(branchId, dateRange);
+            }} 
+          />
         </div>
       </div>
 
@@ -278,12 +286,6 @@ export default function AccountingDashboard() {
               >
                 Anggaran & Target
               </TabsTrigger>
-              <TabsTrigger 
-                value="pettycash" 
-                className="rounded-xl md:rounded-full data-[state=active]:bg-white data-[state=active]:text-pink-700 data-[state=active]:shadow-sm px-4 lg:px-6 py-2.5 lg:py-3 text-slate-500 hover:text-slate-700 transition-all font-semibold text-sm lg:text-base cursor-pointer"
-              >
-                Petty Cash
-              </TabsTrigger>
             </TabsList>
           </div>
           
@@ -297,7 +299,9 @@ export default function AccountingDashboard() {
                     <CardTitle className="text-lg font-bold text-slate-800">Ikhtisar Laba Rugi</CardTitle>
                     <CardDescription className="text-sm font-medium mt-1">Konsolidasi per Juni 2026</CardDescription>
                   </div>
-                  <Button variant="ghost" size="sm" className="text-pink-600 hover:text-pink-700 hover:bg-pink-50">Laporan Lengkap</Button>
+                  <Link href="/dashboard/accounting/laporan">
+                    <Button variant="ghost" size="sm" className="text-pink-600 hover:text-pink-700 hover:bg-pink-50">Laporan Lengkap</Button>
+                  </Link>
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="space-y-4">
@@ -332,7 +336,9 @@ export default function AccountingDashboard() {
                     <CardTitle className="text-lg font-bold text-slate-800">Ringkasan Arus Kas</CardTitle>
                     <CardDescription className="text-sm font-medium mt-1">Aliran dana masuk & keluar</CardDescription>
                   </div>
-                  <Button variant="ghost" size="sm" className="text-pink-600 hover:text-pink-700 hover:bg-pink-50">Jurnal Transaksi</Button>
+                  <Link href="/dashboard/accounting/laporan/arus-kas">
+                    <Button variant="ghost" size="sm" className="text-pink-600 hover:text-pink-700 hover:bg-pink-50">Jurnal Transaksi</Button>
+                  </Link>
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="grid grid-cols-2 gap-4 mb-6">
@@ -657,51 +663,9 @@ export default function AccountingDashboard() {
                   ))}
                 </div>
                 <div className="mt-10 flex justify-end pt-6 border-t border-slate-100">
-                  <Button className="bg-pink-600 hover:bg-pink-700 text-white rounded-full px-6 font-semibold shadow-sm hover:shadow-md transition-all">Kelola Anggaran Cabang</Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* TAB 5: PETTY CASH */}
-          <TabsContent value="pettycash" className="mt-6 focus-visible:outline-none">
-            <Card className="border-2 shadow-sm border-slate-200 rounded-2xl overflow-hidden">
-              <CardHeader className="px-6 py-6 border-b border-slate-100 bg-slate-50/50">
-                <CardTitle className="text-lg font-bold text-slate-800">Monitoring Petty Cash</CardTitle>
-                <CardDescription className="text-sm font-medium mt-1">Transaksi pengeluaran kas kecil cabang terbaru.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="divide-y divide-slate-100">
-                  {(stats?.pettyCashList || []).map((item: any, i: number) => (
-                    <div key={i} onClick={() => openPettyCashModal(item)} className="flex justify-between items-center p-6 hover:bg-slate-50 transition-colors group gap-4 cursor-pointer">
-                      <div className="flex items-center space-x-4 min-w-0 flex-1">
-                        <div className="w-12 h-12 bg-slate-100 rounded-2xl text-slate-500 flex items-center justify-center group-hover:bg-white group-hover:shadow-sm border border-transparent group-hover:border-slate-200 transition-all duration-300 shrink-0">
-                          <CreditCard className="w-6 h-6" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-bold text-slate-800 text-base truncate">{item.desc}</h4>
-                          <div className="text-sm text-slate-500 mt-1 font-medium flex items-center space-x-2 truncate">
-                            <span className="bg-slate-100 px-2 py-0.5 rounded text-xs text-slate-600 shrink-0">{item.branch}</span>
-                            <span className="shrink-0">•</span>
-                            <span className="truncate">{item.by}</span>
-                            <span className="shrink-0">•</span>
-                            <span className="shrink-0">{item.date}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right flex items-center gap-3 shrink-0">
-                        <span className="inline-flex px-3 py-1.5 bg-rose-50 text-rose-600 text-sm font-bold rounded-lg border border-rose-100/50">
-                          - {item.amount}
-                        </span>
-                        <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-pink-600 transition-colors" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex justify-end">
-                  <Button variant="outline" className="border-slate-300 text-slate-700 hover:bg-white hover:text-pink-700 rounded-full px-6 font-semibold shadow-sm transition-all">
-                    Lihat Semua Transaksi
-                  </Button>
+                  <Link href="/dashboard/accounting/anggaran">
+                    <Button className="bg-pink-600 hover:bg-pink-700 text-white rounded-full px-6 font-semibold shadow-sm hover:shadow-md transition-all">Kelola Anggaran Cabang</Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
@@ -792,11 +756,49 @@ export default function AccountingDashboard() {
 
               {/* Footer Actions */}
               <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row gap-3">
-                <Button className="flex-1 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold h-12 rounded-xl transition-all border-none cursor-pointer">
-                  <XIcon className="w-5 h-5 mr-2" /> Tolak
+                <Button 
+                  disabled={isApproving}
+                  onClick={async () => {
+                    try {
+                      setIsApproving(true);
+                      await fetcher(`/accounting/eod-reports/${selectedEOD.id}/approve`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ status: 'REJECTED' })
+                      });
+                      toast.success("EOD berhasil ditolak");
+                      closeReviewModal();
+                      loadDashboardData(filterBranch, filterPeriod);
+                    } catch (err: any) {
+                      toast.error("Gagal menolak EOD: " + (err.message || "Terjadi kesalahan"));
+                    } finally {
+                      setIsApproving(false);
+                    }
+                  }}
+                  className="flex-1 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold h-12 rounded-xl transition-all border-none cursor-pointer"
+                >
+                  {isApproving ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <XIcon className="w-5 h-5 mr-2" />} Tolak
                 </Button>
-                <Button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
-                  <Check className="w-5 h-5 mr-2" /> Setujui EOD
+                <Button 
+                  disabled={isApproving}
+                  onClick={async () => {
+                    try {
+                      setIsApproving(true);
+                      await fetcher(`/accounting/eod-reports/${selectedEOD.id}/approve`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ status: 'APPROVED' })
+                      });
+                      toast.success("EOD berhasil disetujui");
+                      closeReviewModal();
+                      loadDashboardData(filterBranch, filterPeriod);
+                    } catch (err: any) {
+                      toast.error("Gagal menyetujui EOD: " + (err.message || "Terjadi kesalahan"));
+                    } finally {
+                      setIsApproving(false);
+                    }
+                  }}
+                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer"
+                >
+                  {isApproving ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Check className="w-5 h-5 mr-2" />} Setujui EOD
                 </Button>
               </div>
             </motion.div>
@@ -894,11 +896,49 @@ export default function AccountingDashboard() {
 
               {/* Footer Actions */}
               <div className="p-6 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row gap-3">
-                <Button className="flex-1 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold h-12 rounded-xl transition-all border-none cursor-pointer">
-                  <XIcon className="w-5 h-5 mr-2" /> Tolak
+                <Button 
+                  disabled={isApproving}
+                  onClick={async () => {
+                    try {
+                      setIsApproving(true);
+                      await fetcher(`/store/orders/${selectedPO.id}/approve`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ status: 'REJECTED' })
+                      });
+                      toast.success("Purchase Order berhasil ditolak");
+                      closePOModal();
+                      loadDashboardData(filterBranch, filterPeriod);
+                    } catch (err: any) {
+                      toast.error("Gagal menolak PO: " + (err.message || "Terjadi kesalahan"));
+                    } finally {
+                      setIsApproving(false);
+                    }
+                  }}
+                  className="flex-1 bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold h-12 rounded-xl transition-all border-none cursor-pointer"
+                >
+                  {isApproving ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <XIcon className="w-5 h-5 mr-2" />} Tolak
                 </Button>
-                <Button className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
-                  <Check className="w-5 h-5 mr-2" /> Setujui PO
+                <Button 
+                  disabled={isApproving}
+                  onClick={async () => {
+                    try {
+                      setIsApproving(true);
+                      await fetcher(`/store/orders/${selectedPO.id}/approve`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ status: 'APPROVED' })
+                      });
+                      toast.success("Purchase Order berhasil disetujui");
+                      closePOModal();
+                      loadDashboardData(filterBranch, filterPeriod);
+                    } catch (err: any) {
+                      toast.error("Gagal menyetujui PO: " + (err.message || "Terjadi kesalahan"));
+                    } finally {
+                      setIsApproving(false);
+                    }
+                  }}
+                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer"
+                >
+                  {isApproving ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Check className="w-5 h-5 mr-2" />} Setujui PO
                 </Button>
               </div>
             </motion.div>
@@ -1013,7 +1053,11 @@ export default function AccountingDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-bold text-slate-700 mb-2 block">Pilih Cabang</label>
-                    <select className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer shadow-sm transition-all">
+                    <select 
+                      value={rekonForm.branchId}
+                      onChange={(e) => setRekonForm({...rekonForm, branchId: e.target.value})}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer shadow-sm transition-all"
+                    >
                       <option value="">-- Pilih Cabang --</option>
                       <option value="sudirman">Mirayya Sudirman</option>
                       <option value="kemang">Mirayya Kemang</option>
@@ -1024,7 +1068,12 @@ export default function AccountingDashboard() {
                   </div>
                   <div>
                     <label className="text-sm font-bold text-slate-700 mb-2 block">Tanggal Rekonsiliasi</label>
-                    <input type="date" className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer shadow-sm transition-all" />
+                    <input 
+                      type="date" 
+                      value={rekonForm.date}
+                      onChange={(e) => setRekonForm({...rekonForm, date: e.target.value})}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white cursor-pointer shadow-sm transition-all" 
+                    />
                   </div>
                 </div>
                 <div>
@@ -1044,11 +1093,41 @@ export default function AccountingDashboard() {
                 <Button variant="outline" onClick={closeRekonsiliasiModal} className="flex-1 border-slate-200 text-slate-600 hover:bg-slate-100 font-bold h-12 rounded-xl transition-all cursor-pointer">
                   Batal
                 </Button>
-                <Link href="/dashboard/accounting/rekonsiliasi" className="flex-1">
-                  <Button className="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
-                    <RefreshCw className="w-5 h-5 mr-2" /> Proses Data
-                  </Button>
-                </Link>
+                <Button 
+                  disabled={isApproving}
+                  onClick={async () => {
+                    if (!rekonForm.branchId || !rekonForm.date) {
+                      toast.error("Pilih cabang dan tanggal terlebih dahulu");
+                      return;
+                    }
+                    try {
+                      setIsApproving(true);
+                      await fetcher('/accounting/bank-reconciliations', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                          branchId: rekonForm.branchId,
+                          reconcileDate: rekonForm.date,
+                          bankAccount: 'BCA',
+                          bankStatementBalance: '0',
+                          posSalesBalance: '0',
+                          difference: '0',
+                          notes: 'Rekonsiliasi baru dimulai'
+                        })
+                      });
+                      toast.success("Berhasil memulai proses rekonsiliasi");
+                      closeRekonsiliasiModal();
+                      setRekonForm({ branchId: '', date: '', file: null });
+                      router.push("/dashboard/accounting/rekonsiliasi");
+                    } catch (err: any) {
+                      toast.error("Gagal memproses rekonsiliasi: " + (err.message || "Terjadi kesalahan"));
+                    } finally {
+                      setIsApproving(false);
+                    }
+                  }}
+                  className="flex-1 w-full bg-pink-600 hover:bg-pink-700 text-white font-bold h-12 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer"
+                >
+                  <RefreshCw className="w-5 h-5 mr-2" /> Proses Data
+                </Button>
               </div>
             </motion.div>
           </div>

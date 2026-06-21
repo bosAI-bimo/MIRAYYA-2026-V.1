@@ -30,15 +30,33 @@ type EodFormValues = z.infer<typeof eodSchema>;
 type PettyCashFormValues = z.infer<typeof pettyCashSchema>;
 
 export default function EODPage() {
+  const [eodDate, setEodDate] = React.useState(new Date().toISOString().split('T')[0]);
+  const [cashDenominations, setCashDenominations] = React.useState({
+    100000: 0,
+    50000: 0,
+    20000: 0,
+    10000: 0,
+    5000: 0,
+    2000: 0,
+    1000: 0,
+  });
+
   const eodForm = useForm<EodFormValues>({
     resolver: zodResolver(eodSchema),
     defaultValues: {
       totalOmzet: "",
-      cashAmount: "",
+      cashAmount: "0",
       edcAmount: "",
       qrisAmount: ""
     }
   });
+
+  React.useEffect(() => {
+    const totalCash = Object.entries(cashDenominations).reduce((sum, [denom, count]) => {
+      return sum + (Number(denom) * count);
+    }, 0);
+    eodForm.setValue("cashAmount", totalCash.toLocaleString('id-ID'));
+  }, [cashDenominations, eodForm]);
 
   const pettyCashForm = useForm<PettyCashFormValues>({
     resolver: zodResolver(pettyCashSchema),
@@ -53,7 +71,7 @@ export default function EODPage() {
       await fetcher('/store/eod-reports', {
         method: 'POST',
         body: JSON.stringify({
-          reportDate: new Date().toISOString(),
+          reportDate: eodDate,
           totalOmzet: parseFloat(data.totalOmzet.replace(/[^0-9]/g, '')) || 0,
           cashAmount: parseFloat(data.cashAmount.replace(/[^0-9]/g, '')) || 0,
           edcAmount: parseFloat(data.edcAmount.replace(/[^0-9]/g, '')) || 0,
@@ -143,18 +161,49 @@ export default function EODPage() {
                     </div>
                     {eodForm.formState.errors.totalOmzet && <p className="text-xs text-rose-500">{eodForm.formState.errors.totalOmzet.message}</p>}
                   </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Tanggal Pengajuan</label>
+                    <input 
+                      type="date" 
+                      value={eodDate}
+                      onChange={(e) => setEodDate(e.target.value)}
+                      className="w-full px-3 py-2 border-2 border-slate-200 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-pink-500" 
+                    />
+                  </div>
                 </div>
 
                 <div className="border-t border-slate-100 my-4 pt-4">
                   <h4 className="text-sm font-semibold text-slate-800 mb-3">Rincian Pembayaran</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                       <label className="text-sm font-medium text-slate-700">Tunai (Cash)</label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-2.5 text-slate-500">Rp</span>
-                        <Input type="text" className="pl-10" placeholder="0" {...eodForm.register("cashAmount")} />
+                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
+                        <div className="text-xs font-semibold text-slate-500 mb-2">Rincian Pecahan Uang</div>
+                        {[100000, 50000, 20000, 10000, 5000, 2000, 1000].map(denom => (
+                          <div key={denom} className="flex items-center justify-between gap-2">
+                            <span className="text-sm text-slate-600 font-medium w-16">{(denom / 1000)}rb</span>
+                            <span className="text-slate-400 text-sm">x</span>
+                            <Input 
+                              type="number" 
+                              min="0"
+                              value={cashDenominations[denom as keyof typeof cashDenominations] || ""}
+                              onChange={(e) => setCashDenominations(prev => ({...prev, [denom]: parseInt(e.target.value) || 0}))}
+                              className="w-20 h-8 text-center text-sm" 
+                              placeholder="0"
+                            />
+                            <span className="text-sm text-slate-500 font-medium text-right w-24">
+                              = {(denom * cashDenominations[denom as keyof typeof cashDenominations]).toLocaleString('id-ID')}
+                            </span>
+                          </div>
+                        ))}
+                        <div className="pt-3 mt-3 border-t border-slate-200">
+                          <div className="relative">
+                            <span className="absolute left-3 top-2 text-slate-500 font-bold">Rp</span>
+                            <Input type="text" className="pl-10 font-bold bg-white" placeholder="0" readOnly {...eodForm.register("cashAmount")} />
+                          </div>
+                          {eodForm.formState.errors.cashAmount && <p className="text-xs text-rose-500 mt-1">{eodForm.formState.errors.cashAmount.message}</p>}
+                        </div>
                       </div>
-                      {eodForm.formState.errors.cashAmount && <p className="text-xs text-rose-500">{eodForm.formState.errors.cashAmount.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-700">Mesin EDC (Debit/Kredit)</label>

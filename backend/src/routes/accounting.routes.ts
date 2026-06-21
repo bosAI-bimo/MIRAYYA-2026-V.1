@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
-import { eodReports, pettyCashTransactions, branches, budgets, revenueTargets, bankReconciliations, users } from "../db/schema";
+import { eodReports, pettyCashTransactions, branches, budgets, revenueTargets, bankReconciliations, users, journalEntries } from "../db/schema";
 import { eq, sql, and } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/authMiddleware";
 import { validateRequest } from "../middlewares/validateRequest";
@@ -130,9 +130,9 @@ router.get("/budgets", async (req, res) => {
 
 router.post("/budgets", async (req, res) => {
   try {
-    const { branchId, month, amount, approvedBy } = req.body;
+    const { branchId, month, pettyCashBudget, shoppingBudget, targetAchievement, approvedBy } = req.body;
     const newBudget = await db.insert(budgets)
-      .values({ branchId, month, amount, approvedBy })
+      .values({ branchId, month, pettyCashBudget, shoppingBudget, targetAchievement, approvedBy })
       .returning();
     res.status(201).json(newBudget[0]);
   } catch (error: any) {
@@ -143,9 +143,9 @@ router.post("/budgets", async (req, res) => {
 router.put("/budgets/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { month, amount, approvedBy } = req.body;
+    const { month, pettyCashBudget, shoppingBudget, targetAchievement, approvedBy } = req.body;
     const updatedBudget = await db.update(budgets)
-      .set({ month, amount, approvedBy })
+      .set({ month, pettyCashBudget, shoppingBudget, targetAchievement, approvedBy })
       .where(eq(budgets.id, id as any))
       .returning();
     if (updatedBudget.length === 0) return res.status(404).json({ message: "Budget not found" });
@@ -348,11 +348,31 @@ router.put("/eod-reports/:id/approve", async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body; // APPROVED or REJECTED
-    const updated = await db.update(eodReports)
-      .set({ status })
-      .where(eq(eodReports.id, id as any))
-      .returning();
-    res.json(updated[0]);
+    
+    const result = await db.transaction(async (tx) => {
+      const updated = await tx.update(eodReports)
+        .set({ status, approvedBy: (req as any).user?.id })
+        .where(eq(eodReports.id, id as any))
+        .returning();
+        
+      const eod = updated[0];
+      if (!eod) throw new Error("EOD Report not found");
+
+      if (status === "APPROVED") {
+        await tx.insert(journalEntries).values({
+          entryDate: eod.reportDate,
+          description: `Penerimaan Kas Laporan EOD - ${eod.reportDate}`,
+          debitAccount: "Kas & Bank",
+          creditAccount: "Pendapatan Penjualan",
+          amount: eod.totalOmzet.toString(),
+          branchId: eod.branchId,
+          createdBy: (req as any).user?.id || "system",
+        });
+      }
+      return eod;
+    });
+
+    res.json(result);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -398,6 +418,49 @@ router.get("/profit-loss", async (req, res) => {
   }
 });
 
+router.get("/export/profit-loss", async (req, res) => {
+  try {
+    const { month, branchId } = req.query;
+    if (!month) return res.status(400).json({ error: "Month is required (YYYY-MM)" });
+
+    let eodCond = [eq(eodReports.status, "APPROVED"), eq(eodReports.isDeleted, false), sql`to_char(${eodReports.reportDate}, 'YYYY-MM') = ${month}`];
+    let pettyCond = [eq(pettyCashTransactions.isDeleted, false), sql`to_char(${pettyCashTransactions.transactionDate}, 'YYYY-MM') = ${month}`];
+    
+    if (branchId && branchId !== 'all') {
+      eodCond.push(eq(eodReports.branchId, branchId as string));
+      pettyCond.push(eq(pettyCashTransactions.branchId, branchId as string));
+    }
+
+    const revenueResult = await db.select({ total: sql<number>`sum(${eodReports.totalOmzet})` }).from(eodReports).where(and(...eodCond));
+    const revenue = Number(revenueResult[0]?.total || 0);
+
+    const expenseResult = await db.select({ total: sql<number>`sum(${pettyCashTransactions.amount})` }).from(pettyCashTransactions).where(and(...pettyCond));
+    const operatingExpenses = Number(expenseResult[0]?.total || 0);
+
+    const cogs = revenue * 0.4;
+    const grossProfit = revenue - cogs;
+    const netProfit = grossProfit - operatingExpenses;
+
+    // Create CSV content
+    const csvLines = [
+      "Kategori,Jumlah",
+      `Pendapatan Kotor,${revenue}`,
+      `Total HPP,${cogs}`,
+      `Laba Kotor,${grossProfit}`,
+      `Beban Operasional,${operatingExpenses}`,
+      `Laba Bersih,${netProfit}`,
+    ];
+    
+    const csvContent = csvLines.join("\n");
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="laporan-laba-rugi-${month}.csv"`);
+    res.send(csvContent);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.get("/cash-flow", async (req, res) => {
   try {
     const { month, branchId } = req.query;
@@ -438,7 +501,7 @@ router.get("/cash-flow", async (req, res) => {
 
 // --- JOURNAL ENTRIES ---
 
-import { journalEntries } from "../db/schema";
+
 
 router.get("/journal-entries", async (req, res) => {
   try {

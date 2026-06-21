@@ -7,16 +7,30 @@ import { CheckCircle, XCircle, Search, Eye, Filter, ChevronRight, ChevronLeft, C
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { fetcher } from "@/lib/api";
+import { GlobalFilter } from "@/components/ui/global-filter";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function EODApprovalPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const initialTab = searchParams.get("tab") === "pettycash" ? "pettycash" : "eod";
+  const [activeTab, setActiveTab] = useState(initialTab);
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [filterStatus, setFilterStatus] = useState("pending");
   const [branchFilter, setBranchFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("this_month");
   const itemsPerPage = 10;
 
   const [eodData, setEodData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pettyCashData, setPettyCashData] = useState<any[]>([
+    { id: "PC-001", branch: "Mirayya Sudirman", date: "10 Jun 2026", desc: "Beli Tinta Printer", amount: "Rp 150.000", by: "Andi" },
+    { id: "PC-002", branch: "Mirayya Kemang", date: "09 Jun 2026", desc: "Galon Air & Kopi", amount: "Rp 85.000", by: "Budi" },
+    { id: "PC-003", branch: "Mirayya PIK", date: "08 Jun 2026", desc: "Plastik Kemasan", amount: "Rp 200.000", by: "Citra" },
+  ]);
 
   const loadData = async () => {
     try {
@@ -111,159 +125,224 @@ export default function EODApprovalPage() {
         </div>
       </div>
 
-      <Card className="border-2 shadow-sm border-slate-200">
-        <CardHeader className="pb-4 border-b border-slate-100 flex flex-col xl:flex-row justify-between xl:items-center gap-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <CardTitle className="text-lg font-semibold text-slate-800">Daftar Laporan EOD</CardTitle>
-            <div className="flex bg-slate-100 p-1 rounded-lg shrink-0">
-              <button 
-                onClick={() => handleFilterChange("pending")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${filterStatus === 'pending' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                Menunggu
-              </button>
-              <button 
-                onClick={() => handleFilterChange("completed")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${filterStatus === 'completed' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                Selesai
-              </button>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Cari cabang..." 
-                className="pl-9 pr-4 py-2 border-2 border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
-              />
-            </div>
-            <select 
-              value={branchFilter}
-              onChange={(e) => {
-                setBranchFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[140px]"
+      <Tabs value={activeTab} onValueChange={(val) => {
+        setActiveTab(val);
+        router.push(val === "pettycash" ? "/dashboard/accounting/eod?tab=pettycash" : "/dashboard/accounting/eod");
+      }} className="w-full">
+        <div className="flex my-6 bg-slate-100/80 p-1.5 rounded-2xl md:rounded-full w-full overflow-x-auto no-scrollbar border-2 border-slate-200/50 shadow-inner">
+          <TabsList className="bg-transparent p-0 flex gap-1 lg:gap-2 min-w-max h-auto">
+            <TabsTrigger 
+              value="eod" 
+              className="rounded-xl md:rounded-full data-[state=active]:bg-white data-[state=active]:text-pink-700 data-[state=active]:shadow-sm px-4 lg:px-6 py-2.5 lg:py-3 text-slate-500 hover:text-slate-700 transition-all font-semibold text-sm lg:text-base cursor-pointer"
             >
-              <option value="all">Semua Cabang</option>
-              <option value="sudirman">Mirayya Sudirman</option>
-              <option value="kemang">Mirayya Kemang</option>
-              <option value="pik">Mirayya PIK</option>
-              <option value="kelapa_gading">Mirayya Kelapa Gading</option>
-              <option value="bintaro">Mirayya Bintaro</option>
-            </select>
-            <select className="px-3 py-2 border-2 border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 bg-white cursor-pointer w-full md:w-auto min-w-[130px]">
-              <option value="this_month">Bulan Ini</option>
-              <option value="last_month">Bulan Lalu</option>
-              <option value="this_year">Tahun Ini</option>
-            </select>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs text-slate-500 bg-slate-50 uppercase">
-                <tr>
-                  <th className="px-6 py-4 font-medium">Cabang</th>
-                  <th className="px-6 py-4 font-medium">Tanggal Laporan</th>
-                  <th className="px-6 py-4 font-medium">Total Omzet</th>
-                  <th className="px-6 py-4 font-medium">Petty Cash</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium text-right">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {paginatedData.map((item, i) => (
-                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-800">{item.branch}</td>
-                    <td className="px-6 py-4 text-slate-600">{item.date}</td>
-                    <td className="px-6 py-4 text-slate-800 font-medium">{item.omzet}</td>
-                    <td className="px-6 py-4 text-slate-600">{item.petty}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                        item.status === 'Disetujui' ? 'bg-emerald-100 text-emerald-700' : 
-                        item.status === 'Ditolak' ? 'bg-rose-100 text-rose-700' : 
-                        'bg-amber-100 text-amber-700'
-                      }`}>
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => openReviewModal(item)} className="h-8 w-8 p-0" title="Lihat Detail">
-                          <Eye className="w-4 h-4 text-slate-600" />
-                        </Button>
-                        {item.status === 'Menunggu' && (
-                          <>
-                            <Button variant="outline" size="sm" onClick={() => handleApproveReject(item.id, 'APPROVED')} className="h-8 w-8 p-0 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600" title="Setujui">
-                              <CheckCircle className="w-4 h-4 text-emerald-500" />
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => handleApproveReject(item.id, 'REJECTED')} className="h-8 w-8 p-0 border-rose-200 hover:bg-rose-50 hover:text-rose-600" title="Tolak">
-                              <XCircle className="w-4 h-4 text-rose-500" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Pagination Controls */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
-            <div className="text-sm text-slate-500">
-              Menampilkan <span className="font-medium text-slate-700">{eodData.length > 0 ? startIndex + 1 : 0}</span> - <span className="font-medium text-slate-700">{startIndex + eodData.length}</span> data
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(1)} 
-                disabled={currentPage === 1}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronsLeft className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
-                disabled={currentPage === 1}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              
-              <div className="flex items-center justify-center text-sm font-medium px-3 text-slate-600">
-                Halaman {currentPage} dari {totalPages}
-              </div>
+              Persetujuan EOD
+            </TabsTrigger>
+            <TabsTrigger 
+              value="pettycash" 
+              className="rounded-xl md:rounded-full data-[state=active]:bg-white data-[state=active]:text-pink-700 data-[state=active]:shadow-sm px-4 lg:px-6 py-2.5 lg:py-3 text-slate-500 hover:text-slate-700 transition-all font-semibold text-sm lg:text-base cursor-pointer"
+            >
+              Riwayat Petty Cash
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
-                disabled={currentPage === totalPages}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(totalPages)} 
-                disabled={currentPage === totalPages}
-                className="h-8 w-8 p-0"
-              >
-                <ChevronsRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        <TabsContent value="eod" className="mt-6 focus-visible:outline-none">
+          <Card className="border-2 shadow-sm border-slate-200">
+            <CardHeader className="pb-4 border-b border-slate-100 flex flex-col xl:flex-row justify-between xl:items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <CardTitle className="text-lg font-semibold text-slate-800">Daftar Laporan EOD</CardTitle>
+                <div className="flex bg-slate-100 p-1 rounded-lg shrink-0">
+                  <button 
+                    onClick={() => handleFilterChange("pending")}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${filterStatus === 'pending' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Menunggu
+                  </button>
+                  <button 
+                    onClick={() => handleFilterChange("completed")}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${filterStatus === 'completed' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Selesai
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Cari cabang..." 
+                    className="pl-9 pr-4 py-2 border-2 border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+                <GlobalFilter 
+                  onFilterChange={(branchId, period) => {
+                    setBranchFilter(branchId);
+                    setDateFilter(period);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-slate-500 bg-slate-50 uppercase">
+                    <tr>
+                      <th className="px-6 py-4 font-medium">Cabang</th>
+                      <th className="px-6 py-4 font-medium">Tanggal Laporan</th>
+                      <th className="px-6 py-4 font-medium">Total Omzet</th>
+                      <th className="px-6 py-4 font-medium">Petty Cash</th>
+                      <th className="px-6 py-4 font-medium">Status</th>
+                      <th className="px-6 py-4 font-medium text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {paginatedData.map((item, i) => (
+                      <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4 font-medium text-slate-800">{item.branch}</td>
+                        <td className="px-6 py-4 text-slate-600">{item.date}</td>
+                        <td className="px-6 py-4 text-slate-800 font-medium">{item.omzet}</td>
+                        <td className="px-6 py-4 text-slate-600">{item.petty}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
+                            item.status === 'Disetujui' ? 'bg-emerald-100 text-emerald-700' : 
+                            item.status === 'Ditolak' ? 'bg-rose-100 text-rose-700' : 
+                            'bg-amber-100 text-amber-700'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="outline" size="sm" onClick={() => openReviewModal(item)} className="h-8 w-8 p-0" title="Lihat Detail">
+                              <Eye className="w-4 h-4 text-slate-600" />
+                            </Button>
+                            {item.status === 'Menunggu' && (
+                              <>
+                                <Button variant="outline" size="sm" onClick={() => handleApproveReject(item.id, 'APPROVED')} className="h-8 w-8 p-0 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-600" title="Setujui">
+                                  <CheckCircle className="w-4 h-4 text-emerald-500" />
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleApproveReject(item.id, 'REJECTED')} className="h-8 w-8 p-0 border-rose-200 hover:bg-rose-50 hover:text-rose-600" title="Tolak">
+                                  <XCircle className="w-4 h-4 text-rose-500" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Pagination Controls */}
+              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-lg">
+                <div className="text-sm text-slate-500">
+                  Menampilkan <span className="font-medium text-slate-700">{eodData.length > 0 ? startIndex + 1 : 0}</span> - <span className="font-medium text-slate-700">{startIndex + eodData.length}</span> data
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setCurrentPage(1)} 
+                    disabled={currentPage === 1}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronsLeft className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+                    disabled={currentPage === 1}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  
+                  <div className="flex items-center justify-center text-sm font-medium px-3 text-slate-600">
+                    Halaman {currentPage} dari {totalPages}
+                  </div>
+
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+                    disabled={currentPage === totalPages}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setCurrentPage(totalPages)} 
+                    disabled={currentPage === totalPages}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronsRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="pettycash" className="mt-6 focus-visible:outline-none">
+          <Card className="border-2 shadow-sm border-slate-200">
+            <CardHeader className="pb-4 border-b border-slate-100 flex flex-col xl:flex-row justify-between xl:items-center gap-4">
+              <div>
+                <CardTitle className="text-lg font-semibold text-slate-800">Riwayat Transaksi Petty Cash</CardTitle>
+                <CardDescription>Pencatatan pengeluaran kas kecil dari setiap cabang.</CardDescription>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Cari transaksi..." 
+                    className="pl-9 pr-4 py-2 border-2 border-slate-200 rounded-md text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+                <GlobalFilter 
+                  onFilterChange={(branchId, period) => {
+                    console.log("Filter petty cash:", branchId, period);
+                  }}
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-slate-500 bg-slate-50 uppercase">
+                    <tr>
+                      <th className="px-6 py-4 font-medium">ID Transaksi</th>
+                      <th className="px-6 py-4 font-medium">Cabang</th>
+                      <th className="px-6 py-4 font-medium">Tanggal</th>
+                      <th className="px-6 py-4 font-medium">Keterangan</th>
+                      <th className="px-6 py-4 font-medium text-right">Nominal</th>
+                      <th className="px-6 py-4 font-medium">Dilaporkan Oleh</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {pettyCashData.map((item, i) => (
+                      <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4 font-medium text-slate-800">{item.id}</td>
+                        <td className="px-6 py-4 text-slate-600">{item.branch}</td>
+                        <td className="px-6 py-4 text-slate-600">{item.date}</td>
+                        <td className="px-6 py-4 text-slate-800 font-medium">{item.desc}</td>
+                        <td className="px-6 py-4 text-rose-600 font-bold text-right">- {item.amount}</td>
+                        <td className="px-6 py-4 text-slate-600">{item.by}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Review Modal */}
       <AnimatePresence>

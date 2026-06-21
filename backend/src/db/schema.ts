@@ -113,7 +113,9 @@ export const budgets = pgTable("budgets", {
   id: uuid("id").defaultRandom().primaryKey(),
   branchId: uuid("branch_id").references(() => branches.id).notNull(),
   month: varchar("month", { length: 7 }).notNull(), // YYYY-MM
-  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  pettyCashBudget: decimal("petty_cash_budget", { precision: 15, scale: 2 }).default("0").notNull(),
+  shoppingBudget: decimal("shopping_budget", { precision: 15, scale: 2 }).default("0").notNull(),
+  targetAchievement: decimal("target_achievement", { precision: 15, scale: 2 }).default("0").notNull(),
   approvedBy: text("approved_by").references(() => users.id),
   isDeleted: boolean("is_deleted").default(false),
   updatedBy: text("updated_by"),
@@ -204,4 +206,31 @@ export const journalEntries = pgTable("journal_entries", {
   createdAt: timestamp("created_at").defaultNow(),
   isDeleted: boolean("is_deleted").default(false),
   updatedBy: text("updated_by"),
+});
+
+export const overtimeRequests = pgTable("overtime_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").references(() => users.id).notNull(),
+  date: date("date").notNull(),
+  startTime: time("start_time").notNull(),
+  endTime: time("end_time").notNull(),
+  reason: text("reason").notNull(),
+  status: varchar("status", { length: 50 }).default("PENDING"),
+  approvedBy: text("approved_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  isDeleted: boolean("is_deleted").default(false),
+  updatedBy: text("updated_by"),
+});
+
+export const products = pgTable("products", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  code: varchar("code", { length: 100 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  hpp: decimal("hpp", { precision: 12, scale: 2 }).notNull(),
+  sellPrice: decimal("sell_price", { precision: 12, scale: 2 }).notNull(),
+  stock: integer("stock").notNull().default(0),
+  minStock: integer("min_stock").notNull().default(10),
+  movement: varchar("movement", { length: 50 }).default("slow"),
+  isDeleted: boolean("is_deleted").default(false),
 });

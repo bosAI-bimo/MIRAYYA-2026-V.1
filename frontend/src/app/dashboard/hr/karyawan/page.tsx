@@ -52,6 +52,9 @@ export default function KaryawanPage() {
   const [branches, setBranches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState<any>(null);
+  const [deleteAction, setDeleteAction] = useState<'deactivate' | 'delete'>('deactivate');
 
   const addForm = useForm<AddEmployeeFormValues>({
     resolver: zodResolver(addEmployeeSchema),
@@ -88,9 +91,13 @@ export default function KaryawanPage() {
 
   useEffect(() => {
     fetcher('/admin/roles').then(data => {
-      setRoles(data || []);
-      if(data && data.length > 0 && !addForm.getValues('roleId')) {
-        addForm.setValue('roleId', data[0].id);
+      // Deduplicate roles by name
+      const uniqueRoles = (data || []).filter((r: any, i: number, arr: any[]) => 
+        arr.findIndex((x: any) => x.name.toLowerCase() === r.name.toLowerCase()) === i
+      );
+      setRoles(uniqueRoles);
+      if(uniqueRoles.length > 0 && !addForm.getValues('roleId')) {
+        addForm.setValue('roleId', uniqueRoles[0].id);
       }
     }).catch(console.error);
     fetcher('/admin/branches').then(data => {
@@ -155,14 +162,23 @@ export default function KaryawanPage() {
     setActiveDropdown(null);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Apakah Anda yakin ingin menonaktifkan/menghapus karyawan ini?")) return;
+  const confirmDelete = (emp: any) => {
+    setEmployeeToDelete(emp);
+    setDeleteAction('deactivate');
+    setDeleteConfirmOpen(true);
+    setActiveDropdown(null);
+  };
+
+  const handleDelete = async () => {
+    if (!employeeToDelete) return;
     try {
-      await fetcher(`/admin/users/${id}`, { method: 'DELETE' });
-      toast.success("Karyawan berhasil dinonaktifkan/dihapus!");
+      await fetcher(`/admin/users/${employeeToDelete.id}`, { method: 'DELETE' });
+      toast.success(deleteAction === 'deactivate' ? "Karyawan berhasil dinonaktifkan!" : "Karyawan berhasil dihapus!");
+      setDeleteConfirmOpen(false);
+      setEmployeeToDelete(null);
       await fetchEmployees();
     } catch (error: any) {
-      toast.error("Gagal menghapus karyawan: " + error.message);
+      toast.error("Gagal memproses: " + error.message);
     }
   };
 
@@ -354,7 +370,7 @@ export default function KaryawanPage() {
               <tbody className="divide-y divide-slate-100">
                 {paginatedData.map((emp) => (
                   <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 text-slate-600 font-medium">{emp.id}</td>
+                    <td className="px-6 py-4 text-slate-600 font-medium font-mono text-xs">{`MR-${String(startIndex + employees.indexOf(emp) + 1).padStart(4, '0')}`}</td>
                     <td className="px-6 py-4">
                       <div className="font-semibold text-slate-800">{emp.name}</div>
                       <div className="text-slate-500 text-xs mt-0.5">{emp.email}</div>
@@ -418,8 +434,7 @@ export default function KaryawanPage() {
                           <button className="w-full px-4 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 flex items-center transition-colors"
                             onClick={(e) => {
                               e.preventDefault();
-                              handleDelete(emp.id);
-                              setActiveDropdown(null);
+                              confirmDelete(emp);
                             }}
                           >
                             <Trash2 className="w-4 h-4 mr-2" /> Nonaktifkan / Hapus
@@ -656,6 +671,30 @@ export default function KaryawanPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="sm:max-w-[420px] p-6">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-rose-700">Konfirmasi Aksi</DialogTitle>
+            <DialogDescription className="text-slate-500">
+              Anda akan menonaktifkan karyawan <strong className="text-slate-800">{employeeToDelete?.name}</strong>. Data karyawan tetap tersimpan di database.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <p className="text-sm text-amber-800 font-medium">⚠️ Perhatian</p>
+              <p className="text-xs text-amber-700 mt-1">Karyawan yang dinonaktifkan tidak akan bisa login ke sistem, namun seluruh riwayat data (absensi, payroll, dll) tetap tersimpan dan bisa diakses.</p>
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-end gap-2 border-t border-slate-100 pt-4 mt-2">
+            <Button type="button" variant="outline" onClick={() => { setDeleteConfirmOpen(false); setEmployeeToDelete(null); }} className="font-semibold">Batal</Button>
+            <Button type="button" onClick={handleDelete} className="bg-rose-600 hover:bg-rose-700 text-white font-semibold">
+              Nonaktifkan Karyawan
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </motion.div>

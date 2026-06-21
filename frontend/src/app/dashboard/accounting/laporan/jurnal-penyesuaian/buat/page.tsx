@@ -11,6 +11,8 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { fetcher } from "@/lib/api";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 const journalEntrySchema = z.object({
   akun: z.string().min(1, "Nama akun wajib diisi"),
@@ -39,18 +41,23 @@ const journalSchema = z.object({
 
 type JournalFormValues = z.infer<typeof journalSchema>;
 
-export default function BuatJurnalPage() {
+function BuatJurnalForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  const initialAmount = searchParams.get("amount") || "";
+  const initialDesc = searchParams.get("desc") || "";
+  const initialAccount = searchParams.get("account") || "";
   
   const { register, control, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<JournalFormValues>({
     resolver: zodResolver(journalSchema),
     defaultValues: {
-      date: "",
+      date: new Date().toISOString().split('T')[0],
       reference: "",
-      description: "",
+      description: initialDesc,
       entries: [
-        { akun: "", debit: "", kredit: "" },
-        { akun: "", debit: "", kredit: "" }
+        { akun: "Selisih Kas / Rekonsiliasi", debit: initialAmount, kredit: "" },
+        { akun: initialAccount, debit: "", kredit: initialAmount }
       ]
     }
   });
@@ -319,5 +326,13 @@ export default function BuatJurnalPage() {
         </CardFooter>
       </Card>
     </div>
+  );
+}
+
+export default function BuatJurnalPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" /></div>}>
+      <BuatJurnalForm />
+    </Suspense>
   );
 }
