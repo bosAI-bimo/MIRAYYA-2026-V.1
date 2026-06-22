@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "sonner";
 import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -43,6 +44,7 @@ export default function RootLayout({
           {children}
           <Toaster position="top-center" richColors />
           <PWAInstallPrompt />
+          <ServiceWorkerRegistration />
         </AuthProvider>
       </body>
     </html>

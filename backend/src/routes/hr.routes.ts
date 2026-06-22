@@ -3,6 +3,8 @@ import { db } from "../db";
 import { users, attendance, branches, roles, payroll } from "../db/schema";
 import { eq, sql, desc, and, gte, lte, ilike } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/authMiddleware";
+import { validateRequest } from "../middlewares/validateRequest";
+import { hrSchema } from "../validators/schema";
 
 const router = Router();
 
@@ -207,7 +209,7 @@ router.get("/attendance", async (req, res) => {
   }
 });
 
-router.post("/attendance", async (req, res) => {
+router.post("/attendance", validateRequest(hrSchema.createAttendance), async (req, res) => {
   try {
     const { attendanceDate, timeIn, timeOut, selfieUrl, locationGps } = req.body;
     const userId = req.body.userId || (req as any).user?.id;

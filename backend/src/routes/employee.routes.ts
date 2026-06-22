@@ -4,6 +4,8 @@ import { users, attendance, branches } from "../db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth } from "../middlewares/authMiddleware";
 import { uploadSelfieToSupabase } from "../lib/supabase";
+import { validateRequest } from "../middlewares/validateRequest";
+import { employeeSchema } from "../validators/schema";
 
 const router = Router();
 
@@ -38,7 +40,7 @@ router.get("/attendance/my-records", async (req, res) => {
   }
 });
 
-router.post("/attendance/check-in", async (req, res) => {
+router.post("/attendance/check-in", validateRequest(employeeSchema.checkIn), async (req, res) => {
   try {
     const userId = (req as any).user.id;
     const { selfieBase64, latitude, longitude, notes } = req.body;
@@ -154,7 +156,7 @@ router.post("/attendance/check-out", async (req, res) => {
   }
 });
 
-router.post("/overtime", async (req, res) => {
+router.post("/overtime", validateRequest(employeeSchema.overtime), async (req, res) => {
   try {
     const userId = (req as any).user.id;
     const { date, startTime, endTime, reason } = req.body;

@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { auth } from "../auth";
+import { validateRequest } from "../middlewares/validateRequest";
+import { authSchema } from "../validators/schema";
 import { db } from "../db";
 import { roles, branches, users } from "../db/schema";
 import { eq } from "drizzle-orm";
@@ -8,7 +10,7 @@ import { toNodeHandler } from "better-auth/node";
 const router = Router();
 
 // Endpoint Registrasi Custom
-router.post("/register", async (req, res) => {
+router.post("/register", validateRequest(authSchema.register), async (req, res) => {
   try {
     const { email, password, fullName, roleId, branchId, phone, employeeId } = req.body;
 
@@ -97,7 +99,7 @@ router.post("/register", async (req, res) => {
 });
 
 // Endpoint Login Custom
-router.post("/login", async (req, res) => {
+router.post("/login", validateRequest(authSchema.login), async (req, res) => {
   try {
     const { email, identifier, password } = req.body;
     

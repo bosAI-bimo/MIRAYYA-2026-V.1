@@ -3,6 +3,8 @@ import { db } from "../db";
 import { branches, roles, users } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/authMiddleware";
+import { validateRequest } from "../middlewares/validateRequest";
+import { hrSchema } from "../validators/schema";
 
 const router = Router();
 
@@ -36,7 +38,7 @@ router.get("/branches", async (req, res) => {
   }
 });
 
-router.post("/branches", async (req, res) => {
+router.post("/branches", validateRequest(hrSchema.createBranch), async (req, res) => {
   try {
     const { name, address, phone, latitude, longitude } = req.body;
     
@@ -67,7 +69,7 @@ router.post("/branches", async (req, res) => {
   }
 });
 
-router.put("/branches/:id", async (req, res) => {
+router.put("/branches/:id", validateRequest(hrSchema.updateBranch), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, address, phone, latitude, longitude } = req.body;
@@ -94,7 +96,7 @@ router.put("/branches/:id", async (req, res) => {
         latitude: latStr, 
         longitude: lngStr 
       })
-      .where(eq(branches.id, id))
+      .where(eq(branches.id, id as string))
       .returning();
     if (updatedBranch.length === 0) return res.status(404).json({ message: "Branch not found" });
     res.json(updatedBranch[0]);
@@ -109,7 +111,7 @@ router.delete("/branches/:id", async (req, res) => {
     const currentUserId = (req as any).user?.id || "system";
     const deletedBranch = await db.update(branches)
       .set({ isDeleted: true, updatedBy: currentUserId })
-      .where(eq(branches.id, id))
+      .where(eq(branches.id, id as string))
       .returning();
     if (deletedBranch.length === 0) return res.status(404).json({ message: "Branch not found" });
     res.json({ message: "Branch deleted successfully" });
@@ -145,7 +147,7 @@ router.put("/roles/:id", async (req, res) => {
     const { name } = req.body;
     const updatedRole = await db.update(roles)
       .set({ name })
-      .where(eq(roles.id, id))
+      .where(eq(roles.id, id as string))
       .returning();
     if (updatedRole.length === 0) return res.status(404).json({ message: "Role not found" });
     res.json(updatedRole[0]);
@@ -157,7 +159,7 @@ router.put("/roles/:id", async (req, res) => {
 router.delete("/roles/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedRole = await db.delete(roles).where(eq(roles.id, id)).returning();
+    const deletedRole = await db.delete(roles).where(eq(roles.id, id as string)).returning();
     if (deletedRole.length === 0) return res.status(404).json({ message: "Role not found" });
     res.json({ message: "Role deleted successfully" });
   } catch (error: any) {
@@ -176,13 +178,13 @@ router.get("/users", async (req, res) => {
   }
 });
 
-router.put("/users/:id", async (req, res) => {
+router.put("/users/:id", validateRequest(hrSchema.updateEmployee), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, roleId, branchId, phone } = req.body;
     const updatedUser = await db.update(users)
       .set({ name, roleId, branchId, phone })
-      .where(eq(users.id, id))
+      .where(eq(users.id, id as string))
       .returning();
     if (updatedUser.length === 0) return res.status(404).json({ message: "User not found" });
     res.json(updatedUser[0]);
@@ -197,7 +199,7 @@ router.delete("/users/:id", async (req, res) => {
     const currentUserId = (req as any).user?.id || "system";
     const deletedUser = await db.update(users)
       .set({ isDeleted: true, updatedBy: currentUserId })
-      .where(eq(users.id, id))
+      .where(eq(users.id, id as string))
       .returning();
     if (deletedUser.length === 0) return res.status(404).json({ message: "User not found" });
     res.json({ message: "User deleted successfully" });

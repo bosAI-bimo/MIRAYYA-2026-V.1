@@ -129,6 +129,8 @@ export const orders = pgTable("orders", {
   status: varchar("status", { length: 50 }).notNull(), // PENDING, APPROVED, REJECTED
   totalAmount: decimal("total_amount", { precision: 15, scale: 2 }).notNull(),
   budgetId: uuid("budget_id").references(() => budgets.id),
+  isDeleted: boolean("is_deleted").default(false),
+  updatedBy: text("updated_by"),
 });
 
 export const orderItems = pgTable("order_items", {
@@ -139,6 +141,7 @@ export const orderItems = pgTable("order_items", {
   quantity: integer("quantity").notNull(),
   unitPrice: decimal("unit_price", { precision: 12, scale: 2 }).notNull(),
   movementCategory: varchar("movement_category", { length: 50 }), // FAST_MOVING, SLOW_MOVING
+  isDeleted: boolean("is_deleted").default(false),
 });
 
 export const eodReports = pgTable("eod_reports", {

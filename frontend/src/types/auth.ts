@@ -3,12 +3,7 @@
 // accounting  = Staff Accounting
 // kepala-toko = Kepala Toko / Store Leader
 // karyawan    = Karyawan biasa / Beauty Advisor
-// Tambahan role baru:
-// HQ_Admin         = Admin Pusat
-// Regional_Manager = Manager Regional
-// Staff_Gudang     = Staff Gudang
-// Kasir            = Kasir cabang
-export type UserRole = 'owner' | 'hr' | 'accounting' | 'kepala-toko' | 'karyawan' | 'HQ_Admin' | 'Regional_Manager' | 'Staff_Gudang' | 'Kasir';
+export type UserRole = 'owner' | 'hr' | 'accounting' | 'kepala-toko' | 'karyawan';
 
 export interface User {
   id: string;

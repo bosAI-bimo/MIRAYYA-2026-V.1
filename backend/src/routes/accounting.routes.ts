@@ -100,16 +100,42 @@ router.get("/dashboard-stats", async (req, res) => {
       amount: `Rp ${Number(pc.amount).toLocaleString('id-ID')}`
     }));
 
+    // Pending PO count (real)
+    const pendingPoResult = await db.select({ count: sql<number>`count(*)` })
+      .from(require("../db/schema").orders)
+      .where(eq(require("../db/schema").orders.status, "PENDING"));
+    const pendingPoCount = Number(pendingPoResult[0]?.count || 0);
+
+    // Monthly operating expenses
+    const opexResult = await db.select({ total: sql<number>`COALESCE(sum(${pettyCashTransactions.amount}), 0)` })
+      .from(pettyCashTransactions)
+      .where(and(
+        eq(pettyCashTransactions.isDeleted, false),
+        sql`to_char(${pettyCashTransactions.transactionDate}, 'YYYY-MM') = ${new Date().toISOString().substring(0, 7)}`
+      ));
+    const opex = Number(opexResult[0]?.total || 0);
+    const estimatedCOGS = totalOmzet * 0.4;
+    const labaBersih = totalOmzet - estimatedCOGS - opex;
+    const arusKasNet = totalOmzet - opex - estimatedCOGS;
+
+    // Target achievement from revenue_targets
+    const currentMonth = new Date().toISOString().substring(0, 7);
+    const targetResult = await db.select({ total: sql<number>`COALESCE(sum(${revenueTargets.targetRevenue}), 0)` })
+      .from(revenueTargets)
+      .where(and(eq(revenueTargets.isDeleted, false), eq(revenueTargets.month, currentMonth)));
+    const totalTarget = Number(targetResult[0]?.total || 0) || 100000000;
+    const targetOmzetPercentage = Math.min(Math.round((totalOmzet / totalTarget) * 100), 100);
+
     res.json({
-      labaBersih: totalOmzet * 0.3, // Example logic
+      labaBersih,
       totalOmzet: totalOmzet,
-      arusKasNet: totalOmzet * 0.2, // Example logic
-      targetOmzetPercentage: 82,
+      arusKasNet,
+      targetOmzetPercentage,
       pendingEod,
       pendingEodList,
       completedEodList,
       pettyCashList,
-      pendingPo: 3 // Example, since PO table might not be fully linked in schema
+      pendingPo: pendingPoCount
     });
   } catch (error) {
     console.error(error);
@@ -128,7 +154,7 @@ router.get("/budgets", async (req, res) => {
   }
 });
 
-router.post("/budgets", async (req, res) => {
+router.post("/budgets", validateRequest(accountingSchema.createBudget), async (req, res) => {
   try {
     const { branchId, month, pettyCashBudget, shoppingBudget, targetAchievement, approvedBy } = req.body;
     const newBudget = await db.insert(budgets)
@@ -344,7 +370,7 @@ router.get("/eod-reports", async (req, res) => {
   }
 });
 
-router.put("/eod-reports/:id/approve", async (req, res) => {
+router.put("/eod-reports/:id/approve", validateRequest(accountingSchema.actionEod), async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body; // APPROVED or REJECTED

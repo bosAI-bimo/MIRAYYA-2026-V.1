@@ -79,7 +79,8 @@ export default function LabaRugiPage() {
   const handleExport = async () => {
     let monthStr = '2026-06';
     if (period === 'last_month') monthStr = '2026-05';
-    const url = `http://localhost:5000/api/accounting/export/profit-loss?month=${monthStr}&branchId=${branch}`;
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const url = `${baseUrl}/accounting/export/profit-loss?month=${monthStr}&branchId=${branch}`;
     await downloadFile(url, `Laporan-Laba-Rugi-${monthStr}.csv`);
   };
 
