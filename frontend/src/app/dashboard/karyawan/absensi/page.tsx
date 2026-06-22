@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
 import { format } from "date-fns";
+import { DateRange } from "react-day-picker";
 import { Camera, MapPin, Clock, Filter, Search, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Eye, Plus, Loader2, X as XIcon } from "lucide-react";
 import Link from "next/link";
 import { fetcher } from "@/lib/api";
@@ -26,7 +27,7 @@ export default function AbsensiKaryawan() {
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isLemburModalOpen, setIsLemburModalOpen] = useState(false);
-  const [searchDate, setSearchDate] = useState<Date | undefined>(undefined);
+  const [searchDate, setSearchDate] = useState<DateRange | undefined>(undefined);
   
   // Overtime Form State
   const [lemburDate, setLemburDate] = useState("");
@@ -51,10 +52,19 @@ export default function AbsensiKaryawan() {
   }, []);
 
   const filteredHistoryData = historyData.filter(row => {
-    if (!searchDate) return true;
+    if (!searchDate?.from) return true;
     try {
-      const formattedSearch = format(searchDate, "yyyy-MM-dd");
-      return row.attendanceDate === formattedSearch;
+      const rowDate = new Date(row.attendanceDate);
+      rowDate.setHours(0, 0, 0, 0);
+      const fromDate = new Date(searchDate.from);
+      fromDate.setHours(0, 0, 0, 0);
+      
+      if (searchDate.to) {
+        const toDate = new Date(searchDate.to);
+        toDate.setHours(23, 59, 59, 999);
+        return rowDate >= fromDate && rowDate <= toDate;
+      }
+      return rowDate.getTime() === fromDate.getTime();
     } catch (e) {
       return true;
     }

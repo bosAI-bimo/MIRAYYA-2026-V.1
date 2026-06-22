@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Search, Eye, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Download, Printer, Check, X as XIcon } from "lucide-react";
@@ -11,7 +11,7 @@ import { GlobalFilter } from "@/components/ui/global-filter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function EODApprovalPage() {
+function EODApprovalContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialTab = searchParams.get("tab") === "pettycash" ? "pettycash" : "eod";
@@ -440,5 +440,13 @@ export default function EODApprovalPage() {
       </AnimatePresence>
 
     </div>
+  );
+}
+
+export default function EODApprovalPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
+      <EODApprovalContent />
+    </Suspense>
   );
 }
