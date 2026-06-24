@@ -106,12 +106,12 @@ router.get("/dashboard-stats", async (req, res) => {
       branchName: branches.name,
       totalAmount: orders.totalAmount,
       status: orders.status,
-      createdAt: orders.createdAt,
+      createdAt: orders.orderDate,
     })
     .from(orders)
     .leftJoin(branches, eq(orders.branchId, branches.id))
     .where(eq(orders.status, "PENDING"))
-    .orderBy(sql`${orders.createdAt} DESC`)
+    .orderBy(sql`${orders.orderDate} DESC`)
     .limit(20);
 
     const pendingPoList = pendingPoListRaw.map(po => ({
