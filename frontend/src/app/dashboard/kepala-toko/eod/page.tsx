@@ -40,6 +40,7 @@ export default function EODPage() {
     2000: 0,
     1000: 0,
   });
+  const [eodPhoto, setEodPhoto] = React.useState<File | null>(null);
 
   const eodForm = useForm<EodFormValues>({
     resolver: zodResolver(eodSchema),
@@ -68,6 +69,19 @@ export default function EODPage() {
 
   const onSubmitEod = async (data: EodFormValues) => {
     try {
+      let evidencePhotos: string[] = [];
+      if (eodPhoto) {
+        const formData = new FormData();
+        formData.append('file', eodPhoto);
+        const uploadRes = await fetcher('/upload', {
+          method: 'POST',
+          body: formData
+        });
+        if (uploadRes.url) {
+          evidencePhotos = [uploadRes.url];
+        }
+      }
+
       await fetcher('/store/eod-reports', {
         method: 'POST',
         body: JSON.stringify({
@@ -77,11 +91,12 @@ export default function EODPage() {
           edcAmount: parseFloat(data.edcAmount.replace(/[^0-9]/g, '')) || 0,
           qrisAmount: parseFloat(data.qrisAmount.replace(/[^0-9]/g, '')) || 0,
           pettyCashUsed: 0,
-          evidencePhotos: []
+          evidencePhotos: evidencePhotos
         })
       });
       toast.success('Laporan EOD berhasil dikirim!');
       eodForm.reset();
+      setEodPhoto(null);
     } catch(err: any) { 
       toast.error("Gagal mengirim EOD: " + err.message); 
     }
@@ -232,11 +247,19 @@ export default function EODPage() {
                 <CardDescription>Unggah foto struk settlement EDC atau bukti transfer setor tunai.</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
+                <label className="border-2 border-dashed border-slate-300 rounded-lg p-8 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer">
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={(e) => setEodPhoto(e.target.files?.[0] || null)} 
+                  />
                   <UploadCloud className="w-10 h-10 text-slate-400 mb-4" />
-                  <p className="text-sm font-medium text-slate-700 mb-1">Klik untuk unggah atau seret file ke sini</p>
+                  <p className="text-sm font-medium text-slate-700 mb-1">
+                    {eodPhoto ? eodPhoto.name : 'Klik untuk unggah atau seret file ke sini'}
+                  </p>
                   <p className="text-xs text-slate-500">Mendukung format JPG, PNG (Maks. 5MB)</p>
-                </div>
+                </label>
               </CardContent>
               <CardFooter className="bg-slate-50 border-t border-slate-100 flex justify-end p-4 rounded-b-lg">
                 <Button type="submit" className="bg-primary hover:bg-primary/90 text-white px-8" disabled={eodForm.formState.isSubmitting}>

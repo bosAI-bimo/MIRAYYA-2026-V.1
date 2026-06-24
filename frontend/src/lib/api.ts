@@ -4,14 +4,19 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/a
 
 export const fetcher = async (url: string, options: RequestInit = {}) => {
   try {
+    let headers: any = {
+      "Content-Type": "application/json",
+      ...options.headers,
+    };
+    if (options.body instanceof FormData) {
+      delete headers["Content-Type"];
+    }
+
     const res = await fetch(`${API_BASE_URL}${url}`, {
       cache: "no-store",
       credentials: "include",
       ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
+      headers,
     });
 
     if (!res.ok) {

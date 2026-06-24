@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { Search, Download, Calculator, CheckCircle2, FileText, Filter, ChevronRight, ChevronLeft, ChevronsLeft, ChevronsRight, Eye, Calendar, Clock, Edit, Save, AlertCircle, Users, Check, X, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { fetcher } from "@/lib/api";
+import { exportToCSV } from "@/lib/export";
 
 const formatRupiah = (number: number) => {
   return new Intl.NumberFormat("id-ID", {
@@ -267,7 +268,7 @@ export default function PayrollPage() {
           <h1 className="text-3xl font-bold tracking-tight text-slate-800">Payroll & Gaji</h1>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-          <Button variant="outline" className="border-slate-200 text-slate-600 w-full sm:w-auto">
+          <Button variant="outline" className="border-slate-200 text-slate-600 w-full sm:w-auto" onClick={() => exportToCSV(`Rekap-Payroll-${payrollPeriod}.csv`, payrollData)}>
             <Download className="w-4 h-4 mr-2" />
             Ekspor Rekap
           </Button>

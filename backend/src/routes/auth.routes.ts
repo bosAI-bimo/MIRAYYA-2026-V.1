@@ -3,7 +3,7 @@ import { auth } from "../auth";
 import { validateRequest } from "../middlewares/validateRequest";
 import { authSchema } from "../validators/schema";
 import { db } from "../db";
-import { roles, branches, users } from "../db/schema";
+import { roles, branches, users, session } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { toNodeHandler } from "better-auth/node";
 
@@ -134,7 +134,7 @@ router.post("/login", validateRequest(authSchema.login), async (req, res) => {
     res.cookie("better-auth.session_token", result.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
@@ -166,7 +166,11 @@ router.post("/login", validateRequest(authSchema.login), async (req, res) => {
 
 // Endpoint Logout
 router.post("/logout", async (req, res) => {
-  res.clearCookie("better-auth.session_token", { path: "/" });
+  res.clearCookie("better-auth.session_token", { 
+    path: "/", 
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production"
+  });
   return res.status(200).json({ message: "Logout berhasil" });
 });
 
@@ -200,7 +204,7 @@ router.get("/me", async (req, res) => {
     }
 
     // Jika ada token dari login manual
-    const dbSession = await db.select().from(require("../db/schema").session).where(eq(require("../db/schema").session.token, token)).limit(1);
+    const dbSession = await db.select().from(session).where(eq(session.token, token)).limit(1);
     
     if (dbSession.length === 0 || new Date() > new Date(dbSession[0].expiresAt)) {
       return res.status(401).json({ message: "Session expired" });

@@ -20,5 +20,10 @@ export const auth = betterAuth({
     enabled: true,
   },
   trustedOrigins: [process.env.FRONTEND_URL || "http://localhost:3000", "http://localhost:3000"],
-  // Add other configurations as needed for Better Auth
+  advanced: {
+    defaultCookieAttributes: {
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+    }
+  }
 });

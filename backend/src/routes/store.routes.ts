@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
-import { eodReports, orders, orderItems, pettyCashTransactions, attendance, branches, users, products } from "../db/schema";
+import { eodReports, orders, orderItems, pettyCashTransactions, attendance, branches, users, products, revenueTargets, budgets } from "../db/schema";
 import { sql, eq, and } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/authMiddleware";
 import { validateRequest } from "../middlewares/validateRequest";
@@ -36,8 +36,8 @@ router.get("/dashboard-stats", async (req, res) => {
     // Revenue Target for this branch
     let targetBulanan = 100000000;
     if (branchId) {
-      const targetRes = await db.select().from(require("../db/schema").revenueTargets)
-        .where(and(eq(require("../db/schema").revenueTargets.branchId, branchId), eq(require("../db/schema").revenueTargets.month, currentMonth)))
+      const targetRes = await db.select().from(revenueTargets)
+        .where(and(eq(revenueTargets.branchId, branchId), eq(revenueTargets.month, currentMonth)))
         .limit(1);
       if (targetRes.length > 0) targetBulanan = Number(targetRes[0].targetRevenue);
     }
@@ -68,8 +68,8 @@ router.get("/dashboard-stats", async (req, res) => {
     // Petty Cash Sisa (budget - used)
     let pettyCashSisa = 0;
     if (branchId) {
-      const budgetRes = await db.select().from(require("../db/schema").budgets)
-        .where(and(eq(require("../db/schema").budgets.branchId, branchId), eq(require("../db/schema").budgets.month, currentMonth), eq(require("../db/schema").budgets.isDeleted, false)))
+      const budgetRes = await db.select().from(budgets)
+        .where(and(eq(budgets.branchId, branchId), eq(budgets.month, currentMonth), eq(budgets.isDeleted, false)))
         .limit(1);
       const budgetAmount = budgetRes.length > 0 ? Number(budgetRes[0].pettyCashBudget) : 0;
       

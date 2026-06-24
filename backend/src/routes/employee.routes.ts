@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
-import { users, attendance, branches } from "../db/schema";
+import { users, attendance, branches, overtimeRequests } from "../db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth } from "../middlewares/authMiddleware";
 import { uploadSelfieToSupabase } from "../lib/supabase";
@@ -166,8 +166,6 @@ router.post("/overtime", validateRequest(employeeSchema.overtime), async (req, r
     }
 
     // Insert overtime request
-    // Note: We need to import overtimeRequests from schema
-    const { overtimeRequests } = await import("../db/schema");
     const newRequest = await db.insert(overtimeRequests)
       .values({
         userId,
@@ -182,6 +180,21 @@ router.post("/overtime", validateRequest(employeeSchema.overtime), async (req, r
     res.status(201).json(newRequest[0]);
   } catch (error: any) {
     console.error("Overtime error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/overtime", async (req, res) => {
+  try {
+    const userId = (req as any).user.id;
+    const records = await db.select()
+      .from(overtimeRequests)
+      .where(and(eq(overtimeRequests.userId, userId), eq(overtimeRequests.isDeleted, false)))
+      .orderBy(desc(overtimeRequests.createdAt));
+      
+    res.json(records);
+  } catch (error: any) {
+    console.error("Get overtime error:", error);
     res.status(500).json({ error: error.message });
   }
 });

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
-import { users, attendance, branches, roles, payroll } from "../db/schema";
+import { users, attendance, branches, roles, payroll, overtimeRequests } from "../db/schema";
 import { eq, sql, desc, and, gte, lte, ilike } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/authMiddleware";
 import { validateRequest } from "../middlewares/validateRequest";
@@ -300,6 +300,80 @@ router.delete("/payroll/:id", async (req, res) => {
       .returning();
     if (deletedPayroll.length === 0) return res.status(404).json({ message: "Payroll not found" });
     res.json({ message: "Payroll deleted" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- OVERTIME CRUD ---
+
+router.get("/overtime", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    const query = db.select({
+      id: overtimeRequests.id,
+      userId: overtimeRequests.userId,
+      userName: users.name,
+      branchName: branches.name,
+      date: overtimeRequests.date,
+      startTime: overtimeRequests.startTime,
+      endTime: overtimeRequests.endTime,
+      reason: overtimeRequests.reason,
+      status: overtimeRequests.status,
+      createdAt: overtimeRequests.createdAt
+    })
+    .from(overtimeRequests)
+    .innerJoin(users, eq(overtimeRequests.userId, users.id))
+    .leftJoin(branches, eq(users.branchId, branches.id))
+    .where(eq(overtimeRequests.isDeleted, false))
+    .orderBy(desc(overtimeRequests.createdAt));
+
+    const totalQuery = await db.select({ count: sql<number>`count(*)` })
+      .from(overtimeRequests)
+      .where(eq(overtimeRequests.isDeleted, false));
+    
+    const total = Number(totalQuery[0]?.count) || 0;
+
+    const data = await query.limit(limit).offset(offset);
+
+    res.json({
+      data,
+      metadata: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put("/overtime/:id/approve", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body; // APPROVED or REJECTED
+    const approvedBy = (req as any).user?.id;
+
+    if (!["APPROVED", "REJECTED"].includes(status)) {
+      return res.status(400).json({ error: "Status must be APPROVED or REJECTED" });
+    }
+
+    const updated = await db.update(overtimeRequests)
+      .set({ 
+        status, 
+        approvedBy,
+        updatedBy: approvedBy 
+      })
+      .where(eq(overtimeRequests.id, id as any))
+      .returning();
+
+    if (updated.length === 0) return res.status(404).json({ message: "Overtime request not found" });
+    res.json(updated[0]);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

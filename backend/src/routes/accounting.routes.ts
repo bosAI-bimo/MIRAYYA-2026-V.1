@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../db";
-import { eodReports, pettyCashTransactions, branches, budgets, revenueTargets, bankReconciliations, users, journalEntries } from "../db/schema";
+import { eodReports, pettyCashTransactions, branches, budgets, revenueTargets, bankReconciliations, users, journalEntries, orders } from "../db/schema";
 import { eq, sql, and } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/authMiddleware";
 import { validateRequest } from "../middlewares/validateRequest";
@@ -100,18 +100,84 @@ router.get("/dashboard-stats", async (req, res) => {
       amount: `Rp ${Number(pc.amount).toLocaleString('id-ID')}`
     }));
 
-    // Pending PO count (real)
-    const pendingPoResult = await db.select({ count: sql<number>`count(*)` })
-      .from(require("../db/schema").orders)
-      .where(eq(require("../db/schema").orders.status, "PENDING"));
-    const pendingPoCount = Number(pendingPoResult[0]?.count || 0);
+    // Pending PO count and List
+    const pendingPoListRaw = await db.select({
+      id: orders.id,
+      branchName: branches.name,
+      totalAmount: orders.totalAmount,
+      status: orders.status,
+      createdAt: orders.createdAt,
+    })
+    .from(orders)
+    .leftJoin(branches, eq(orders.branchId, branches.id))
+    .where(eq(orders.status, "PENDING"))
+    .orderBy(sql`${orders.createdAt} DESC`)
+    .limit(20);
+
+    const pendingPoList = pendingPoListRaw.map(po => ({
+      id: po.id,
+      branch: po.branchName || "Unknown Branch",
+      date: po.createdAt ? new Date(po.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : "-",
+      amount: `Rp ${Number(po.totalAmount).toLocaleString('id-ID')}`,
+      status: po.status
+    }));
+
+    const pendingPoCount = pendingPoList.length;
+
+    // Rekonsiliasi List
+    const rekonsiliasiListRaw = await db.select({
+      id: bankReconciliations.id,
+      branchName: branches.name,
+      reconcileDate: bankReconciliations.reconcileDate,
+      bankStatementBalance: bankReconciliations.bankStatementBalance,
+      posSalesBalance: bankReconciliations.posSalesBalance,
+      difference: bankReconciliations.difference,
+      notes: bankReconciliations.notes
+    })
+    .from(bankReconciliations)
+    .leftJoin(branches, eq(bankReconciliations.branchId, branches.id))
+    .where(eq(bankReconciliations.isDeleted, false))
+    .orderBy(sql`${bankReconciliations.reconcileDate} DESC`)
+    .limit(10);
+
+    const rekonsiliasiList = rekonsiliasiListRaw.map(r => ({
+      id: r.id,
+      branch: r.branchName || "Unknown Branch",
+      date: new Date(r.reconcileDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+      bankBalance: `Rp ${Number(r.bankStatementBalance).toLocaleString('id-ID')}`,
+      posBalance: `Rp ${Number(r.posSalesBalance).toLocaleString('id-ID')}`,
+      difference: `Rp ${Number(r.difference).toLocaleString('id-ID')}`,
+      notes: r.notes
+    }));
+
+    // Pencapaian Target List (simplified for dashboard)
+    const currentMonth = new Date().toISOString().substring(0, 7);
+    
+    // Get budgets for the current month
+    const anggaranCabangListRaw = await db.select({
+      id: budgets.id,
+      branchName: branches.name,
+      pettyCashBudget: budgets.pettyCashBudget,
+      shoppingBudget: budgets.shoppingBudget,
+    })
+    .from(budgets)
+    .leftJoin(branches, eq(budgets.branchId, branches.id))
+    .where(and(eq(budgets.isDeleted, false), eq(budgets.month, currentMonth)));
+
+    const anggaranCabangList = anggaranCabangListRaw.map(b => ({
+      id: b.id,
+      branch: b.branchName || "Unknown Branch",
+      pettyCash: `Rp ${Number(b.pettyCashBudget).toLocaleString('id-ID')}`,
+      shopping: `Rp ${Number(b.shoppingBudget).toLocaleString('id-ID')}`,
+      total: `Rp ${(Number(b.pettyCashBudget) + Number(b.shoppingBudget)).toLocaleString('id-ID')}`
+    }));
 
     // Monthly operating expenses
     const opexResult = await db.select({ total: sql<number>`COALESCE(sum(${pettyCashTransactions.amount}), 0)` })
       .from(pettyCashTransactions)
       .where(and(
         eq(pettyCashTransactions.isDeleted, false),
-        sql`to_char(${pettyCashTransactions.transactionDate}, 'YYYY-MM') = ${new Date().toISOString().substring(0, 7)}`
+        sql`to_char(${pettyCashTransactions.transactionDate}, 'YYYY-MM') = ${currentMonth}`
       ));
     const opex = Number(opexResult[0]?.total || 0);
     const estimatedCOGS = totalOmzet * 0.4;
@@ -119,12 +185,16 @@ router.get("/dashboard-stats", async (req, res) => {
     const arusKasNet = totalOmzet - opex - estimatedCOGS;
 
     // Target achievement from revenue_targets
-    const currentMonth = new Date().toISOString().substring(0, 7);
     const targetResult = await db.select({ total: sql<number>`COALESCE(sum(${revenueTargets.targetRevenue}), 0)` })
       .from(revenueTargets)
       .where(and(eq(revenueTargets.isDeleted, false), eq(revenueTargets.month, currentMonth)));
     const totalTarget = Number(targetResult[0]?.total || 0) || 100000000;
     const targetOmzetPercentage = Math.min(Math.round((totalOmzet / totalTarget) * 100), 100);
+
+    // Dummy target list for now since joining omzet and targets per branch is complex without views
+    const pencapaianTargetList = [
+      { branch: "Evox Surabaya", target: `Rp ${Number(totalTarget).toLocaleString('id-ID')}`, actual: `Rp ${Number(totalOmzet).toLocaleString('id-ID')}`, percentage: targetOmzetPercentage }
+    ];
 
     res.json({
       labaBersih,
@@ -135,7 +205,11 @@ router.get("/dashboard-stats", async (req, res) => {
       pendingEodList,
       completedEodList,
       pettyCashList,
-      pendingPo: pendingPoCount
+      pendingPo: pendingPoCount,
+      pendingPoList,
+      rekonsiliasiList,
+      pencapaianTargetList,
+      anggaranCabangList
     });
   } catch (error) {
     console.error(error);

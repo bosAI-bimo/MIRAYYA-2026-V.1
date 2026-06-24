@@ -158,8 +158,8 @@ export default function AccountingDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-800">Rp {(stats?.labaBersih || 0).toLocaleString('id-ID')}</div>
-              <p className="text-xs text-emerald-600 flex items-center mt-1 font-medium">
-                <ArrowUpRight className="w-3 h-3 mr-1" /> 12.5%
+              <p className="text-xs text-slate-500 flex items-center mt-1 font-medium">
+                —
               </p>
             </CardContent>
           </Card>
@@ -360,27 +360,19 @@ export default function AccountingDashboard() {
                   <div className="space-y-4">
                     <h4 className="font-bold text-slate-800 text-sm">Saldo Akun Bank & Kas</h4>
                     <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
-                      <div className="flex justify-between p-3 bg-white hover:bg-slate-50 transition-colors">
-                        <div className="flex items-center">
-                          <Building2 className="w-4 h-4 text-slate-400 mr-2" />
-                          <span className="text-sm font-medium text-slate-700">BCA - Operasional</span>
-                        </div>
-                        <span className="text-sm font-bold text-slate-900">Rp 350.500.000</span>
-                      </div>
-                      <div className="flex justify-between p-3 bg-white hover:bg-slate-50 transition-colors">
-                        <div className="flex items-center">
-                          <Building2 className="w-4 h-4 text-slate-400 mr-2" />
-                          <span className="text-sm font-medium text-slate-700">Mandiri - Penerimaan</span>
-                        </div>
-                        <span className="text-sm font-bold text-slate-900">Rp 120.200.000</span>
-                      </div>
-                      <div className="flex justify-between p-3 bg-white hover:bg-slate-50 transition-colors">
-                        <div className="flex items-center">
-                          <Wallet className="w-4 h-4 text-slate-400 mr-2" />
-                          <span className="text-sm font-medium text-slate-700">Kas Tunai Cabang (Total)</span>
-                        </div>
-                        <span className="text-sm font-bold text-slate-900">Rp 45.300.000</span>
-                      </div>
+                      {stats?.rekonsiliasiList && stats.rekonsiliasiList.length > 0 ? (
+                        stats.rekonsiliasiList.slice(0, 3).map((rek: any, i: number) => (
+                          <div key={i} className="flex justify-between p-3 bg-white hover:bg-slate-50 transition-colors">
+                            <div className="flex items-center">
+                              <Building2 className="w-4 h-4 text-slate-400 mr-2" />
+                              <span className="text-sm font-medium text-slate-700">{rek.branch}</span>
+                            </div>
+                            <span className="text-sm font-bold text-slate-900">{rek.bankBalance}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-4 text-center text-sm text-slate-500">Data belum tersedia</div>
+                      )}
                     </div>
                   </div>
                 </CardContent>

@@ -6,8 +6,15 @@ const router = Router();
 // Simple middleware to protect cron endpoints using a secret header or token
 const requireCronAuth = (req: any, res: any, next: any) => {
   const authHeader = req.headers.authorization;
+  const cronSecret = process.env.CRON_SECRET;
+
+  if (!cronSecret) {
+    console.error("CRON_SECRET is not defined in environment variables");
+    return res.status(500).json({ error: "Server configuration error" });
+  }
+
   // In production, use a secure secret stored in env variables
-  if (authHeader !== "Bearer MIRAYYA_CRON_SECRET_2026") {
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return res.status(401).json({ error: "Unauthorized cron execution" });
   }
   next();
