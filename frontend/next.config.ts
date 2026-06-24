@@ -11,9 +11,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   output: "standalone",
   turbopack: {},
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+
 };
 
 export default withPWA(nextConfig);
