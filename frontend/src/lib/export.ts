@@ -28,7 +28,7 @@ export async function downloadFile(url: string, filename: string) {
   }
 }
 
-export function exportToCSV(filename: string, rows: object[]) {
+export function exportToCSV(filename: string, rows: Record<string, any>[]) {
   if (!rows || !rows.length) return;
   
   const separator = ',';
@@ -39,10 +39,10 @@ export function exportToCSV(filename: string, rows: object[]) {
     '\n' +
     rows.map(row => {
       return keys.map(k => {
-        let cell = row[k as keyof typeof row] === null || row[k as keyof typeof row] === undefined ? '' : row[k as keyof typeof row];
-        cell = cell instanceof Date ? cell.toLocaleString() : cell.toString().replace(/"/g, '""');
-        if (cell.search(/("|,|\n)/g) >= 0) cell = `"${cell}"`;
-        return cell;
+        let cell = row[k] === null || row[k] === undefined ? '' : row[k];
+        let cellString = cell instanceof Date ? cell.toLocaleString() : String(cell).replace(/"/g, '""');
+        if (cellString.search(/("|,|\n)/g) >= 0) cellString = `"${cellString}"`;
+        return cellString;
       }).join(separator);
     }).join('\n');
 
