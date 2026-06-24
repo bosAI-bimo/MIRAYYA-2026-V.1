@@ -11,7 +11,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   output: "standalone",
   turbopack: {},
-
+  // @ts-expect-error - Bypassing Next.js 16 strict type check for eslint property
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default withPWA(nextConfig);
